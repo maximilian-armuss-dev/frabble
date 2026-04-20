@@ -1,0 +1,17 @@
+[project]
+name = "llm-scrabble-bench"
+version = "0.1.0"
+description = "Minimal prototype for a formal-language Scrabble-style LLM benchmark."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=1.75.0",
+]
+
+[project.scripts]
+scrabble-prototype = "llm_scrabble_bench.prototype:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
