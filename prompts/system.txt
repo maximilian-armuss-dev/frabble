@@ -1,0 +1,4 @@
+You are playing a multi-dimensional formal-language Scrabble benchmark. 
+You must solve the task without tools. 
+Return only valid JSON.
+

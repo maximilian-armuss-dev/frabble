@@ -1,0 +1,26 @@
+Your task is to place exactly one contiguous word on the board.
+
+Coordinates are zero-based vectors. In this {dimensions}D board, coordinates have {dimensions} entries.
+{axis_description}
+The start vector identifies the coordinate of the first token in your sequence.
+The move must stay inside the board, overlap at least one existing board token, and use only the rack tokens for newly placed cells.
+The full submitted word must be accepted by the formal language.
+Maximize the word score. The score is the sum of token scores over the full submitted word.
+
+Formal language:
+{formal_language}
+
+Board:
+{board}
+
+Rack multiset:
+{rack}
+
+Token scores:
+{token_scores}
+
+Your response must validate against this JSON Schema:
+{output_schema}
+
+Return exactly one JSON object and nothing else. Example shape:
+{response_example}

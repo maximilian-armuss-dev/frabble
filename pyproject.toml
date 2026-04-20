@@ -5,13 +5,17 @@ description = "Minimal prototype for a formal-language Scrabble-style LLM benchm
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "matplotlib>=3.9.0",
+    "networkx>=3.3",
+    "numpy>=2.0.0",
     "openai>=1.75.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.1",
 ]
 
 [project.scripts]
-scrabble-prototype = "llm_scrabble_bench.prototype:main"
+scrabble-prototype = "llm_scrabble_bench.cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
