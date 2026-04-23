@@ -4,14 +4,14 @@ import argparse
 import json
 from pathlib import Path
 
-from .generation import generate_scenario
-from .models import Scenario
-from .openai_client import call_openai
-from .parsing import parse_move
-from .prompting import build_prompt
-from .scoring import optimal_move, optimal_score
-from .validation import validate_move
-from .visualization import render_dfa_png
+from .benchmark.generation import generate_scenario
+from .benchmark.prompting import build_prompt
+from .benchmark.scoring import optimal_move, optimal_score
+from .domain.models import Scenario
+from .domain.visualization import render_dfa_png
+from .formal.parsing import parse_move
+from .formal.validation import validate_move
+from .llm.client import call_llm
 
 
 def print_scenario_summary(scenario: Scenario) -> None:
@@ -34,6 +34,10 @@ def print_scenario_summary(scenario: Scenario) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=7)
+    parser.add_argument(
+        "--model-name",
+        help="Name of the model profile from model_configs.yaml.",
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--call-model", action="store_true")
     parser.add_argument("--show-prompt", action="store_true")
@@ -73,10 +77,10 @@ def main() -> None:
     if args.dry_run and not args.call_model:
         return
     if not args.call_model:
-        print("\nNo model call requested. Use --call-model to query OpenAI.")
+        print("\nNo model call requested. Use --call-model to query LLM.")
         return
 
-    raw_output = call_openai(system_prompt, user_prompt)
+    raw_output = call_llm(system_prompt, user_prompt, model_name=args.model_name)
     print("\n--- MODEL OUTPUT ---")
     print(raw_output)
     move = parse_move(raw_output)

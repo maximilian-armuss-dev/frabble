@@ -86,4 +86,3 @@ def render_dfa_png(dfa: DFA, output_path: str | Path) -> Path:
     plt.savefig(output, dpi=180)
     plt.close()
     return output
-

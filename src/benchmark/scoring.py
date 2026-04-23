@@ -4,7 +4,7 @@ import math
 from collections import Counter
 from typing import Iterable
 
-from .models import Move, Scenario
+from ..domain.models import Move, Scenario
 
 
 def token_frequencies(words: Iterable[str]) -> Counter[str]:

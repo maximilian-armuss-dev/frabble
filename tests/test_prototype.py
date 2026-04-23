@@ -1,17 +1,18 @@
-import os
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import os
 import numpy as np
 
-from llm_scrabble_bench.prototype import (
+from src.prototype import (
     Board,
+    Environment,
+    ModelConfig,
     Move,
     build_demo_dfa,
     generate_scenario,
-    get_openai_config,
     optimal_move,
     optimal_score,
     parse_move,
@@ -19,6 +20,7 @@ from llm_scrabble_bench.prototype import (
     render_dfa_png,
     validate_move,
 )
+from src.tools.check_model import clip_preview
 
 
 class PrototypeTests(unittest.TestCase):
@@ -109,30 +111,110 @@ class PrototypeTests(unittest.TestCase):
             self.assertTrue(output_path.exists())
             self.assertGreater(output_path.stat().st_size, 0)
 
-    def test_openai_config_loads_dotenv_from_working_directory(self):
+    def test_environment_loads_model_configs(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             env_path = Path(temp_dir) / ".env"
+            model_path = Path(temp_dir) / "model_configs.yaml"
             env_path.write_text(
                 "\n".join(
                     [
+                        "LLM_MODEL_NAME=openai_test",
                         "OPENAI_API_KEY=test-key",
-                        "OPENAI_MODEL=test-model",
-                        "OPENAI_REASONING_EFFORT=low",
+                        "GEMINI_API_KEY=gemini-key",
                     ]
                 ),
                 encoding="utf-8",
             )
-            with patch.dict(os.environ, {}, clear=True):
-                previous_dir = Path.cwd()
-                try:
-                    os.chdir(temp_dir)
-                    config = get_openai_config()
-                finally:
-                    os.chdir(previous_dir)
+            model_path.write_text(
+                "\n".join(
+                    [
+                        "models:",
+                        "  - name: openai_test",
+                        "    model: openai/gpt-5-mini",
+                        "    api_key_env: OPENAI_API_KEY",
+                        "    temperature: 0.7",
+                        "  - name: google_test",
+                        "    model: gemini/gemini-2.0-flash-exp",
+                        "    api_key_env: GEMINI_API_KEY",
+                        "    temperature: 0.8",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            with patch.dict(
+                os.environ,
+                {
+                    "LLM_MODEL_NAME": "openai_test",
+                    "OPENAI_API_KEY": "test-key",
+                    "GEMINI_API_KEY": "gemini-key",
+                    "TEMPERATURE_DEFAULT": "0.8",
+                },
+                clear=True,
+            ):
+                with patch("src.llm.env.MODEL_CONFIGS_PATH", model_path):
+                    local_env = Environment()
 
+        self.assertEqual(set(local_env.model_configs), {"openai_test", "google_test"})
+        self.assertEqual(
+            local_env.model_configs["openai_test"],
+            ModelConfig(
+                name="openai_test",
+                model="openai/gpt-5-mini",
+                api_key="test-key",
+                temperature=0.7,
+                reasoning_effort=None,
+                base_url=None,
+            ),
+        )
+
+    def test_environment_returns_selected_model_config(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            env_path = Path(temp_dir) / ".env"
+            model_path = Path(temp_dir) / "model_configs.yaml"
+            env_path.write_text(
+                "\n".join(
+                    [
+                        "LLM_MODEL_NAME=openai_test",
+                        "OPENAI_API_KEY=test-key",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            model_path.write_text(
+                "\n".join(
+                    [
+                        "models:",
+                        "  - name: openai_test",
+                        "    model: openai/gpt-5-mini",
+                        "    api_key_env: OPENAI_API_KEY",
+                        "    temperature: 0.3",
+                        "    reasoning_effort: medium",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            with patch.dict(
+                os.environ,
+                {
+                    "LLM_MODEL_NAME": "openai_test",
+                    "OPENAI_API_KEY": "test-key",
+                    "TEMPERATURE_DEFAULT": "0.8",
+                },
+                clear=True,
+            ):
+                with patch("src.llm.env.MODEL_CONFIGS_PATH", model_path):
+                    config = Environment().get_model_config("openai_test")
+
+        self.assertEqual(config.name, "openai_test")
         self.assertEqual(config.api_key, "test-key")
-        self.assertEqual(config.model, "test-model")
-        self.assertEqual(config.reasoning_effort, "low")
+        self.assertEqual(config.model, "openai/gpt-5-mini")
+        self.assertEqual(config.temperature, 0.3)
+        self.assertEqual(config.reasoning_effort, "medium")
+
+    def test_clip_preview_truncates_long_model_output(self):
+        preview = clip_preview("Pong " * 30, max_length=20)
+
+        self.assertEqual(preview, "Pong Pong Pong Pong…")
 
 
 if __name__ == "__main__":

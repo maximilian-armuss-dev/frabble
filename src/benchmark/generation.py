@@ -3,11 +3,11 @@ from __future__ import annotations
 import random
 from collections import Counter
 
-from .automata import build_demo_dfa, enumerate_accepted_words
-from .board import build_demo_board
-from .models import Scenario
+from ..domain.board import build_demo_board
+from ..domain.models import Scenario
+from ..formal.automata import build_demo_dfa, enumerate_accepted_words
+from ..formal.validation import enumerate_legal_moves
 from .scoring import token_frequencies, token_scores_from_frequencies
-from .validation import enumerate_legal_moves
 
 
 def sample_rack(
