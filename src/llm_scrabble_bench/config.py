@@ -8,9 +8,10 @@ from dotenv import load_dotenv
 
 
 @dataclass(frozen=True)
-class OpenAIConfig:
+class LLMConfig:
     api_key: str
     model: str
+    temperature: float = 0.7
     reasoning_effort: str | None = None
 
 
@@ -18,17 +19,25 @@ def load_environment() -> None:
     load_dotenv(dotenv_path=Path.cwd() / ".env", override=False)
 
 
-def get_openai_config() -> OpenAIConfig:
+def get_llm_config() -> LLMConfig:
     load_environment()
-    api_key = os.environ.get("OPENAI_API_KEY")
-    model = os.environ.get("OPENAI_MODEL")
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY is required for --call-model.")
-    if not model:
-        raise RuntimeError("OPENAI_MODEL is required for --call-model.")
+    api_key = os.environ.get("LLM_API_KEY")
+    model = os.environ.get("LLM_MODEL")
 
-    return OpenAIConfig(
+    if not api_key:
+        raise RuntimeError("LLM_API_KEY is required for --call-model.")
+    if not model:
+        raise RuntimeError("LLM_MODEL is required for --call-model.")
+
+    temperature_str = os.environ.get("LLM_TEMPERATURE", "0.7")
+    try:
+        temperature = float(temperature_str)
+    except ValueError:
+        raise RuntimeError(f"LLM_TEMPERATURE must be a valid float, got: {temperature_str}")
+
+    return LLMConfig(
         api_key=api_key,
         model=model,
-        reasoning_effort=os.environ.get("OPENAI_REASONING_EFFORT"),
+        temperature=temperature,
+        reasoning_effort=os.environ.get("LLM_REASONING_EFFORT"),
     )

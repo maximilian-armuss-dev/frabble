@@ -3,10 +3,10 @@ from __future__ import annotations
 from .automata import build_demo_dfa, enumerate_accepted_words
 from .board import build_demo_board
 from .cli import main, print_scenario_summary
-from .config import OpenAIConfig, get_openai_config, load_environment
+from .config import LLMConfig, get_llm_config, load_environment
 from .generation import generate_scenario, sample_rack
+from .llm_client import call_llm
 from .models import Board, DFA, Move, Scenario, ValidationResult
-from .openai_client import call_openai
 from .parsing import SubmittedMove, parse_move, parse_submitted_move
 from .prompting import build_prompt
 from .scoring import (
@@ -22,7 +22,7 @@ from .visualization import build_dfa_graph, render_dfa_png
 __all__ = [
     "Board",
     "DFA",
-    "OpenAIConfig",
+    "LLMConfig",
     "Move",
     "Scenario",
     "SubmittedMove",
@@ -31,11 +31,11 @@ __all__ = [
     "build_demo_dfa",
     "build_dfa_graph",
     "build_prompt",
-    "call_openai",
+    "call_llm",
     "enumerate_accepted_words",
     "enumerate_legal_moves",
     "generate_scenario",
-    "get_openai_config",
+    "get_llm_config",
     "load_environment",
     "main",
     "optimal_move",

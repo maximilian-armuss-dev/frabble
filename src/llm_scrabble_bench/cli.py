@@ -5,8 +5,8 @@ import json
 from pathlib import Path
 
 from .generation import generate_scenario
+from .llm_client import call_llm
 from .models import Scenario
-from .openai_client import call_openai
 from .parsing import parse_move
 from .prompting import build_prompt
 from .scoring import optimal_move, optimal_score
@@ -73,10 +73,10 @@ def main() -> None:
     if args.dry_run and not args.call_model:
         return
     if not args.call_model:
-        print("\nNo model call requested. Use --call-model to query OpenAI.")
+        print("\nNo model call requested. Use --call-model to query LLM.")
         return
 
-    raw_output = call_openai(system_prompt, user_prompt)
+    raw_output = call_llm(system_prompt, user_prompt)
     print("\n--- MODEL OUTPUT ---")
     print(raw_output)
     move = parse_move(raw_output)

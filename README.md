@@ -1,6 +1,6 @@
 # LLM Scrabble Bench Prototype
 
-Minimaler Prototyp für ein Scrabble-artiges LLM-Environment mit formaler Sprache, DFA-Validator, Prompt-Template, Token-Scoring und optionalem OpenAI-SDK-Call.
+Minimaler Prototyp für ein Scrabble-artiges LLM-Environment mit formaler Sprache, DFA-Validator, Prompt-Template, Token-Scoring und optionalem Modell-Call über [litellm](https://github.com/BerriAI/litellm) (unterstützt OpenAI, Anthropic, Google, Cohere u.v.m.).
 
 ## Setup
 
@@ -12,7 +12,11 @@ Für einen echten Modell-Call:
 
 ```bash
 cp .env.example .env
-# Dann OPENAI_API_KEY und OPENAI_MODEL in .env setzen.
+# LLM_API_KEY und LLM_MODEL in .env setzen, z.B.:
+#   LLM_API_KEY=sk-...
+#   LLM_MODEL=gpt-4o          # OpenAI
+#   LLM_MODEL=claude-3-5-sonnet-20241022  # Anthropic
+#   LLM_MODEL=gemini/gemini-2.0-flash-exp # Google
 
 uv run scrabble-prototype --call-model
 ```
@@ -57,7 +61,7 @@ uv run scrabble-prototype --dry-run --visualize-dfa outputs/demo-dfa.png
 - `prompting.py`: Lädt und rendert Prompt-Templates.
 - `prompts/`: System- und User-Prompt-Templates.
 - `parsing.py`: JSON-Parsing der Modellantwort.
-- `config.py`: Laden von `.env` und OpenAI-Konfiguration.
-- `openai_client.py`: OpenAI-SDK-Call mit Env-Variablen.
+- `config.py`: Laden von `.env` und LLM-Konfiguration (`LLM_API_KEY`, `LLM_MODEL`, `LLM_TEMPERATURE`).
+- `llm_client.py`: Modell-Call via litellm (provider-unabhängig).
 - `cli.py`: Kommandozeilen-Loop.
-- `prototype.py`: Kompatibilitäts-Fassade für den ersten Prototyp.
+- `prototype.py`: Re-exportiert alle Public-Symbole.
