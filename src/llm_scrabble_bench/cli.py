@@ -34,6 +34,10 @@ def print_scenario_summary(scenario: Scenario) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=7)
+    parser.add_argument(
+        "--model-name",
+        help="Name of the model profile from model_configs.yaml.",
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--call-model", action="store_true")
     parser.add_argument("--show-prompt", action="store_true")
@@ -76,7 +80,7 @@ def main() -> None:
         print("\nNo model call requested. Use --call-model to query LLM.")
         return
 
-    raw_output = call_llm(system_prompt, user_prompt)
+    raw_output = call_llm(system_prompt, user_prompt, model_name=args.model_name)
     print("\n--- MODEL OUTPUT ---")
     print(raw_output)
     move = parse_move(raw_output)

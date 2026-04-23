@@ -12,11 +12,8 @@ Für einen echten Modell-Call:
 
 ```bash
 cp .env.example .env
-# LLM_API_KEY und LLM_MODEL in .env setzen, z.B.:
-#   LLM_API_KEY=sk-...
-#   LLM_MODEL=gpt-4o          # OpenAI
-#   LLM_MODEL=claude-3-5-sonnet-20241022  # Anthropic
-#   LLM_MODEL=gemini/gemini-2.0-flash-exp # Google
+# In .env das aktive Profil (LLM_MODEL_NAME) und die benötigten Provider-Keys setzen.
+# Die Modellprofile selbst stehen in model_configs.yaml.
 
 uv run scrabble-prototype --call-model
 ```
@@ -28,6 +25,7 @@ Ohne API-Key kann der lokale Oracle-/Validator-Loop laufen:
 ```bash
 uv run scrabble-prototype --dry-run --show-prompt
 uv run scrabble-prototype --dry-run --reference-max-length 5
+uv run scrabble-prototype --call-model --model-name google_gemini_flash
 uv run python -m unittest discover -s tests
 ```
 
@@ -61,7 +59,8 @@ uv run scrabble-prototype --dry-run --visualize-dfa outputs/demo-dfa.png
 - `prompting.py`: Lädt und rendert Prompt-Templates.
 - `prompts/`: System- und User-Prompt-Templates.
 - `parsing.py`: JSON-Parsing der Modellantwort.
-- `config.py`: Laden von `.env` und LLM-Konfiguration (`LLM_API_KEY`, `LLM_MODEL`, `LLM_TEMPERATURE`).
-- `llm_client.py`: Modell-Call via litellm (provider-unabhängig).
+- `env.py`: Lädt `.env`, liest `model_configs.yaml` und stellt validierte Environment-/Modellzugriffe bereit.
+- `model_configs.yaml`: Modellmatrix mit LiteLLM-Modell-ID und zugehörigen Konfigurationswerten.
+- `llm_client.py`: Modell-Call via litellm mit direkter Parametergabe (`api_key`, `base_url`, `api_version`, `reasoning_effort`).
 - `cli.py`: Kommandozeilen-Loop.
 - `prototype.py`: Re-exportiert alle Public-Symbole.

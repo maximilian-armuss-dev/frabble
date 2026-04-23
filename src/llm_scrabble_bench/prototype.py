@@ -3,7 +3,14 @@ from __future__ import annotations
 from .automata import build_demo_dfa, enumerate_accepted_words
 from .board import build_demo_board
 from .cli import main, print_scenario_summary
-from .config import LLMConfig, get_llm_config, load_environment
+from .env import (
+    ENV,
+    ENV_PATH,
+    Environment,
+    MODEL_CONFIGS_PATH,
+    ModelConfig,
+    PROJECT_ROOT,
+)
 from .generation import generate_scenario, sample_rack
 from .llm_client import call_llm
 from .models import Board, DFA, Move, Scenario, ValidationResult
@@ -22,7 +29,11 @@ from .visualization import build_dfa_graph, render_dfa_png
 __all__ = [
     "Board",
     "DFA",
-    "LLMConfig",
+    "ENV",
+    "ENV_PATH",
+    "Environment",
+    "MODEL_CONFIGS_PATH",
+    "ModelConfig",
     "Move",
     "Scenario",
     "SubmittedMove",
@@ -35,8 +46,6 @@ __all__ = [
     "enumerate_accepted_words",
     "enumerate_legal_moves",
     "generate_scenario",
-    "get_llm_config",
-    "load_environment",
     "main",
     "optimal_move",
     "optimal_score",
@@ -49,6 +58,7 @@ __all__ = [
     "token_frequencies",
     "token_scores_from_frequencies",
     "validate_move",
+    "PROJECT_ROOT",
 ]
 
 
