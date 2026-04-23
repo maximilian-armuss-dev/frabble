@@ -4,8 +4,8 @@ from collections import Counter
 from itertools import product
 from typing import Iterable
 
-from .models import Board, DFA, Move, ValidationResult
-from .scoring import score_word
+from ..benchmark.scoring import score_word
+from ..domain.models import Board, DFA, Move, ValidationResult
 
 
 def validate_move(

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .models import Move
+from ..domain.models import Move
 
 
 class SubmittedMove(BaseModel):
@@ -12,7 +12,6 @@ class SubmittedMove(BaseModel):
         description="Zero-based start vector for the first token."
     )
     axis: int = Field(ge=0, description="Board axis along which the token sequence runs.")
-    # Ich hab einfach mal word length auf min = 2 gesetzt
     tokens: str = Field(min_length=2)
 
     @field_validator("tokens", mode="before")

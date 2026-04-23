@@ -16,7 +16,11 @@ dependencies = [
 ]
 
 [project.scripts]
-scrabble-prototype = "llm_scrabble_bench.cli:main"
+scrabble-prototype = "src.cli:main"
+check-model = "src.tools.check_model:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
 
 [build-system]
 requires = ["hatchling"]

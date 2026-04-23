@@ -3,14 +3,14 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-import numpy as np
 import os
+import numpy as np
 
-from llm_scrabble_bench.prototype import (
+from src.prototype import (
     Board,
+    Environment,
     ModelConfig,
     Move,
-    Environment,
     build_demo_dfa,
     generate_scenario,
     optimal_move,
@@ -20,6 +20,7 @@ from llm_scrabble_bench.prototype import (
     render_dfa_png,
     validate_move,
 )
+from src.tools.check_model import clip_preview
 
 
 class PrototypeTests(unittest.TestCase):
@@ -146,10 +147,11 @@ class PrototypeTests(unittest.TestCase):
                     "LLM_MODEL_NAME": "openai_test",
                     "OPENAI_API_KEY": "test-key",
                     "GEMINI_API_KEY": "gemini-key",
+                    "TEMPERATURE_DEFAULT": "0.8",
                 },
                 clear=True,
             ):
-                with patch("llm_scrabble_bench.env.MODEL_CONFIGS_PATH", model_path):
+                with patch("src.llm.env.MODEL_CONFIGS_PATH", model_path):
                     local_env = Environment()
 
         self.assertEqual(set(local_env.model_configs), {"openai_test", "google_test"})
@@ -196,10 +198,11 @@ class PrototypeTests(unittest.TestCase):
                 {
                     "LLM_MODEL_NAME": "openai_test",
                     "OPENAI_API_KEY": "test-key",
+                    "TEMPERATURE_DEFAULT": "0.8",
                 },
                 clear=True,
             ):
-                with patch("llm_scrabble_bench.env.MODEL_CONFIGS_PATH", model_path):
+                with patch("src.llm.env.MODEL_CONFIGS_PATH", model_path):
                     config = Environment().get_model_config("openai_test")
 
         self.assertEqual(config.name, "openai_test")
@@ -207,6 +210,11 @@ class PrototypeTests(unittest.TestCase):
         self.assertEqual(config.model, "openai/gpt-5-mini")
         self.assertEqual(config.temperature, 0.3)
         self.assertEqual(config.reasoning_effort, "medium")
+
+    def test_clip_preview_truncates_long_model_output(self):
+        preview = clip_preview("Pong " * 30, max_length=20)
+
+        self.assertEqual(preview, "Pong Pong Pong Pong…")
 
 
 if __name__ == "__main__":

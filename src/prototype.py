@@ -1,30 +1,30 @@
 from __future__ import annotations
 
-from .automata import build_demo_dfa, enumerate_accepted_words
-from .board import build_demo_board
-from .cli import main, print_scenario_summary
-from .env import (
-    ENV,
-    ENV_PATH,
-    Environment,
-    MODEL_CONFIGS_PATH,
-    ModelConfig,
-    PROJECT_ROOT,
-)
-from .generation import generate_scenario, sample_rack
-from .llm_client import call_llm
-from .models import Board, DFA, Move, Scenario, ValidationResult
-from .parsing import SubmittedMove, parse_move, parse_submitted_move
-from .prompting import build_prompt
-from .scoring import (
+from .benchmark.generation import generate_scenario, sample_rack
+from .benchmark.prompting import build_prompt
+from .benchmark.scoring import (
     optimal_move,
     optimal_score,
     score_word,
     token_frequencies,
     token_scores_from_frequencies,
 )
-from .validation import enumerate_legal_moves, validate_move
-from .visualization import build_dfa_graph, render_dfa_png
+from .cli import main, print_scenario_summary
+from .domain.board import build_demo_board
+from .domain.models import Board, DFA, Move, Scenario, ValidationResult
+from .domain.visualization import build_dfa_graph, render_dfa_png
+from .formal.automata import build_demo_dfa, enumerate_accepted_words
+from .formal.parsing import SubmittedMove, parse_move, parse_submitted_move
+from .formal.validation import enumerate_legal_moves, validate_move
+from .llm.client import call_llm
+from .llm.env import (
+    ENV,
+    ENV_PATH,
+    Environment,
+    MODEL_CONFIGS_PATH,
+    ModelConfig,
+    CONFIG_DIR,
+)
 
 __all__ = [
     "Board",
@@ -58,7 +58,7 @@ __all__ = [
     "token_frequencies",
     "token_scores_from_frequencies",
     "validate_move",
-    "PROJECT_ROOT",
+    "CONFIG_DIR",
 ]
 
 

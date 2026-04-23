@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .models import Scenario
-from .parsing import SubmittedMove
+from ..domain.models import Scenario
+from ..formal.parsing import SubmittedMove
 
 
 PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts"

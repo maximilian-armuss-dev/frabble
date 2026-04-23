@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .models import DFA
+from ..domain.models import DFA
 
 
 def build_demo_dfa() -> DFA:
@@ -37,4 +37,3 @@ def enumerate_accepted_words(dfa: DFA, max_length: int) -> tuple[str, ...]:
 
     visit("")
     return tuple(sorted(words, key=lambda word: (len(word), word)))
-

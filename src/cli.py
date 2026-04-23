@@ -4,14 +4,14 @@ import argparse
 import json
 from pathlib import Path
 
-from .generation import generate_scenario
-from .llm_client import call_llm
-from .models import Scenario
-from .parsing import parse_move
-from .prompting import build_prompt
-from .scoring import optimal_move, optimal_score
-from .validation import validate_move
-from .visualization import render_dfa_png
+from .benchmark.generation import generate_scenario
+from .benchmark.prompting import build_prompt
+from .benchmark.scoring import optimal_move, optimal_score
+from .domain.models import Scenario
+from .domain.visualization import render_dfa_png
+from .formal.parsing import parse_move
+from .formal.validation import validate_move
+from .llm.client import call_llm
 
 
 def print_scenario_summary(scenario: Scenario) -> None:
