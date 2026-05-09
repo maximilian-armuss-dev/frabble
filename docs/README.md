@@ -1,15 +1,20 @@
 # Knowledge Base
 
-Diese Knowledge Base trennt den kurzfristigen V1-Prototypen vom späteren Paper-Zielbild. Der V1-Prototyp soll klären, ob LLMs die Grundaufgabe überhaupt zuverlässig lösen können. Das Paper-Zielbild beschreibt dagegen den skalierbaren Benchmark, der mehrere Komplexitätsachsen systematisch variiert.
+Diese Knowledge Base trennt stabile Kernentscheidungen vom V1-Prototypen und vom späteren Paper-Zielbild. `shared/` enthält Konzepte, die schon in V1 so gebaut werden sollen, dass sie später weiterverwendbar bleiben. `v1/` enthält ausschließlich Entscheidungen für den ersten Prototypen. `target/` beschreibt die spätere Benchmark-Skalierung.
 
-## Dokumente
+## Struktur
 
-- [V1-Prototyp](v1-prototype.md): enger Scope für den ersten lauffähigen Machbarkeitstest.
-- [Paper-Zielbild](paper-target.md): langfristiges Benchmark-Design und 4D-Skalierung.
-- [Sprachen und Automaten](languages-and-automata.md): Platzhalteralphabet, Mapping, reguläre Sprachen und Strictly Local Languages.
-- [Board-Generierung und Validierung](board-generation-and-validation.md): 2D-Boardaufbau, binäre Validierung und offene Generatorfragen.
-- [Experimentelle Bedingungen](experimental-conditions.md): spätere dekomponierte Evaluation von Membership bis Full Puzzle.
-
-## Strukturprinzip
-
-Die Dokumente sollen keine konkurrierenden Zielbilder enthalten. V1 beschreibt den engen Prototypen. Das Paper-Zielbild beschreibt spätere Skalierung. Sprach-, Board- und Experimentdetails werden in eigenen Dateien gehalten, damit Implementierung und Paper-Argument nicht vermischt werden.
+- [shared/representation.md](shared/representation.md): Koordinaten, Achsen, Boardformat, Symbolmodell und Outputformat.
+- [shared/validation-rules.md](shared/validation-rules.md): gemeinsame Spiel- und Validierungsregeln.
+- [shared/language-model.md](shared/language-model.md): formale Sprachen, Strictly Local Languages, Mapping und Adjazenzlisten.
+- [shared/strictly-local-examples.md](shared/strictly-local-examples.md): konkrete Beispiele für Strictly Local Languages.
+- [v1/scope.md](v1/scope.md): enger Scope des V1-Prototypen.
+- [v1/manual-languages.md](v1/manual-languages.md): fünf manuell definierte V1-Sprachen.
+- [v1/scenario-generation.md](v1/scenario-generation.md): V1-Szenariogenerierung mit Witness und Generatorbudget.
+- [v1/prompt-format.md](v1/prompt-format.md): Prompt- und JSON-Format für V1.
+- [target/benchmark-design.md](target/benchmark-design.md): langfristiges Benchmark-Zielbild.
+- [target/complexity-axes.md](target/complexity-axes.md): Skalierungsachsen.
+- [target/experimental-conditions.md](target/experimental-conditions.md): dekomponierte Experimentalbedingungen E1-E4.
+- [target/puzzle-generation.md](target/puzzle-generation.md): spätere Puzzle-Generierung mit Solvability und Lösungsmengen.
+- [target/solver-and-difficulty.md](target/solver-and-difficulty.md): Solver, Compute und Difficulty.
+- [target/decomposition.md](target/decomposition.md): spätere dekomponierte Evaluation.

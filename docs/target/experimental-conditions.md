@@ -1,14 +1,14 @@
 # Experimentelle Bedingungen
 
-Dieses Dokument beschreibt spätere experimentelle Bedingungen. Sie sind nicht vollständig Teil des V1-Prototyps. V1 soll zunächst nur den Full-Puzzle-Kern in 2D mit binärer Validierung testen.
+Diese Bedingungen gehören zum späteren Benchmark-Zielbild. V1 implementiert nur einen kleinen Full-Puzzle-Kern in 2D mit binärer Validierung.
 
 ## E1: Membership
 
-Das Modell klassifiziert, ob eine gegebene Symbolfolge zur formalen Sprache gehört. Diese Bedingung testet die reine Sprachkonformität ohne Board, Rack oder Platzierung.
+Das Modell klassifiziert, ob eine gegebene Symbolfolge zur formalen Sprache gehört. Diese Bedingung testet reine Sprachkonformität ohne Board, Rack oder Platzierung.
 
 Varianten:
 
-- Die Grammatik oder der Automat wird explizit gegeben.
+- Grammatik oder Automat wird explizit gegeben.
 - Das Modell erhält nur Beispiele und muss die Sprache induzieren.
 
 ## E2.1: Generation mit induzierter Grammatik
@@ -33,10 +33,4 @@ Der Vergleich mit E2.2 zeigt, wie stark die Platzierungskomponente zusätzlich b
 
 Das Modell erhält Board, Rack und die relevante Sprachinformation oder Beispiele, aber keine Oracle-Lösung. Es muss ein gültiges Wort erzeugen und korrekt platzieren.
 
-Diese Bedingung ist die Headline-Aufgabe. Sie sollte gegen E1 bis E3 gelesen werden, damit ein Scheitern nicht nur als einzelner Fehlerwert erscheint, sondern einer Teilfähigkeit zugeordnet werden kann.
-
-## Verhältnis zu V1
-
-V1 implementiert nur einen kleinen Ausschnitt dieser Bedingungen. Der erste Prototyp darf als vereinfachtes E4 verstanden werden: 2D-Board, binäre Validierung, keine Score-Optimierung, keine vollständige Decomposition und keine bekannte Lösungsanzahl.
-
-Die experimentellen Bedingungen werden relevant, sobald der Validator, die Sprachgenerierung und die Boardgenerierung stabil genug sind.
+Diese Bedingung ist die Headline-Aufgabe. Sie wird gegen E1 bis E3 gelesen, damit ein Scheitern einer Teilfähigkeit zugeordnet werden kann.
