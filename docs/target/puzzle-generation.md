@@ -9,26 +9,45 @@ Die Pipeline besteht aus drei gekoppelten Teilproblemen:
 - Sampling formaler Sprachen oder Automaten mit kontrollierbarer Komplexität.
 - Charakterisierung des Lösungsraums, zum Beispiel Anzahl akzeptierter Strings pro Länge.
 - Konstruktion von Boards mit bekannter Lösbarkeit und kontrollierbarer Schwierigkeit.
+Das LLM bekommt pro Instanz ein frisches Board und soll genau den nächsten Zug vorhersagen. Der Generator darf intern eine Kette gültiger Boardzustände aufbauen, aber diese Kette ist kein Modellkontext.
 
-## Witness zuerst
+## Witness-Prinzip
 
-Der compute-effiziente Standardpfad bleibt auch im Target Picture eine Generierung mit bekanntem Witness. Dabei wird ein gültiger Übergang `B_t -> B_{t+1}` erzeugt, `B_t` als Szenario exportiert und der bekannte Zug als Witness zurückgehalten.
+Der Generator erzeugt intern Übergänge `B_t -> B_{t+1}`. Für ein Szenario wird `B_t` als Board an das Modell gegeben und der bekannte Zug nach `B_{t+1}` als Witness zurückgehalten. Dadurch ist mindestens eine Lösung bekannt, ohne dass eine vollständige Lösungsmenge berechnet wird.
 
-Dieser Ansatz garantiert mindestens eine Lösung, ohne alle Lösungen zu enumerieren.
+## Overlap-only
 
-## Solver als Kalibrierung
+V1 erzeugt und validiert nur Züge, die mindestens ein bestehendes Symbol konsistent überlappen. Reine Nachbarschaft ohne Überlappung ist ungültig. Diese Einschränkung reduziert die Kandidatensuche und macht die Validierung im Prototypen stabiler.
 
-CSP-, SAT- oder Backtracking-Verfahren werden als Offline-Oracle oder Kalibrierungswerkzeug genutzt. Sie sind besonders nützlich für:
+## Alternating Criss-Cross Generation
 
-- Zählen oder Schätzen gültiger Lösungen.
-- Filtern ungewollt leichter oder schwerer Instanzen.
-- Erzeugen von Instanzen mit bestimmter Lösungsanzahl.
-- Validieren, dass Generatorheuristiken keine systematischen Degenerationen erzeugen.
+Der V1-Generator baut intern ein Criss-Cross-Board auf. Nach dem ersten Wort alterniert die Legerichtung:
 
-Solver sollen nicht zwingend im Hot Path jeder Szenariogenerierung laufen.
+```text
+axis = 0, dann axis = 1, dann axis = 0, dann axis = 1, ...
+```
 
-## Compute-Strategie
+Ein neues Wort wird über ein gemeinsames Symbol mit der bestehenden Struktur gekreuzt. Wenn das bestehende Wort an der Overlap-Koordinate entlang `axis = 0` liegt, wird das neue Wort entlang `axis = 1` gelegt. Wenn das bestehende Wort dort entlang `axis = 1` liegt, wird das neue Wort entlang `axis = 0` gelegt.
 
-Die Suche bleibt beherrschbar, solange der Solver nicht ganze Boards frei belegt, sondern nur nächste Züge analysiert. Ein Zug ist durch Startkoordinate, Achse, Sequenzlänge und Symbolfolge beschränkt. Dadurch kann die Kandidatenmenge über Anchors, Rack, Sprache und Boardgrenzen stark reduziert werden.
+Dieser Ansatz vermeidet Kandidaten entlang derselben Achse und passt zur Regel, dass bestehende Wörter nicht verlängert oder entlang derselben Sequenz überdeckt werden dürfen.
 
-Für höhere Dimensionen wächst die Anzahl der Achsen und Querconstraints, aber ein Zug bleibt weiterhin eindimensional entlang genau einer Achse.
+## Unbounded Generation und ROI
+
+Die interne Generierung ist nicht durch eine feste Boardgröße beschränkt. Der Generator kann Koordinaten in einem unbeschränkten 2D-Raum verwenden und daraus später eine Region of Interest ableiten.
+
+Für das Modell werden alle relevanten belegten Symbole mit Koordinaten sowie eine Bounding Box oder Boardshape ausgegeben. Dadurch wird die Generierung weniger fragil, während die Modellantwort weiterhin einfach über Bounds validiert werden kann.
+
+## Generatorbudget
+
+Der interne Generationslauf wird beendet, sobald `8` nacheinander gesampelte Wörter nicht valide platziert werden konnten. Die Anzahl der erzeugten Boardstates ergibt sich aus dem Verlauf bis zu diesem Abbruch.
+
+Exportierte Szenarien stammen nur aus Übergängen, für die ein Witness-Zug bekannt ist.
+
+## Rack-Strategie als Core Choice
+
+Für die Puzzle-Generierung gibt es eine zentrale offene Designentscheidung:
+
+- Rack-first: Ein Rack wird vorgegeben, danach wird ein gültiges Wort gesucht.
+- Witness-first: Zuerst wird ein valides nächstes Wort generiert, danach wird das Rack aus diesem Wort abgeleitet und optional mit Noise-Symbolen ergänzt.
+
+Diese Entscheidung wird nicht im V1-Konzept festgelegt. Sie ist ein Kernpunkt für weitere Recherche und Experimente, weil sie stark beeinflusst, wie schwierig und kontrollierbar Szenarien werden.

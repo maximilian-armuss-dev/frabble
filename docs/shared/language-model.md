@@ -10,13 +10,25 @@ Das spätere Mapping muss bidirektional sein. Wenn der Platzhalter `A` beispiels
 
 ## Strictly Local Languages
 
-Strictly Local Languages sind eine eingeschränkte Klasse regulärer Sprachen. Eine Sprache ist `k`-strictly-local, wenn die Gültigkeit eines Wortes durch erlaubte lokale Teilstrings der Länge `k` bestimmt wird, typischerweise inklusive Wortgrenzen. Vereinfacht: Ein Wort ist gültig, wenn alle seine lokalen Fenster erlaubt sind.
+Strictly Local Languages sind eine eingeschränkte Klasse regulärer Sprachen. Eine Sprache ist `k`-strictly-local, wenn die Gültigkeit eines Wortes durch lokale Teilstrings der Länge höchstens `k` bestimmt wird. Für den Benchmark wird die Sprache bevorzugt über verbotene Snippets beschrieben.
 
-Für V1 gilt `k = 2`. Damit kann die Sprache als gerichteter Graph über Symbolen verstanden werden. Ein Wort ist gültig, wenn jedes benachbarte Symbolpaar einer erlaubten Kante entspricht.
+Ein Wort ist gültig, wenn es kein verbotenes Snippet enthält und die minimale Wortlänge erfüllt.
+
+Beispiel mit Alphabet `{A, B, C}`, `k = 3` und forbidden snippets `{AAA, BCB}`:
+
+- `ABCABC` ist gültig.
+- `AAAB` ist ungültig, weil `AAA` vorkommt.
+- `ABCB` ist ungültig, weil `BCB` vorkommt.
+
+## Forbidden-Snippet-Approach
+
+Der forbidden-snippet-Approach ist für Skalierung geeignet, weil die Dichte der Sprache über Anzahl und Struktur verbotener Snippets kontrolliert werden kann. Werden mehr lokale Muster verboten, sinkt die Anzahl gültiger Strings. Werden weniger lokale Muster verboten, wird die Sprache dichter.
+
+Für V1 kann eine einzelne einfache Strictly-Local-Sprache fest definiert werden. Für das Target Picture können forbidden snippets zufällig gesampelt werden.
 
 ## Adjazenzlisten
 
-Für V1 wird die Sprache textbasiert als Adjazenzliste erklärt. Eine Adjazenzliste beschreibt für jedes Symbol, welche Symbole direkt danach kommen dürfen.
+Für `k = 2` kann eine forbidden-snippet-Sprache äquivalent als Adjazenzliste dargestellt werden. Eine Adjazenzliste beschreibt für jedes Symbol, welche Symbole direkt danach kommen dürfen.
 
 Beispiel:
 
@@ -26,18 +38,6 @@ B: A
 C: A, B
 ```
 
-Diese Liste bedeutet: Nach `A` darf `B` oder `C` kommen, nach `B` nur `A`, nach `C` `A` oder `B`. Die Sequenz `A B A C B` ist gültig, weil alle lokalen Übergänge erlaubt sind. Die Sequenz `A A B` ist ungültig, weil `A -> A` nicht erlaubt ist.
+Diese Liste bedeutet: Nach `A` darf `B` oder `C` kommen, nach `B` nur `A`, nach `C` `A` oder `B`. Die Sequenz `A B A C B` ist gültig. Die Sequenz `A A B` ist ungültig, weil `A -> A` nicht erlaubt ist.
 
-Konkrete Promptbeispiele können aus den Sprachdefinitionen autogeneriert werden.
-
-## Komplexitätsparameter
-
-Für jede Sprache werden mindestens folgende Kennzahlen gespeichert:
-
-- Alphabetgröße.
-- Wortlängenbereich.
-- Anzahl erlaubter Übergänge.
-- Übergangsdichte relativ zu allen möglichen Übergängen.
-- Anteil akzeptierter Strings pro Länge, soweit effizient berechenbar oder schätzbar.
-- Anzahl erreichbarer und produktiver Symbole.
-- Größe des daraus abgeleiteten minimalen DFA.
+Adjazenzlisten bleiben eine gute Prompt-Repräsentation für `k = 2`, auch wenn die interne Generierung über forbidden snippets beschrieben wird.

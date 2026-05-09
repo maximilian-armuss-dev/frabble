@@ -6,7 +6,7 @@ Das Modell gibt nur JSON aus, keine Begründung.
 
 ## Sprachrepräsentation
 
-Die Sprache wird als Adjazenzliste dargestellt. Zusätzlich wird ein kurzes One-Shot-Beispiel autogeneriert, das eine gültige und eine ungültige Sequenz anhand der Adjazenzliste erklärt.
+Die Sprache wird im V1-Prompt über forbidden snippets oder eine daraus abgeleitete einfache Regel dargestellt. Zusätzlich wird ein kurzes One-Shot-Beispiel autogeneriert, das eine gültige und eine ungültige Sequenz erklärt. Hoffnung dahinter: Durch Beispiele kann das LLM die Komplexität der Sprachrepräsentation besser überwinden.
 
 ## Boardrepräsentation
 

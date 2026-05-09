@@ -11,7 +11,7 @@ Ein Zug ist valide, wenn alle folgenden Bedingungen erfüllt sind:
 - Der Zug verlängert kein bereits bestehendes Wort entlang derselben Achse.
 - Alle durch den Zug entstehenden Sequenzen entlang aller relevanten Achsen sind gültige Wörter der formalen Sprache.
 - Die neu zu legenden Symbole können aus dem Rack bezahlt werden.
-- Wörter der Länge `1` sind nicht gültig.
+- Wörter der Länge `<3` sind nicht gültig.
 
 V1 akzeptiert nur Overlap-Verbindungen. Reine Nachbarschaft ohne Überlappung ist in V1 ungültig, auch wenn dadurch gültige Querwörter entstehen würden. Das reduziert die Validierung und Szenariogenerierung im Prototypen.
 
@@ -35,7 +35,7 @@ Die geplante Validierungsreihenfolge ist:
 8. Prüfe, dass kein bestehendes Wort entlang der Legerichtung verlängert wird.
 9. Simuliere den Boardzustand nach dem Zug.
 10. Extrahiere alle durch den Zug entstehenden relevanten Sequenzen entlang aller Achsen.
-11. Prüfe, dass alle Sequenzen der Länge mindestens `2` gültige Wörter der Sprache sind.
+11. Prüfe, dass alle Sequenzen der Länge mindestens `3` gültige Wörter der Sprache sind.
 12. Ziehe die bereits auf dem Board liegenden, konsistent überlappten Symbole von der `sequence` ab und prüfe, ob die übrigen Symbole aus dem Rack bezahlt werden können.
 13. Gib binär `valid = true` oder `valid = false` zurück und speichere zusätzlich die Fehlerklasse.
 
