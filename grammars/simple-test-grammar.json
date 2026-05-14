@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "type": "sl",
+  "name": "simple-test-grammar",
+  "alphabet": [
+    "A",
+    "D",
+    "U"
+  ],
+  "k": 3,
+  "forbidden": [
+    "AAD",
+    "AUD",
+    "DAA",
+    "DDA",
+    "DDD",
+    "UAD",
+    "UDU",
+    "UUU"
+  ],
+  "min_word_length": 3,
+  "seed": 42,
+  "sampling_config": {
+    "alphabet_size": 3,
+    "forbidden_fraction": 0.2,
+    "alphabet_case": "upper",
+    "minimize_dfa": true,
+    "auto_resample": {
+      "enabled": true,
+      "max_attempts": 20,
+      "perron_min": 1.1,
+      "perron_max": 50.0,
+      "resample_length_min": 3,
+      "resample_length_max": 7,
+      "min_word_count": 20
+    }
+  }
+}
