@@ -55,11 +55,18 @@ def main() -> None:
         type=Path,
         help="Render the scenario DFA as a PNG at the given path.",
     )
+    parser.add_argument(
+        "--grammar",
+        type=Path,
+        default=None,
+        help="Path to a grammar JSON file produced by sample-grammar. Replaces the demo DFA.",
+    )
     args = parser.parse_args()
 
     scenario = generate_scenario(
         seed=args.seed,
         reference_max_length=args.reference_max_length,
+        grammar_path=str(args.grammar) if args.grammar else None,
     )
     system_prompt, user_prompt = build_prompt(scenario)
 

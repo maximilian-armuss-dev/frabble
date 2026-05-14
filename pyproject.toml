@@ -5,6 +5,7 @@ description = "Minimal prototype for a formal-language Scrabble-style LLM benchm
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "automata-lib>=8.0.0",
     "litellm>=1.83.11",
     "matplotlib>=3.9.0",
     "networkx>=3.3",
@@ -18,6 +19,10 @@ dependencies = [
 [project.scripts]
 scrabble-prototype = "src.cli:main"
 check-model = "src.tools.check_model:main"
+sample-grammar = "src.grammar.cli:cmd_sample"
+check-grammar = "src.grammar.cli:cmd_check"
+analyze-grammar = "src.grammar.cli:cmd_analyze"
+visualize-grammar = "src.grammar.cli:cmd_visualize"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]

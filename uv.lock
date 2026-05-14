@@ -167,6 +167,30 @@ wheels = [
 ]
 
 [[package]]
+name = "automata-lib"
+version = "9.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cached-method" },
+    { name = "frozendict" },
+    { name = "networkx" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3d/09/cd1948fc964cae9e18c04c9c791181a8deb94419c63729c22a64c7181881/automata_lib-9.2.0.tar.gz", hash = "sha256:9d7ddd6b3536aee86604e003d68229b30adb610c7d0e895b34e63eacb549b829", size = 67781, upload-time = "2026-01-02T01:52:50.592Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/a6/166b21b655d343d9b6b174ad6489503870fb16b295a50abd863ff281df1b/automata_lib-9.2.0-py3-none-any.whl", hash = "sha256:d0da096e157c6a390a5830390a69f34e093787fe529787976235e85b3938bda5", size = 84939, upload-time = "2026-01-02T01:52:49.242Z" },
+]
+
+[[package]]
+name = "cached-method"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/85/57/f5796619b29cfbbce98b6027f9f92461a9c159a373566106a11b2bab1e07/cached_method-0.1.0.tar.gz", hash = "sha256:0958d0422a90e24c215fb61f9633fd9faf566c8f7d15478493989abef8699d73", size = 4032, upload-time = "2021-10-31T19:38:21.24Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a3/69/f4be248608758ebad3d5954bf468fc98a822c939afbb04f1eaaecfc6be1c/cached_method-0.1.0-py3-none-any.whl", hash = "sha256:a71720f7cab565131bb5e4189b6ca5902635435e0e017d0fd1261712d8c3dc0c", size = 4172, upload-time = "2021-10-31T19:38:17.726Z" },
+]
+
+[[package]]
 name = "certifi"
 version = "2026.2.25"
 source = { registry = "https://pypi.org/simple" }
@@ -493,6 +517,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/90/aa/dfbbe24c6a6afc5c203d90cc0343e24bcbb09e76d67c4d6eef8c2558d7ba/fonttools-4.62.1-cp314-cp314t-win32.whl", hash = "sha256:b820fcb92d4655513d8402d5b219f94481c4443d825b4372c75a2072aa4b357a", size = 2348021, upload-time = "2026-03-13T13:54:16.98Z" },
     { url = "https://files.pythonhosted.org/packages/13/6f/ae9c4e4dd417948407b680855c2c7790efb52add6009aaecff1e3bc50e8e/fonttools-4.62.1-cp314-cp314t-win_amd64.whl", hash = "sha256:59b372b4f0e113d3746b88985f1c796e7bf830dd54b28374cd85c2b8acd7583e", size = 2414147, upload-time = "2026-03-13T13:54:19.416Z" },
     { url = "https://files.pythonhosted.org/packages/fd/ba/56147c165442cc5ba7e82ecf301c9a68353cede498185869e6e02b4c264f/fonttools-4.62.1-py3-none-any.whl", hash = "sha256:7487782e2113861f4ddcc07c3436450659e3caa5e470b27dc2177cade2d8e7fd", size = 1152647, upload-time = "2026-03-13T13:54:22.735Z" },
+]
+
+[[package]]
+name = "frozendict"
+version = "2.4.7"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/90/b2/2a3d1374b7780999d3184e171e25439a8358c47b481f68be883c14086b4c/frozendict-2.4.7.tar.gz", hash = "sha256:e478fb2a1391a56c8a6e10cc97c4a9002b410ecd1ac28c18d780661762e271bd", size = 317082, upload-time = "2025-11-11T22:40:14.251Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/38/74/f94141b38a51a553efef7f510fc213894161ae49b88bffd037f8d2a7cb2f/frozendict-2.4.7-py3-none-any.whl", hash = "sha256:972af65924ea25cf5b4d9326d549e69a9a4918d8a76a9d3a7cd174d98b237550", size = 16264, upload-time = "2025-11-11T22:40:12.836Z" },
 ]
 
 [[package]]
@@ -982,6 +1015,7 @@ name = "llm-scrabble-bench"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "automata-lib" },
     { name = "litellm" },
     { name = "matplotlib" },
     { name = "networkx" },
@@ -994,6 +1028,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "automata-lib", specifier = ">=8.0.0" },
     { name = "litellm", specifier = ">=1.83.11" },
     { name = "matplotlib", specifier = ">=3.9.0" },
     { name = "networkx", specifier = ">=3.3" },

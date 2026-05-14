@@ -37,6 +37,72 @@ A DFA visualization can be generated as a PNG:
 uv run scrabble-prototype --dry-run --visualize-dfa outputs/demo-dfa.png
 ```
 
+## Grammar Sampling
+
+Instead of the hard-coded demo DFA, you can sample a random **Strictly Local (SL_k)** grammar and use it as the formal language for a scenario.
+
+### Sample a grammar
+
+```bash
+uv run sample-grammar --name my_grammar --alphabet-size 5 --k 3 --seed 42 --show-stats
+```
+
+The grammar is saved to `grammars/my_grammar.json`. Global defaults (Perron bounds, word-count window, DFA minimisation, etc.) are read from `config/grammar_configs.yaml`; any flag overrides just that one value for this run. All resolved parameters are written into the JSON for full traceability.
+
+Key flags (all optional — unset flags fall back to `grammar_configs.yaml`):
+
+```
+--name TEXT                 Grammar name; file saved as grammars/<name>.json
+--alphabet-size INT         Number of symbols (default: 5)
+--k INT                     Forbidden pattern length (default: 3)
+--forbidden-fraction FLOAT  Fraction of k-grams to forbid independently
+--min-word-length INT       Minimum accepted word length (default: k)
+--seed INT                  Base random seed (default: 42)
+--alphabet-case upper|lower
+--minimize-dfa / --no-minimize-dfa
+--auto-resample / --no-auto-resample
+--perron-min FLOAT          Minimum Perron eigenvalue for auto-resample
+--perron-max FLOAT          Maximum Perron eigenvalue for auto-resample
+--min-word-count INT        Min words in the resample length window
+--show-stats                Print Perron eigenvalue and word-count spectrum
+```
+
+### Validate words against a grammar
+
+```bash
+uv run check-grammar grammars/my_grammar.json --word "ABCAB"
+uv run check-grammar grammars/my_grammar.json --words-file wordlist.txt
+```
+
+### Analyse a grammar
+
+```bash
+uv run analyze-grammar grammars/my_grammar.json --max-length 10
+```
+
+Prints the Perron eigenvalue (growth rate of the language) and the exact word count at each length.
+
+### Visualize a grammar's DFA
+
+```bash
+uv run visualize-grammar grammars/my_grammar.json
+uv run visualize-grammar grammars/my_grammar.json --minimize-dfa
+uv run visualize-grammar grammars/my_grammar.json --no-minimize-dfa
+```
+
+Renders the grammar's DFA as a PNG saved next to the grammar file. Without `--minimize-dfa` / `--no-minimize-dfa` the value from the saved grammar's config is used. Output paths:
+
+- default / `--no-minimize-dfa`: `grammars/<name>_dfa.png`
+- `--minimize-dfa`: `grammars/<name>_dfa_minimized.png`
+
+### Use a grammar in a scenario
+
+Pass `--grammar` to `scrabble-prototype` to replace the demo DFA:
+
+```bash
+uv run scrabble-prototype --dry-run --grammar grammars/my_grammar.json --show-prompt
+```
+
 ## What The Prototype Does
 
 - Defines a small formal language over the alphabet `{A, B, C}`.
