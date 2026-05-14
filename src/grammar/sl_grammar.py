@@ -19,6 +19,9 @@ class SLGrammar:
     def accepts(self, word: str) -> bool:
         if len(word) < self.min_word_length:
             return False
+        alphabet_set = set(self.alphabet)
+        if any(ch not in alphabet_set for ch in word):
+            return False
         for i in range(len(word) - self.k + 1):
             if word[i : i + self.k] in self.forbidden:
                 return False
