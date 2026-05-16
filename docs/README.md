@@ -19,3 +19,7 @@ Diese Knowledge Base trennt stabile Kernentscheidungen vom V1-Prototypen und vom
 - [target/solver-and-difficulty.md](target/solver-and-difficulty.md): Solver, Compute und Difficulty.
 - [target/decomposition.md](target/decomposition.md): spätere dekomponierte Evaluation.
 - [target/future-work.md](target/future-work.md): weiterführende Ideen nach dem Paper.
+
+## Implementierungsnahe Spezifikation
+
+- [implementation/README.md](implementation/README.md): Einstiegspunkt für die V1-Implementierung.
