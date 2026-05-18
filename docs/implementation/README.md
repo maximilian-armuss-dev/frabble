@@ -22,3 +22,11 @@ Dieser Ordner enthält die implementierungsnahe Spezifikation für den V1-Puzzle
 - V1 nutzt kein Joint Sampling von Wortlänge und konkreter Anchor-Koordinate.
 - V1 nutzt einen globalen Candidate-Ansatz pro gesampelter Wortlänge: Anchors werden billig pre-scoren, Top-M Anchors werden expandiert, Top-K Templates werden an den Slot-CSP gegeben.
 - V1-Generierung läuft seeded und reproduzierbar: gleiche Config plus gleicher Seed erzeugt dieselben Szenarien.
+
+## Verantwortlichkeiten
+
+- `Board`: Zustand und geometrische Analyse.
+- `BoardScoring`: abgeleitete Heuristik-Features für Anchor- und Template-Ranking.
+- `ScenarioGenerator`: Orchestrierung von Länge, Candidate Pool, Scoring, Slot-CSP und Witness-Speicherung.
+- `SlotCSP`: lokales Lösen einzelner Wortslots.
+- `Validator`: Assertion und spätere Bewertung von LLM-Outputs.

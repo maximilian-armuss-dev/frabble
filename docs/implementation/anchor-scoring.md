@@ -2,6 +2,8 @@
 
 Das Scoring soll das Board radial und kompakt wachsen lassen, ohne die Suche in überfüllten Regionen zu erzwingen.
 
+Scoring wird nicht als Methode von `Board` implementiert, sondern über eine eigene Helper-Schicht wie `BoardScoring`. `Board` liefert Zustand und geometrische Analyse; `BoardScoring` berechnet daraus Heuristik-Features.
+
 ## Candidate-Reihenfolge
 
 V1 nutzt keine gemeinsame Verteilung über Länge und Anchor-Koordinate.
