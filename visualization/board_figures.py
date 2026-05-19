@@ -9,10 +9,10 @@ from src.domain.models import Coord
 from src.generator.reconstruction import reconstruct_boards
 
 BASE_TILE = "#f7f8fa"
-BOARD_GAP = "#d9dee5"
+BOARD_GAP = "#d1d1d1"
 TEXT_COLOR = "#15181d"
-HIGHLIGHT_TILE = "#e8edf4"
-HIGHLIGHT_EDGE = "#6b7280"
+HIGHLIGHT_TILE = "#77adff"
+HIGHLIGHT_EDGE = "#7f8185"
 PLOT_MARGIN = 4
 PLOT_PAD_2D = 0.53
 TILE_GAP = 2
@@ -144,11 +144,12 @@ def animate_scenario_2d(
     base_fig.update_layout(
         sliders=[
             {
-                "currentvalue": {"prefix": "step "},
-                "pad": {"t": 10},
+                "currentvalue": {"visible": False},
+                "pad": {"t": 6},
+                "ticklen": 0,
                 "steps": [
                     {
-                        "label": str(index),
+                        "label": _slider_endpoint_label(index, len(boards) - 1),
                         "method": "animate",
                         "args": [[str(index)], {"mode": "immediate", "frame": {"duration": 0, "redraw": True}}],
                     }
@@ -160,6 +161,12 @@ def animate_scenario_2d(
         margin={"l": PLOT_MARGIN, "r": PLOT_MARGIN, "t": PLOT_MARGIN, "b": 36},
     )
     return base_fig
+
+
+def _slider_endpoint_label(index: int, final_index: int) -> str:
+    if index == 0 or index == final_index:
+        return str(index)
+    return ""
 
 
 def _board_heatmap_trace(
