@@ -1,0 +1,200 @@
+\documentclass[9pt]{article}
+
+\usepackage{rgstyle}
+
+% Additional packages for demo content
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{lipsum} % for filler text
+
+\title{A Demo Paper Template for Your Project Work: Final Version for Seminar}
+\setshorttitle{Demo Template}
+
+\setauthors{
+Alice Smith$^{1}$ \quad Bob Karl$^{2}$ \quad Carol Martinez$^{1,2}$
+}
+
+\setaffiliations{
+$^1$Department of Computer Science, Example University \\
+$^2$Example AI Research Lab
+}
+
+\setemails{
+\{alice,carol\}@example.edu \quad bob@exai.org
+}
+
+\date{}
+
+\begin{document}
+
+\setrightlogo{logos/2015_Logo_TUM_sw_RGB.pdf}
+\makelogos
+\thispagestyle{empty}
+
+\makepapertitle
+
+% --------------------------------------------------
+% Abstract
+% --------------------------------------------------
+\begin{rgabstractbox}
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer
+
+\rgkeywords{machine learning, templates, multimodal learning}
+
+\rgproject{https://project-page.example}
+\end{rgabstractbox}
+
+\vspace{1.2em}
+
+% --------------------------------------------------
+% Main text
+% --------------------------------------------------
+\begin{multicols}{2}
+
+% --------------------------------------------------
+\section{Introduction}
+
+\lipsum[1]
+
+Recent work such as \citet{vaswani2017attention} and \citet{kingma2014adam} has demonstrated the importance of scalable architectures.
+
+\subsection{Motivation}
+
+\lipsum[2]
+
+\subsection{Contributions}
+
+We summarize our contributions:
+\begin{itemize}
+\item A clean and modular \LaTeX{} template
+\item Built-in support for figures, tables, and citations
+\item Conference-style layout with minimal effort
+\end{itemize}
+
+% ----------- FIGURE (wide) -----------
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{example-image}
+\caption{Wide figure spanning both columns, often used for qualitative comparisons.}
+\label{fig:wide}
+\end{figure*}
+
+% --------------------------------------------------
+\section{Related Work}
+
+\lipsum[3]
+
+\subsection{Transformers}
+
+\lipsum[4]
+
+% --------------------------------------------------
+\section{Method}
+
+\subsection{Overview}
+
+\lipsum[5]
+
+\subsection{Model Formulation}
+
+We define a simple objective:
+\begin{equation}
+\mathcal{L} = \mathbb{E}_{x \sim \mathcal{D}} \left[ \ell(f_\theta(x), y) \right]
+\end{equation}
+
+\lipsum[6]
+
+\begin{table*}[t]
+  \caption{This is a detailed table description. You must be able to understand the content purely based on this description and the table content, without reading the full text.}
+  \label{tab:scaling-laws}
+  \vskip 0.15in
+  \begin{center}
+  \begin{small}
+  \begin{tabular}{lcccccc}
+    \toprule
+    & \multicolumn{3}{c}{\textit{Group 1}} & \multicolumn{3}{c}{\textit{Group 2}} \\
+    \cmidrule(lr){2-4} \cmidrule(lr){5-7}
+    Heading ($a$) & $M_{1_a}$ & $M_{1_b}$ & $M_{2}$ & $M_{1_a}$ & $M_{1_b}$ & $M_{2}$ \\
+    \midrule
+    \multicolumn{7}{c}{\textit{Some additional information}} \\
+    $C_1$ (Description/Venue) & 0.9830 & -0.0003 & 0.9558 & 0.5480 & 0.0781 & 0.8687 \\
+    $C_2$ (Description/Venue) & 0.9894 & 0.0001 & 0.8756 & [--] & [--] & [--] \\
+    $C_3$ (Description/Venue) & 1.0106 & 0.0000 & 0.0420 & [--] & [--] & [--] \\
+    \bottomrule
+  \end{tabular}
+  \end{small}
+  \end{center}
+  \vskip -0.1in
+\end{table*}
+
+% --------------------------------------------------
+\section{Experiments}
+
+\subsection{Setup}
+
+\lipsum[7]
+
+\subsection{Main Results}
+
+% ----------- TABLE (your style) -----------
+
+\subsection{Ablation Study}
+
+\lipsum[8]
+
+% ----------- FIGURE (single column) -----------
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{example-image}
+\caption{Example single-column figure. Replace with your own visualization.}
+\label{fig:single}
+\end{figure}
+
+\subsection{Qualitative Results}
+
+\lipsum[9]
+
+% --------------------------------------------------
+\section{Discussion}
+
+\subsection{Limitations}
+
+\lipsum[10]
+
+\subsection{Broader Impact}
+
+\lipsum[11]
+
+\paragraph{Some statement: } \lipsum[12]
+
+% --------------------------------------------------
+\section{Conclusion}
+
+We presented a reusable conference-style template with structured sections, figures, and tables.
+
+% --------------------------------------------------
+% Bibliography
+% --------------------------------------------------
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{multicols}
+
+
+
+% --------------------------------------------------
+% Appendix
+% --------------------------------------------------
+\startappendix
+
+\section{Additional Details}
+
+\subsection{Extended Results}
+
+\lipsum[12]
+
+\subsection{Implementation Details}
+
+\lipsum[13]
+
+\end{document}
