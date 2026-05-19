@@ -1,0 +1,313 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Iterable, Mapping, Sequence
+
+from src.domain.board import Board
+from src.domain.models import Coord
+from src.generator.reconstruction import reconstruct_boards
+
+BASE_TILE = "#f7f8fa"
+BOARD_GAP = "#d9dee5"
+TEXT_COLOR = "#15181d"
+HIGHLIGHT_TILE = "#e8edf4"
+HIGHLIGHT_EDGE = "#6b7280"
+PLOT_MARGIN = 4
+PLOT_PAD_2D = 0.53
+TILE_GAP = 2
+CELL_SIZE_2D = 58
+MIN_PLOT_SIZE_2D = 180
+MAX_PLOT_SIZE_2D = 520
+ANIMATION_CONTROLS_HEIGHT = 56
+
+
+def load_scenario_json(path: str | Path) -> dict[str, object]:
+    """Load a generator scenario JSON file."""
+    with Path(path).open(encoding="utf-8") as file:
+        return json.load(file)
+
+
+def board_from_scenario_json(path: str | Path, *, step: int = -1) -> Board:
+    """Load one board from a scenario JSON file.
+
+    ``step=0`` returns the initial board; ``step=-1`` returns the final board.
+    """
+    boards, _ = scenario_boards_and_placements(load_scenario_json(path))
+    return boards[step]
+
+
+def scenario_boards_and_placements(
+    scenario: Mapping[str, object],
+) -> tuple[tuple[Board, ...], tuple[frozenset[Coord], ...]]:
+    """Reconstruct every board and the cells newly placed at each step."""
+    boards = reconstruct_boards(dict(scenario))
+    placements: list[frozenset[Coord]] = [frozenset()]
+    for transition in scenario.get("transitions", []):
+        placed = transition["placed"]  # type: ignore[index]
+        placements.append(frozenset(tuple(int(value) for value in coord) for coord, _ in placed))
+    return boards, tuple(placements)
+
+
+def plot_board_2d(
+    board: Board,
+    *,
+    highlight_coords: Iterable[Coord] = (),
+    title: str | None = None,
+    axes: tuple[int, int] = (0, 1),
+) -> object:
+    """Create an interactive Plotly 2D board figure."""
+    if board.dimensions < 2:
+        raise ValueError("2D plotting requires at least two board dimensions.")
+    import plotly.graph_objects as go
+
+    fig = go.Figure()
+    fig.add_trace(_board_heatmap_trace(board, highlight_coords=highlight_coords, axes=axes))
+    _style_plotly_xy(fig, board, axes, title)
+    return fig
+
+
+def plot_board_3d(
+    board: Board,
+    *,
+    highlight_coords: Iterable[Coord] = (),
+    title: str | None = None,
+    axes: tuple[int, int, int] = (0, 1, 2),
+) -> object:
+    """Create an interactive Plotly 3D sparse-board figure."""
+    if board.dimensions < 3:
+        raise ValueError("3D plotting requires at least three board dimensions.")
+    import plotly.graph_objects as go
+
+    highlight = set(highlight_coords)
+    rows = _projected_rows(board, axes)
+    marker_colors = [
+        HIGHLIGHT_EDGE if row["coord"] in highlight else "#6b7280"
+        for row in rows
+    ]
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter3d(
+            x=[row["x"] for row in rows],
+            y=[row["y"] for row in rows],
+            z=[row["z"] for row in rows],
+            mode="markers+text",
+            marker={"size": 8, "color": marker_colors, "opacity": 0.95},
+            text=[row["symbol"] for row in rows],
+            textfont={"color": TEXT_COLOR, "size": 12},
+            textposition="middle center",
+            customdata=[list(row["coord"]) for row in rows],
+            hovertemplate="coord=%{customdata}<br>symbol=%{text}<extra></extra>",
+            showlegend=False,
+        )
+    )
+    fig.update_layout(
+        scene={
+            "xaxis": {"visible": False, "showbackground": False, "showgrid": False, "zeroline": False},
+            "yaxis": {"visible": False, "showbackground": False, "showgrid": False, "zeroline": False},
+            "zaxis": {"visible": False, "showbackground": False, "showgrid": False, "zeroline": False},
+            "aspectmode": "data",
+            "camera": {"eye": {"x": 1.55, "y": -1.75, "z": 1.25}},
+        },
+        margin={"l": PLOT_MARGIN, "r": PLOT_MARGIN, "t": PLOT_MARGIN, "b": PLOT_MARGIN},
+        paper_bgcolor="white",
+        plot_bgcolor="white",
+        showlegend=False,
+    )
+    return fig
+
+
+def animate_scenario_2d(
+    scenario: Mapping[str, object],
+    *,
+    title: str | None = None,
+    axes: tuple[int, int] = (0, 1),
+) -> object:
+    """Create an interactive Plotly slider over all scenario boards."""
+    import plotly.graph_objects as go
+
+    boards, placements = scenario_boards_and_placements(scenario)
+    base_fig = plot_board_2d(boards[0], highlight_coords=placements[0], axes=axes)
+    range_board = _union_board_extent(boards)
+    _style_plotly_xy(base_fig, range_board, axes, title)
+    frames = []
+    for index, (board, placed) in enumerate(zip(boards, placements, strict=True)):
+        frames.append(
+            go.Frame(
+                data=[_board_heatmap_trace(board, highlight_coords=placed, axes=axes)],
+                name=str(index),
+            )
+        )
+
+    base_fig.frames = frames
+    base_fig.update_layout(
+        sliders=[
+            {
+                "currentvalue": {"prefix": "step "},
+                "pad": {"t": 10},
+                "steps": [
+                    {
+                        "label": str(index),
+                        "method": "animate",
+                        "args": [[str(index)], {"mode": "immediate", "frame": {"duration": 0, "redraw": True}}],
+                    }
+                    for index in range(len(boards))
+                ],
+            }
+        ],
+        height=base_fig.layout.height + ANIMATION_CONTROLS_HEIGHT,
+        margin={"l": PLOT_MARGIN, "r": PLOT_MARGIN, "t": PLOT_MARGIN, "b": 36},
+    )
+    return base_fig
+
+
+def _board_heatmap_trace(
+    board: Board,
+    *,
+    highlight_coords: Iterable[Coord],
+    axes: tuple[int, int],
+) -> object:
+    import plotly.graph_objects as go
+
+    highlight = set(highlight_coords)
+    x_values, y_values = _axis_values(board, axes)
+    projected_cells = {
+        (coord[axes[0]], coord[axes[1]]): (coord, symbol)
+        for coord, symbol in board.occupied_sorted()
+    }
+    z: list[list[int | None]] = []
+    text: list[list[str]] = []
+    customdata: list[list[list[object] | None]] = []
+    for y in y_values:
+        z_row: list[int | None] = []
+        text_row: list[str] = []
+        custom_row: list[list[object] | None] = []
+        for x in x_values:
+            cell = projected_cells.get((x, y))
+            if cell is None:
+                z_row.append(None)
+                text_row.append("")
+                custom_row.append(None)
+                continue
+            coord, symbol = cell
+            z_row.append(1 if coord in highlight else 0)
+            text_row.append(symbol)
+            custom_row.append(
+                [
+                    list(coord),
+                    ",".join(str(axis) for axis in sorted(board.axes_at(coord))),
+                ]
+            )
+        z.append(z_row)
+        text.append(text_row)
+        customdata.append(custom_row)
+
+    return go.Heatmap(
+        x=x_values,
+        y=y_values,
+        z=z,
+        text=text,
+        customdata=customdata,
+        texttemplate="%{text}",
+        textfont={"color": TEXT_COLOR, "size": 24},
+        colorscale=[
+            [0.0, BASE_TILE],
+            [0.499, BASE_TILE],
+            [0.5, HIGHLIGHT_TILE],
+            [1.0, HIGHLIGHT_TILE],
+        ],
+        zmin=0,
+        zmax=1,
+        xgap=TILE_GAP,
+        ygap=TILE_GAP,
+        showscale=False,
+        hoverongaps=False,
+        hovertemplate="coord=%{customdata[0]}<br>symbol=%{text}<br>axes=%{customdata[1]}<extra></extra>",
+    )
+
+
+def _axis_values(board: Board, axes: tuple[int, int]) -> tuple[list[int], list[int]]:
+    if not board.cells:
+        return [0], [0]
+    x_coords = [coord[axes[0]] for coord in board.cells]
+    y_coords = [coord[axes[1]] for coord in board.cells]
+    return list(range(min(x_coords), max(x_coords) + 1)), list(range(min(y_coords), max(y_coords) + 1))
+
+
+def _union_board_extent(boards: Sequence[Board]) -> Board:
+    cells: dict[Coord, str] = {}
+    for board in boards:
+        cells.update(board.cells)
+    dimensions = boards[0].dimensions if boards else 2
+    return Board(dimensions=dimensions, cells=cells, segments=())
+
+
+def _projected_rows(board: Board, axes: Sequence[int]) -> list[dict[str, object]]:
+    rows = []
+    for coord, symbol in board.occupied_sorted():
+        row = {
+            "coord": coord,
+            "symbol": symbol,
+            "axes_at": board.axes_at(coord),
+            "x": coord[axes[0]],
+            "y": coord[axes[1]],
+        }
+        if len(axes) == 3:
+            row["z"] = coord[axes[2]]
+        rows.append(row)
+    return rows
+
+
+def _bounds(board: Board, axes: Sequence[int], *, pad: float = 0.75) -> tuple[float, float, float, float]:
+    if not board.cells:
+        return -1.0, 1.0, -1.0, 1.0
+    xs = [coord[axes[0]] for coord in board.cells]
+    ys = [coord[axes[1]] for coord in board.cells]
+    return min(xs) - pad, max(xs) + pad, min(ys) - pad, max(ys) + pad
+
+
+def _plot_size_2d(board: Board, axes: tuple[int, int]) -> tuple[int, int]:
+    x_values, y_values = _axis_values(board, axes)
+    width = _clamp(len(x_values) * CELL_SIZE_2D, MIN_PLOT_SIZE_2D, MAX_PLOT_SIZE_2D)
+    height = _clamp(len(y_values) * CELL_SIZE_2D, MIN_PLOT_SIZE_2D, MAX_PLOT_SIZE_2D)
+    return width, height
+
+
+def _clamp(value: int, lower: int, upper: int) -> int:
+    return max(lower, min(upper, value))
+
+
+def _style_plotly_xy(
+    fig: object,
+    board: Board,
+    axes: tuple[int, int],
+    title: str | None,
+) -> None:
+    xmin, xmax, ymin, ymax = _bounds(board, axes, pad=PLOT_PAD_2D)
+    width, height = _plot_size_2d(board, axes)
+    fig.update_layout(
+        xaxis={
+            "range": [xmin, xmax],
+            "visible": False,
+            "showgrid": False,
+            "zeroline": False,
+            "showticklabels": False,
+            "scaleanchor": "y",
+            "scaleratio": 1,
+        },
+        yaxis={
+            "range": [ymin, ymax],
+            "visible": False,
+            "showgrid": False,
+            "zeroline": False,
+            "showticklabels": False,
+        },
+        margin={"l": PLOT_MARGIN, "r": PLOT_MARGIN, "t": PLOT_MARGIN, "b": PLOT_MARGIN},
+        width=width,
+        height=height,
+        paper_bgcolor="white",
+        plot_bgcolor=BOARD_GAP,
+        showlegend=False,
+        dragmode="pan",
+    )

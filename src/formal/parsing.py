@@ -18,6 +18,8 @@ class SubmittedMove(BaseModel):
     @field_validator("sequence", mode="before")
     @classmethod
     def normalize_sequence(cls, value: Iterable) -> tuple[str, ...]:
+        if isinstance(value, str | bytes):
+            raise ValueError("sequence must be a list of symbols, not a string.")
         return tuple(str(symbol).strip().upper() for symbol in value)
 
     def to_move(self) -> Move:
