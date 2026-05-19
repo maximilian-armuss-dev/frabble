@@ -1,25 +1,33 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from types import MappingProxyType
+from typing import Mapping, Sequence
 
-import numpy as np
+Coord = tuple[int, ...]
+Symbol = str
+SegmentId = int
 
 
 @dataclass(frozen=True)
 class DFA:
-    alphabet: tuple[str, ...]
+    alphabet: tuple[Symbol, ...]
     states: tuple[str, ...]
     start_state: str
     accepting_states: frozenset[str]
-    transitions: dict[str, dict[str, str]]
+    transitions: Mapping[str, Mapping[Symbol, str]]
     grammar_hint: str
 
-    def accepts(self, word: str) -> bool:
+    def accepts(self, symbols: Sequence[Symbol] | str) -> bool:
+        sequence = tuple(symbols) if not isinstance(symbols, str) else tuple(symbols)
         state = self.start_state
-        for token in word:
-            if token not in self.alphabet:
+        for symbol in sequence:
+            if symbol not in self.alphabet:
                 return False
-            state = self.transitions[state][token]
+            target = self.transitions[state].get(symbol)
+            if target is None:
+                return False
+            state = target
         return state in self.accepting_states
 
     def describe(self) -> str:
@@ -32,87 +40,195 @@ class DFA:
         ]
         for state in self.states:
             transitions = ", ".join(
-                f"{token}->{self.transitions[state][token]}" for token in self.alphabet
+                f"{symbol}->{self.transitions[state][symbol]}"
+                for symbol in self.alphabet
+                if symbol in self.transitions[state]
             )
             lines.append(f"- {state}: {transitions}")
         return "\n".join(lines)
 
 
 @dataclass(frozen=True)
-class Board:
-    cells: np.ndarray
+class Segment:
+    start: Coord
+    axis: int
+    sequence: tuple[Symbol, ...]
 
-    @property
-    def dimensions(self) -> int:
-        return self.cells.ndim
 
-    @property
-    def shape(self) -> tuple[int, ...]:
-        return self.cells.shape
+@dataclass(frozen=True)
+class SlotTemplate:
+    anchor_coord: Coord
+    anchor_symbol: Symbol
+    axis: int
+    length: int
+    anchor_index: int
+    start: Coord
+    covered_coords: tuple[Coord, ...]
 
-    @property
-    def rows(self) -> int:
-        return self.shape[0]
 
-    @property
-    def cols(self) -> int:
-        return self.shape[1]
+@dataclass(frozen=True)
+class SlotAnalysis:
+    valid_geometry: bool
+    fixed_symbols: Mapping[int, Symbol]
+    has_overlap: bool
+    extends_existing_word: bool
+    conflicts: tuple[Coord, ...]
 
-    def at(self, coordinate: tuple[int, ...]) -> str | None:
-        value = self.cells[coordinate]
-        if value is None:
-            return None
-        return str(value)
-
-    def contains(self, coordinate: tuple[int, ...]) -> bool:
-        return len(coordinate) == self.dimensions and all(
-            0 <= value < size for value, size in zip(coordinate, self.shape)
-        )
-
-    def has_tiles(self) -> bool:
-        return bool(np.any(self.cells != None))  # noqa: E711
-
-    def render(self) -> str:
-        if self.dimensions != 2:
-            occupied = np.argwhere(self.cells != None)  # noqa: E711
-            if occupied.size == 0:
-                return f"{self.dimensions}D board with shape {self.shape}; no tiles."
-            return "\n".join(
-                f"{tuple(int(value) for value in coordinate)}: {self.at(tuple(coordinate))}"
-                for coordinate in occupied
-            )
-        header = "    " + " ".join(str(col) for col in range(self.cols))
-        lines = [header]
-        for row in range(self.rows):
-            rendered = " ".join(
-                self.at((row, col)) if self.at((row, col)) is not None else "."
-                for col in range(self.cols)
-            )
-            lines.append(f"{row}:  {rendered}")
-        return "\n".join(lines)
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "fixed_symbols", MappingProxyType(dict(self.fixed_symbols)))
 
 
 @dataclass(frozen=True)
 class Move:
-    start: tuple[int, ...]
+    start: Coord
     axis: int
-    tokens: str
+    sequence: tuple[Symbol, ...]
+
+    def coords(self) -> tuple[Coord, ...]:
+        return tuple(
+            tuple(
+                value + (offset if dim == self.axis else 0)
+                for dim, value in enumerate(self.start)
+            )
+            for offset in range(len(self.sequence))
+        )
+
+    def to_json(self) -> dict[str, object]:
+        return {
+            "start": list(self.start),
+            "axis": self.axis,
+            "sequence": list(self.sequence),
+        }
+
+
+@dataclass(frozen=True)
+class BoundingBox:
+    min_coord: Coord
+    max_coord: Coord
+
+    def area(self) -> int:
+        area = 1
+        for lower, upper in zip(self.min_coord, self.max_coord):
+            area *= upper - lower + 1
+        return area
+
+    def to_json(self) -> dict[str, list[int]]:
+        return {
+            "min": list(self.min_coord),
+            "max": list(self.max_coord),
+        }
 
 
 @dataclass(frozen=True)
 class ValidationResult:
     ok: bool
-    score: int
     failure_type: str | None = None
     message: str = ""
 
 
 @dataclass(frozen=True)
-class Scenario:
-    dfa: DFA
-    board: Board
-    rack: tuple[str, ...]
-    token_scores: dict[str, int]
-    accepted_words: tuple[str, ...]
-    legal_moves: tuple[Move, ...]
-    reference_max_length: int
+class AnchorCandidate:
+    coord: Coord
+    symbol: Symbol
+    axis: int
+    score: float
+    bbox_area_increase: float
+    distance_to_centroid: float
+    free_cross_axis_span: int
+
+    def to_json(self) -> dict[str, object]:
+        return {
+            "coord": list(self.coord),
+            "symbol": self.symbol,
+            "axis": self.axis,
+            "score": self.score,
+            "bbox_area_increase": self.bbox_area_increase,
+            "distance_to_centroid": self.distance_to_centroid,
+            "free_cross_axis_span": self.free_cross_axis_span,
+        }
+
+
+@dataclass(frozen=True)
+class TemplateCandidate:
+    template: SlotTemplate
+    score: float
+    bbox_area_increase: float
+    distance_to_centroid: float
+
+    def to_json(self) -> dict[str, object]:
+        return {
+            "template": {
+                "anchor_coord": list(self.template.anchor_coord),
+                "anchor_symbol": self.template.anchor_symbol,
+                "axis": self.template.axis,
+                "length": self.template.length,
+                "anchor_index": self.template.anchor_index,
+                "start": list(self.template.start),
+                "covered_coords": [list(coord) for coord in self.template.covered_coords],
+            },
+            "score": self.score,
+            "bbox_area_increase": self.bbox_area_increase,
+            "distance_to_centroid": self.distance_to_centroid,
+        }
+
+
+@dataclass(frozen=True)
+class SolverAttempt:
+    template: SlotTemplate
+    status: str
+    sequence: tuple[Symbol, ...] | None
+
+    def to_json(self) -> dict[str, object]:
+        return {
+            "template": TemplateCandidate(self.template, 0.0, 0.0, 0.0).to_json()["template"],
+            "status": self.status,
+            "sequence": list(self.sequence) if self.sequence is not None else None,
+        }
+
+
+@dataclass(frozen=True)
+class SearchLog:
+    sampled_length: int
+    solver_attempts: tuple[SolverAttempt, ...]
+
+    def to_json(self) -> dict[str, object]:
+        return {
+            "sampled_length": self.sampled_length,
+            "solver_attempts": [attempt.to_json() for attempt in self.solver_attempts],
+        }
+
+
+@dataclass(frozen=True)
+class ScenarioTransition:
+    rack: tuple[Symbol, ...]
+    move: Move
+    placed: tuple[tuple[Coord, Symbol], ...]
+    search_log: SearchLog | None
+
+
+@dataclass(frozen=True)
+class ScenarioRun:
+    config_name: str
+    config: Mapping[str, object]
+    seed: int
+    language_id: str
+    forbidden_snippets: tuple[tuple[Symbol, ...], ...]
+    initial_board: "Board"
+    transitions: tuple[ScenarioTransition, ...]
+
+
+@dataclass(frozen=True)
+class BoardConfiguration:
+    dimensions: int
+    occupied: tuple[tuple[Coord, Symbol], ...]
+    rack: tuple[Symbol, ...]
+
+    def to_json(self) -> dict[str, object]:
+        return {
+            "dimensions": self.dimensions,
+            "occupied": [
+                {"coord": list(coord), "symbol": symbol}
+                for coord, symbol in self.occupied
+            ],
+            "rack": list(self.rack),
+        }

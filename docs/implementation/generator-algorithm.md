@@ -102,12 +102,15 @@ Für jedes generierte Szenario sollen gespeichert werden:
 
 ## Witness
 
-Wenn der Solver ein Wort für ein Template findet, entsteht ein Move. Vor dem Anwenden wird der Move mit dem regulären Validator geprüft. Danach wird gespeichert:
+Wenn der Solver ein Wort für ein Template findet, entsteht ein Move. Vor dem Anwenden wird der Move mit dem regulären Validator geprüft. Der Lauf wird inkrementell gespeichert: einmal das Initial-Board und danach pro Witness nur der Übergang.
 
 ```text
-scenario_board = board_before_move
-witness_move = move
-next_board = board_after_move
+initial_board = board_after_initial_word
+transition:
+  rack = rack_before_move
+  move = full_move
+  placed = newly_occupied_cells
+  search_log = solver_and_candidate_trace
 ```
 
-Nur Übergänge mit bekanntem Witness werden als Szenarien exportiert.
+Ein Board vor oder nach einem Witness wird bei Bedarf aus `initial_board` plus den vorherigen Transitions rekonstruiert. Dadurch werden Board-Kopien im internen Modell und im JSON-Export vermieden.

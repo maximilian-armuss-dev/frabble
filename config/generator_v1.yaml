@@ -1,0 +1,33 @@
+config_name: generator_v1
+dimensions: 2
+seed: 71
+language:
+  language_id: no_equal_neighbors_v1
+  alphabet:
+    - A
+    - B
+    - C
+    - D
+    - E
+    - F
+  k: 2
+  forbidden_snippets:
+    - [A, A]
+    - [B, B]
+    - [C, C]
+    - [D, D]
+    - [E, E]
+    - [F, F]
+  min_word_length: 3
+initial_word_axis: 0
+initial_word_length: 5
+length_distribution:
+  - length: 5
+    weight: 1
+top_anchor_count: 12
+top_template_count: 24
+failure_budget: 8
+target_witness_count: 8
+additional_rack_noise: 1
+output_path: outputs/generator_v1.json
+include_search_logs: true

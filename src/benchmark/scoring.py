@@ -1,42 +1,84 @@
 from __future__ import annotations
 
 import math
-from collections import Counter
-from typing import Iterable
 
-from ..domain.models import Move, Scenario
-
-
-def token_frequencies(words: Iterable[str]) -> Counter[str]:
-    counts: Counter[str] = Counter()
-    for word in words:
-        counts.update(word)
-    return counts
+from ..domain.board import Board
+from ..domain.models import BoundingBox, Coord
 
 
-def token_scores_from_frequencies(
-    frequencies: Counter[str], alphabet: Iterable[str]
-) -> dict[str, int]:
-    total = sum(frequencies.values())
-    if total == 0:
-        return {token: 1 for token in alphabet}
-    scores: dict[str, int] = {}
-    for token in alphabet:
-        probability = frequencies[token] / total
-        scores[token] = max(1, round(-math.log2(probability) * 2))
-    return scores
+class BoardScoring:
+    @staticmethod
+    def bounds(board: Board) -> BoundingBox:
+        if not board.cells:
+            raise ValueError("Cannot compute bounds for an empty board.")
+        dimensions = board.dimensions
+        mins = tuple(min(coord[dim] for coord in board.cells) for dim in range(dimensions))
+        maxs = tuple(max(coord[dim] for coord in board.cells) for dim in range(dimensions))
+        return BoundingBox(min_coord=mins, max_coord=maxs)
+
+    @staticmethod
+    def centroid(board: Board) -> tuple[float, ...]:
+        if not board.cells:
+            raise ValueError("Cannot compute centroid for an empty board.")
+        return tuple(
+            sum(coord[dim] for coord in board.cells) / len(board.cells)
+            for dim in range(board.dimensions)
+        )
+
+    @staticmethod
+    def bbox_area_increase(board: Board, coords: tuple[Coord, ...]) -> float:
+        if not coords:
+            raise ValueError("Cannot score an empty coordinate set.")
+        if not board.cells:
+            return float(_bounds_for_coords(coords).area())
+        before = BoardScoring.bounds(board).area()
+        after = _bounds_for_coords(tuple(board.cells) + coords).area()
+        return float(after - before)
+
+    @staticmethod
+    def distance_to_centroid(board: Board, coord: Coord) -> float:
+        centroid = BoardScoring.centroid(board)
+        return math.sqrt(
+            sum((value - centroid[dim]) ** 2 for dim, value in enumerate(coord))
+        )
+
+    @staticmethod
+    def free_cross_axis_span(
+        board: Board,
+        anchor: Coord,
+        axis: int,
+        length: int,
+    ) -> int:
+        usable_templates = 0
+        for anchor_index in range(length):
+            start = tuple(
+                value - (anchor_index if dim == axis else 0)
+                for dim, value in enumerate(anchor)
+            )
+            coords = board.coords_for_slot(start, axis, length)
+            if any(axis in board.axes_at(coord) for coord in coords):
+                continue
+            before = _advance(coords[0], axis, -1)
+            after = _advance(coords[-1], axis, 1)
+            if axis in board.axes_at(before) or axis in board.axes_at(after):
+                continue
+            usable_templates += 1
+        return usable_templates
+
+    @staticmethod
+    def mean_distance_to_centroid(board: Board, coords: tuple[Coord, ...]) -> float:
+        if not coords:
+            return 0.0
+        return sum(BoardScoring.distance_to_centroid(board, coord) for coord in coords) / len(coords)
 
 
-def score_word(word: str, token_scores: dict[str, int]) -> int:
-    return sum(token_scores[token] for token in word)
+def _bounds_for_coords(coords: tuple[Coord, ...]) -> BoundingBox:
+    dimensions = len(coords[0])
+    mins = tuple(min(coord[dim] for coord in coords) for dim in range(dimensions))
+    maxs = tuple(max(coord[dim] for coord in coords) for dim in range(dimensions))
+    return BoundingBox(min_coord=mins, max_coord=maxs)
 
 
-def optimal_move(scenario: Scenario) -> Move:
-    return max(
-        scenario.legal_moves,
-        key=lambda move: score_word(move.tokens, scenario.token_scores),
-    )
+def _advance(coord: Coord, axis: int, offset: int) -> Coord:
+    return tuple(value + (offset if dim == axis else 0) for dim, value in enumerate(coord))
 
-
-def optimal_score(scenario: Scenario) -> int:
-    return score_word(optimal_move(scenario).tokens, scenario.token_scores)

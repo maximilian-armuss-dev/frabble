@@ -1,39 +1,38 @@
 from __future__ import annotations
 
-from ..domain.models import DFA
+from .language import StrictlyLocalLanguage
 
 
-def build_demo_dfa() -> DFA:
-    """Language: one or more A, then exactly one B, then zero or more A, then C."""
-    alphabet = ("A", "B", "C")
-    states = ("q0", "q_before_b", "q_after_b", "q_accept", "q_dead")
-    transitions = {
-        "q0": {"A": "q_before_b", "B": "q_dead", "C": "q_dead"},
-        "q_before_b": {"A": "q_before_b", "B": "q_after_b", "C": "q_dead"},
-        "q_after_b": {"A": "q_after_b", "B": "q_dead", "C": "q_accept"},
-        "q_accept": {"A": "q_dead", "B": "q_dead", "C": "q_dead"},
-        "q_dead": {"A": "q_dead", "B": "q_dead", "C": "q_dead"},
-    }
-    return DFA(
-        alphabet=alphabet,
-        states=states,
-        start_state="q0",
-        accepting_states=frozenset({"q_accept"}),
-        transitions=transitions,
-        grammar_hint="A word is valid iff it matches A+ B A* C.",
+def enumerate_accepted_sequences(
+    language: StrictlyLocalLanguage,
+    length: int,
+) -> tuple[tuple[str, ...], ...]:
+    if length < language.min_word_length:
+        return ()
+
+    accepted: list[tuple[str, ...]] = []
+
+    def visit(prefix: tuple[str, ...]) -> None:
+        if len(prefix) == length:
+            if language.accepts(prefix):
+                accepted.append(prefix)
+            return
+        for symbol in language.alphabet:
+            candidate = prefix + (symbol,)
+            if _has_forbidden_suffix(language, candidate):
+                continue
+            visit(candidate)
+
+    visit(())
+    return tuple(sorted(accepted))
+
+
+def _has_forbidden_suffix(
+    language: StrictlyLocalLanguage,
+    sequence: tuple[str, ...],
+) -> bool:
+    return any(
+        len(snippet) <= len(sequence) and sequence[-len(snippet) :] == snippet
+        for snippet in language.forbidden_snippets
     )
 
-
-def enumerate_accepted_words(dfa: DFA, max_length: int) -> tuple[str, ...]:
-    words: list[str] = []
-
-    def visit(prefix: str) -> None:
-        if prefix and dfa.accepts(prefix):
-            words.append(prefix)
-        if len(prefix) == max_length:
-            return
-        for token in dfa.alphabet:
-            visit(prefix + token)
-
-    visit("")
-    return tuple(sorted(words, key=lambda word: (len(word), word)))
