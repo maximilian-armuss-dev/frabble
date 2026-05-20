@@ -4,6 +4,9 @@ from ..benchmark.scoring import BoardScoring
 from ..domain.board import Board
 from ..domain.models import AnchorCandidate, Coord, SlotTemplate, TemplateCandidate
 
+NEW_CELL_BONUS_WEIGHT = 1.5
+LOCAL_DENSITY_PENALTY_WEIGHT = 1.0
+
 
 def top_anchors(
     board: Board,
@@ -76,7 +79,13 @@ def top_templates(
                 continue
             bbox_increase = BoardScoring.bbox_area_increase(board, template.covered_coords)
             distance = BoardScoring.mean_distance_to_centroid(board, new_coords)
-            score = -bbox_increase - distance
+            local_density = BoardScoring.local_adjacent_density(board, new_coords)
+            score = (
+                -bbox_increase
+                - distance
+                + NEW_CELL_BONUS_WEIGHT * len(new_coords)
+                - LOCAL_DENSITY_PENALTY_WEIGHT * local_density
+            )
             candidates.append(
                 TemplateCandidate(
                     template=template,

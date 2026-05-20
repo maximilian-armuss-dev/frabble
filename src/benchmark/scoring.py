@@ -71,6 +71,20 @@ class BoardScoring:
             return 0.0
         return sum(BoardScoring.distance_to_centroid(board, coord) for coord in coords) / len(coords)
 
+    @staticmethod
+    def local_adjacent_density(board: Board, coords: tuple[Coord, ...]) -> int:
+        density = 0
+        coord_set = set(coords)
+        for coord in coords:
+            for axis in range(board.dimensions):
+                for offset in (-1, 1):
+                    neighbor = _advance(coord, axis, offset)
+                    if neighbor in coord_set:
+                        continue
+                    if board.get(neighbor) is not None:
+                        density += 1
+        return density
+
 
 def _bounds_for_coords(coords: tuple[Coord, ...]) -> BoundingBox:
     dimensions = len(coords[0])
@@ -81,4 +95,3 @@ def _bounds_for_coords(coords: tuple[Coord, ...]) -> BoundingBox:
 
 def _advance(coord: Coord, axis: int, offset: int) -> Coord:
     return tuple(value + (offset if dim == axis else 0) for dim, value in enumerate(coord))
-

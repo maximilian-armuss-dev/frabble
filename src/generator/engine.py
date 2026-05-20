@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import random
+from collections.abc import Callable
 from pathlib import Path
+import random
 
 from ..domain.board import Board
 from ..domain.models import (
@@ -41,7 +42,10 @@ class ScenarioGenerator:
         )
         self.solver = SlotCSP(self.language)
 
-    def generate(self) -> ScenarioRun:
+    def generate(
+        self,
+        progress_callback: Callable[[int], None] | None = None,
+    ) -> ScenarioRun:
         initial_board = self._initial_board()
         board = initial_board
         transitions: list[ScenarioTransition] = []
@@ -70,13 +74,17 @@ class ScenarioGenerator:
             )
             if solved:
                 transitions.append(transition)
+                if progress_callback is not None:
+                    progress_callback(1)
                 failed_searches = 0
             else:
                 failed_searches += 1
 
-        if not transitions:
+        if len(transitions) < self.config.target_witness_count:
             raise GenerationError(
-                "Generator did not produce any witness before budget exhaustion."
+                "Generator produced "
+                f"{len(transitions)} of {self.config.target_witness_count} target witnesses "
+                "before failure budget exhaustion."
             )
 
         return ScenarioRun(
@@ -134,7 +142,7 @@ class ScenarioGenerator:
             result = validate_move(board, self.language, rack, move)
             if not result.ok:
                 attempts.append(SolverAttempt(candidate.template, "validator_failed", sequence))
-                if result.failure_type == "word_extension":
+                if result.failure_type in {"word_extension", "invalid_main_word"}:
                     continue
                 raise GenerationError(f"Generated move failed validation: {result}")
 

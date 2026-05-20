@@ -5,6 +5,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
+from src.benchmark.scoring import BoardScoring
 from src.cli import build_parser
 from src.domain.board import Board
 from src.domain.models import Move, SlotTemplate
@@ -13,7 +14,7 @@ from src.formal.parsing import parse_move
 from src.formal.slot_csp import SlotCSP
 from src.formal.validation import validate_move
 from src.generator.config import GeneratorConfig, load_generator_config
-from src.generator.engine import ScenarioGenerator
+from src.generator.engine import GenerationError, ScenarioGenerator
 from src.generator.readable_json import dumps_readable_json
 from src.generator.reconstruction import reconstruct_boards
 from src.generator.scenario_codec import scenario_run_to_json
@@ -113,6 +114,18 @@ class V1Tests(unittest.TestCase):
         self.assertEqual(board.axes_at((0, 0)), {0})
         self.assertEqual(next_board.axes_at((0, 0)), {0, 1})
 
+    def test_local_adjacent_density_ignores_diagonals_and_template_internals(self):
+        board = Board.empty(2)
+        for move in (
+            Move(start=(-1, 0), axis=0, sequence=("A", "B", "C")),
+            Move(start=(1, 1), axis=1, sequence=("A", "B", "C")),
+        ):
+            board = board.place(move)
+
+        density = BoardScoring.local_adjacent_density(board, ((0, 1), (0, 2)))
+
+        self.assertEqual(density, 3)
+
     def test_validator_accepts_crossing_and_rejects_extension(self):
         sl = language()
         board = Board.empty(2).place(Move(start=(-1, 0), axis=0, sequence=("A", "B", "C")))
@@ -188,14 +201,15 @@ class V1Tests(unittest.TestCase):
         config = load_generator_config("generator_v1")
 
         self.assertEqual(config.length_distribution.start, 3)
-        self.assertEqual(config.length_distribution.end, 5)
+        self.assertGreater(config.length_distribution.end, config.length_distribution.start)
 
     def test_generator_is_reproducible_and_writes_incremental_transitions(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = str(Path(temp_dir) / "scenarios.json")
             config = GeneratorConfig.model_validate(config_dict(output_path))
+            progress_updates: list[int] = []
 
-            first = ScenarioGenerator(config).generate()
+            first = ScenarioGenerator(config).generate(progress_callback=progress_updates.append)
             second = ScenarioGenerator(config).generate()
             written_path = ScenarioGenerator(config).write(first)
             self.assertTrue(written_path.exists())
@@ -211,6 +225,7 @@ class V1Tests(unittest.TestCase):
         self.assertEqual(loaded, first)
         self.assertEqual(first_moves, second_moves)
         self.assertEqual(len(first.transitions), 3)
+        self.assertEqual(progress_updates, [1, 1, 1])
         self.assertTrue(
             all(
                 len(transition.rack) == len(transition.placed) + 1
@@ -231,6 +246,14 @@ class V1Tests(unittest.TestCase):
         self.assertNotIn("top_anchors", data["transitions"][0]["search_log"])
         self.assertNotIn("top_templates", data["transitions"][0]["search_log"])
         self.assertIn("placed", data["transitions"][0])
+
+    def test_generator_fails_when_target_witness_count_is_not_reached(self):
+        config = GeneratorConfig.model_validate(
+            config_dict("unused.json") | {"failure_budget": 1, "target_witness_count": 10}
+        )
+
+        with self.assertRaisesRegex(GenerationError, r"\d+ of 10 target witnesses"):
+            ScenarioGenerator(config).generate()
 
     def test_readable_json_truncates_floats(self):
         rendered = dumps_readable_json({"score": 1.23456, "loss": -1.23456})

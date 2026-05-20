@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import sys
 
+from tqdm import tqdm
+
 from .generator.config import ConfigError, load_generator_config
 from .generator.engine import GenerationError, ScenarioGenerator
 
@@ -24,7 +26,13 @@ def main() -> None:
     try:
         config = load_generator_config(args.config)
         generator = ScenarioGenerator(config)
-        scenario_run = generator.generate()
+        with tqdm(
+            total=config.target_witness_count,
+            desc="witnesses",
+            unit="witness",
+            disable=not sys.stderr.isatty(),
+        ) as progress:
+            scenario_run = generator.generate(progress_callback=progress.update)
         output_path = generator.write(scenario_run)
     except (ConfigError, GenerationError, ValueError) as exc:
         print(f"generation failed: {exc}", file=sys.stderr)

@@ -24,6 +24,8 @@ Wenn alle Templates eines Suchversuchs scheitern, zählt der Suchversuch als feh
 
 Ein fehlgeschlagener Suchversuch bedeutet nicht, dass das Board unlösbar ist. Für V1 ist das egal. Exportiert werden nur Zustände, für die bereits ein Witness-Move bekannt ist.
 
+Ein Generationslauf gilt nur als erfolgreich, wenn `target_witness_count` erreicht wurde. Wird vorher das `failure_budget` ausgeschöpft, bricht der Generator mit einem Fehler ab und schreibt keine neue Szenariodatei als erfolgreichen Lauf.
+
 ## Validator als Assertion
 
 Obwohl das Slot-CSP konstruktiv ein gültiges Wort liefern soll, bleibt der Validator Pflicht:

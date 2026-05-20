@@ -52,7 +52,13 @@ Wenn mehrere Templates für einen Anchor übrig bleiben, werden kompakte Templat
 template_score =
   - bbox_area_increase
   - distance_of_new_cells_to_centroid
+  + 1.5 * new_cell_count
+  - 1.0 * local_adjacent_density
 ```
+
+`new_cell_count`: Anzahl neu belegter Zellen durch das Template. Mehr neue Zellen sind besser, weil der Generator nicht bevorzugt einzelne Buchstaben in fast fertige Strukturen quetschen soll.
+
+`local_adjacent_density`: Anzahl bereits belegter orthogonaler Nachbarzellen um die neu belegten Template-Zellen. Diagonalen zählen nicht, und Nachbarn innerhalb der neuen Template-Zellen zählen nicht. Höhere Dichte ist schlechter.
 
 Bei gleichem Score wird deterministisch das erste Template in der stabil sortierten Reihenfolge genommen. Es wird kein zusätzliches Template-Sampling verwendet.
 
