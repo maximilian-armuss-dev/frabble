@@ -72,6 +72,8 @@ def top_templates(
             new_coords = tuple(
                 coord for coord in template.covered_coords if board.get(coord) is None
             )
+            if not new_coords:
+                continue
             bbox_increase = BoardScoring.bbox_area_increase(board, template.covered_coords)
             distance = BoardScoring.mean_distance_to_centroid(board, new_coords)
             score = -bbox_increase - distance
@@ -120,4 +122,3 @@ def _slot_coords_around_anchor(
         )
         coords.extend(board.coords_for_slot(start, axis, length))
     return tuple(coords)
-

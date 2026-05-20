@@ -108,15 +108,8 @@ class ScenarioGenerator:
         return Board.empty(self.config.dimensions).place(move)
 
     def _sample_length(self) -> int:
-        entries = self.config.length_distribution
-        total_weight = sum(entry.weight for entry in entries)
-        threshold = self.rng.randrange(total_weight)
-        running = 0
-        for entry in entries:
-            running += entry.weight
-            if threshold < running:
-                return entry.length
-        raise GenerationError("Length sampling failed despite a non-empty distribution.")
+        distribution = self.config.length_distribution
+        return self.rng.randint(distribution.start, distribution.end)
 
     def _try_templates(
         self,
@@ -141,6 +134,8 @@ class ScenarioGenerator:
             result = validate_move(board, self.language, rack, move)
             if not result.ok:
                 attempts.append(SolverAttempt(candidate.template, "validator_failed", sequence))
+                if result.failure_type == "word_extension":
+                    continue
                 raise GenerationError(f"Generated move failed validation: {result}")
 
             next_board = board.place(move)

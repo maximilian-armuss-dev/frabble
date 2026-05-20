@@ -54,11 +54,21 @@ Dadurch entscheidet nicht die Symbolfrequenz allein, sondern die konkrete geomet
 Für V1 sind sinnvolle Defaults:
 
 ```text
-top_anchor_count = 12
-top_template_count = 24
+top_anchor_count = 40
+top_template_count = 120
 ```
 
 Diese Werte sind Generatorparameter und werden mit der Config gespeichert.
+Nach der Extension-Prüfung für implizite Same-Axis-Sequenzen muss der Candidate-Pool breit genug sein, weil kompakte Templates häufiger als Wortverlängerungen ausfallen.
+
+Die Längenverteilung ist eine inklusive Range:
+
+```text
+length_distribution.start = 3
+length_distribution.end = 7
+```
+
+Eine Range mit `start = end = 7` sampelt zwar formal pro Schritt neu, erzeugt aber praktisch immer gleich breite Slots; zusammen mit kompakter BBox/Centroid-Heuristik führt das zu einem fast quadratischen Auffüllen.
 
 ## Criss-Cross-Achsenlogik
 

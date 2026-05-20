@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import Counter
 
 from ..domain.board import Board
-from ..domain.models import Coord, Move, ValidationResult
+from ..domain.models import Coord, Move, Symbol, ValidationResult
 from .language import StrictlyLocalLanguage
 
 
@@ -55,6 +55,12 @@ def validate_move(
             False,
             "word_extension",
             "Move extends an existing word along the same axis.",
+        )
+    if _extends_existing_axis_sequence(board, coords, move.axis, language):
+        return ValidationResult(
+            False,
+            "word_extension",
+            "Move extends an already valid sequence along the same axis.",
         )
 
     next_board = board.place(move)
@@ -109,6 +115,55 @@ def _touches_same_axis_neighbor(
     return axis in board.axes_at(before) or axis in board.axes_at(after)
 
 
+def _extends_existing_axis_sequence(
+    board: Board,
+    coords: tuple[Coord, ...],
+    axis: int,
+    language: StrictlyLocalLanguage,
+) -> bool:
+    line_origin = coords[0]
+
+    def on_move_line(coord: Coord) -> bool:
+        return all(
+            value == line_origin[dim]
+            for dim, value in enumerate(coord)
+            if dim != axis
+        )
+
+    existing_by_position = {
+        coord[axis]: coord
+        for coord in board.cells
+        if on_move_line(coord)
+    }
+    if not existing_by_position:
+        return False
+
+    start = coords[0][axis]
+    end = coords[-1][axis]
+    while start - 1 in existing_by_position:
+        start -= 1
+    while end + 1 in existing_by_position:
+        end += 1
+
+    run: list[Symbol] = []
+    for position in range(start, end + 1):
+        coord = existing_by_position.get(position)
+        if coord is None:
+            if _is_existing_valid_sequence(run, language):
+                return True
+            run = []
+            continue
+        run.append(str(board.get(coord)))
+    return _is_existing_valid_sequence(run, language)
+
+
+def _is_existing_valid_sequence(
+    symbols: list[Symbol],
+    language: StrictlyLocalLanguage,
+) -> bool:
+    return len(symbols) >= language.min_word_length and language.accepts(tuple(symbols))
+
+
 def _validate_created_sequences(
     board: Board,
     move_coords: tuple[Coord, ...],
@@ -155,4 +210,3 @@ def _line_coords(board: Board, coord: Coord, axis: int) -> tuple[Coord, ...]:
 
 def _advance(coord: Coord, axis: int, offset: int) -> Coord:
     return tuple(value + (offset if dim == axis else 0) for dim, value in enumerate(coord))
-

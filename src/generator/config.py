@@ -43,11 +43,17 @@ class LanguageConfig(BaseModel):
         return self
 
 
-class LengthWeight(BaseModel):
+class LengthDistribution(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    length: int = Field(gt=0)
-    weight: int = Field(gt=0)
+    start: int = Field(gt=0)
+    end: int = Field(gt=0)
+
+    @model_validator(mode="after")
+    def validate_range(self) -> "LengthDistribution":
+        if self.start > self.end:
+            raise ValueError("length_distribution.start must be <= end.")
+        return self
 
 
 class GeneratorConfig(BaseModel):
@@ -59,7 +65,7 @@ class GeneratorConfig(BaseModel):
     language: LanguageConfig
     initial_word_axis: int
     initial_word_length: int
-    length_distribution: tuple[LengthWeight, ...]
+    length_distribution: LengthDistribution
     top_anchor_count: int = Field(gt=0)
     top_template_count: int = Field(gt=0)
     failure_budget: int = Field(gt=0)
@@ -76,11 +82,8 @@ class GeneratorConfig(BaseModel):
             raise ValueError("initial_word_axis is outside configured dimensions.")
         if self.initial_word_length < self.language.min_word_length:
             raise ValueError("initial_word_length must satisfy min_word_length.")
-        if not self.length_distribution:
-            raise ValueError("length_distribution must not be empty.")
-        for entry in self.length_distribution:
-            if entry.length < self.language.min_word_length:
-                raise ValueError("All sampled lengths must satisfy min_word_length.")
+        if self.length_distribution.start < self.language.min_word_length:
+            raise ValueError("length_distribution.start must satisfy min_word_length.")
         return self
 
 

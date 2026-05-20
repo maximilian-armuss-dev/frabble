@@ -60,7 +60,7 @@ def config_dict(output_path: str) -> dict[str, object]:
         },
         "initial_word_axis": 0,
         "initial_word_length": 5,
-        "length_distribution": [{"length": 5, "weight": 1}],
+        "length_distribution": {"start": 5, "end": 5},
         "top_anchor_count": 12,
         "top_template_count": 24,
         "failure_budget": 8,
@@ -125,6 +125,45 @@ class V1Tests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertEqual(result.failure_type, "word_extension")
 
+    def test_validator_rejects_implicit_same_axis_sequence_extension(self):
+        sl = language()
+        board = Board.empty(2)
+        for move in (
+            Move(start=(-2, -2), axis=1, sequence=("B", "A", "B")),
+            Move(start=(-1, -2), axis=1, sequence=("A", "B", "A")),
+            Move(start=(0, -2), axis=1, sequence=("B", "A", "B")),
+            Move(start=(1, -2), axis=1, sequence=("A", "B", "A")),
+        ):
+            board = board.place(move)
+
+        result = validate_move(
+            board,
+            sl,
+            ("C",),
+            Move(start=(-2, -2), axis=0, sequence=("B", "A", "B", "A", "C")),
+        )
+
+        self.assertFalse(result.ok)
+        self.assertEqual(result.failure_type, "word_extension")
+
+    def test_validator_allows_gap_fill_from_non_word_crossing_symbols(self):
+        sl = language()
+        board = Board.empty(2)
+        for move in (
+            Move(start=(0, -1), axis=1, sequence=("B", "A", "B")),
+            Move(start=(2, -1), axis=1, sequence=("B", "C", "B")),
+        ):
+            board = board.place(move)
+
+        result = validate_move(
+            board,
+            sl,
+            ("B",),
+            Move(start=(0, 0), axis=0, sequence=("A", "B", "C")),
+        )
+
+        self.assertTrue(result.ok)
+
     def test_parser_requires_sequence_list(self):
         move = parse_move('{"start": [0, -1], "axis": 1, "sequence": ["a", "b", "c"]}')
 
@@ -144,6 +183,12 @@ class V1Tests(unittest.TestCase):
         invalid["fallback"] = True
         with self.assertRaises(ValidationError):
             GeneratorConfig.model_validate(invalid)
+
+    def test_generator_v1_config_uses_word_length_range(self):
+        config = load_generator_config("generator_v1")
+
+        self.assertEqual(config.length_distribution.start, 3)
+        self.assertEqual(config.length_distribution.end, 5)
 
     def test_generator_is_reproducible_and_writes_incremental_transitions(self):
         with tempfile.TemporaryDirectory() as temp_dir:

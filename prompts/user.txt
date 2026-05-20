@@ -5,6 +5,8 @@ Coordinates are zero-based vectors. In this {dimensions}D board, coordinates hav
 The start vector identifies the coordinate of the first symbol in your sequence.
 The move must overlap at least one existing board symbol and use only the rack symbols for newly placed cells.
 The full submitted word must be accepted by the formal language.
+The move must not extend an existing valid sequence along the move axis. This also applies to sequences that are only implicitly formed by symbols from crossing words.
+You may reuse crossing symbols on the move axis only when those existing symbols do not already form a valid contiguous sequence before your move.
 
 Formal language:
 {formal_language}

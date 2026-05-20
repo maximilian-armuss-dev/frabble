@@ -17,9 +17,11 @@ V1 akzeptiert nur Overlap-Verbindungen. Reine Nachbarschaft ohne Überlappung is
 
 ## Wortverlängerung
 
-Ein Zug darf ein bestehendes Wort nicht entlang derselben Achse verlängern. Eine Verlängerung liegt vor, wenn auf einer Achse bereits eine Sequenz liegt und der neue Zug entlang derselben Achse direkt benachbart so platziert wird, dass beide Sequenzen als eine einzige längere Sequenz interpretiert werden könnten.
+Ein Zug darf ein bestehendes Wort nicht entlang derselben Achse verlängern. Eine Verlängerung liegt vor, wenn der Zug an eine bereits vorhandene gültige Sequenz auf seiner Legerichtung andockt oder sie überlappt und durch neue Symbole zu einer längeren zusammenhängenden Sequenz macht.
 
-Erlaubt bleibt, ein bestehendes Symbol als Kreuzung auf einer anderen Achse zu nutzen, solange die neue Sequenz und alle entstehenden Sequenzen gültig sind.
+Das gilt auch dann, wenn die vorhandene Sequenz nicht als eigenes Segment gespeichert wurde, sondern nur implizit aus Buchstaben anderer Kreuzungswörter entstanden ist. Entscheidend ist die Board-Geometrie vor dem Zug: Liegen auf der Legerichtung bereits mindestens drei zusammenhängende Symbole, die ein gültiges Wort der formalen Sprache bilden, darf der neue Zug diese Sequenz nicht erweitern.
+
+Erlaubt bleibt, bestehende Symbole aus anderen Wörtern als Kreuzungen auf der Legerichtung zu nutzen, wenn diese Symbole vor dem Zug noch keine gültige zusammenhängende Sequenz auf dieser Achse bilden. Dadurch darf ein neuer Zug Lücken füllen und erst mit den neu gelegten Symbolen ein gültiges Wortbild erzeugen.
 
 ## Validierungsreihenfolge
 

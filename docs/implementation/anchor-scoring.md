@@ -56,4 +56,6 @@ template_score =
 
 Bei gleichem Score wird deterministisch das erste Template in der stabil sortierten Reihenfolge genommen. Es wird kein zusätzliches Template-Sampling verwendet.
 
-Die besten `top_template_count` Templates werden an das lokale Slot-CSP gegeben. Für V1 ist `top_template_count = 24` ein sinnvoller Default.
+Die besten `top_template_count` Templates werden an das lokale Slot-CSP gegeben. Für V1 ist `top_template_count = 120` ein sinnvoller Default.
+
+Die Heuristik bevorzugt weiterhin kompakte Boards. Damit daraus kein deterministisches Quadrat entsteht, muss die Config eine echte Längenrange verwenden; V1 sampelt inklusiv von `start = 3` bis `end = 7`. Eine Range mit `start = end = 7` ist nur für Debugging sinnvoll.
