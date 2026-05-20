@@ -70,7 +70,6 @@ def config_dict(output_path: str) -> dict[str, object]:
         "scoring": {
             "anchor_centroid_weight": 1.0,
             "anchor_free_span_weight": 1.0,
-            "template_bbox_weight": 1.0,
             "template_centroid_weight": 1.0,
             "template_new_cell_bonus_weight": 1.5,
             "template_local_density_penalty_weight": 1.0,

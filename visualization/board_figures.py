@@ -17,6 +17,10 @@ PLOT_MARGIN = 4
 PLOT_PAD_2D = 0.53
 TILE_GAP = 2
 CELL_SIZE_2D = 58
+MIN_LETTER_SIZE_2D = 6
+MAX_LETTER_SIZE_2D = 24
+LETTER_TILE_RATIO_2D = 0.46
+LETTER_SCALE_FACTOR_2D = 1.75
 MIN_PLOT_SIZE_2D = 180
 MAX_PLOT_SIZE_2D = 520
 ANIMATION_CONTROLS_HEIGHT = 56
@@ -62,7 +66,14 @@ def plot_board_2d(
     import plotly.graph_objects as go
 
     fig = go.Figure()
-    fig.add_trace(_board_heatmap_trace(board, highlight_coords=highlight_coords, axes=axes))
+    fig.add_trace(
+        _board_heatmap_trace(
+            board,
+            highlight_coords=highlight_coords,
+            axes=axes,
+            letter_size=_letter_size_2d(board, axes),
+        )
+    )
     _style_plotly_xy(fig, board, axes, title)
     return fig
 
@@ -128,14 +139,30 @@ def animate_scenario_2d(
     import plotly.graph_objects as go
 
     boards, placements = scenario_boards_and_placements(scenario)
-    base_fig = plot_board_2d(boards[0], highlight_coords=placements[0], axes=axes)
     range_board = _union_board_extent(boards)
+    letter_size = _letter_size_2d(range_board, axes)
+    base_fig = go.Figure()
+    base_fig.add_trace(
+        _board_heatmap_trace(
+            boards[0],
+            highlight_coords=placements[0],
+            axes=axes,
+            letter_size=letter_size,
+        )
+    )
     _style_plotly_xy(base_fig, range_board, axes, title)
     frames = []
     for index, (board, placed) in enumerate(zip(boards, placements, strict=True)):
         frames.append(
             go.Frame(
-                data=[_board_heatmap_trace(board, highlight_coords=placed, axes=axes)],
+                data=[
+                    _board_heatmap_trace(
+                        board,
+                        highlight_coords=placed,
+                        axes=axes,
+                        letter_size=letter_size,
+                    )
+                ],
                 name=str(index),
             )
         )
@@ -174,6 +201,7 @@ def _board_heatmap_trace(
     *,
     highlight_coords: Iterable[Coord],
     axes: tuple[int, int],
+    letter_size: int,
 ) -> object:
     import plotly.graph_objects as go
 
@@ -217,7 +245,7 @@ def _board_heatmap_trace(
         text=text,
         customdata=customdata,
         texttemplate="%{text}",
-        textfont={"color": TEXT_COLOR, "size": 24},
+        textfont={"color": TEXT_COLOR, "size": letter_size},
         colorscale=[
             [0.0, BASE_TILE],
             [0.499, BASE_TILE],
@@ -279,6 +307,18 @@ def _plot_size_2d(board: Board, axes: tuple[int, int]) -> tuple[int, int]:
     width = _clamp(len(x_values) * CELL_SIZE_2D, MIN_PLOT_SIZE_2D, MAX_PLOT_SIZE_2D)
     height = _clamp(len(y_values) * CELL_SIZE_2D, MIN_PLOT_SIZE_2D, MAX_PLOT_SIZE_2D)
     return width, height
+
+
+def _letter_size_2d(board: Board, axes: tuple[int, int]) -> int:
+    x_values, y_values = _axis_values(board, axes)
+    width, height = _plot_size_2d(board, axes)
+    tile_size = min(width / len(x_values), height / len(y_values))
+    usable_tile_size = max(tile_size - TILE_GAP, 1)
+    return _clamp(
+        round(usable_tile_size * LETTER_TILE_RATIO_2D * LETTER_SCALE_FACTOR_2D),
+        MIN_LETTER_SIZE_2D,
+        MAX_LETTER_SIZE_2D,
+    )
 
 
 def _clamp(value: int, lower: int, upper: int) -> int:

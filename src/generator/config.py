@@ -61,7 +61,6 @@ class ScoringConfig(BaseModel):
 
     anchor_centroid_weight: float = Field(ge=0)
     anchor_free_span_weight: float = Field(ge=0)
-    template_bbox_weight: float = Field(ge=0)
     template_centroid_weight: float = Field(ge=0)
     template_new_cell_bonus_weight: float = Field(ge=0)
     template_local_density_penalty_weight: float = Field(ge=0)

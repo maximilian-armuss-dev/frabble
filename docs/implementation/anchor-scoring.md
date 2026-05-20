@@ -12,7 +12,6 @@ Raw-Features werden vor dem gewichteten Score pro Kandidatenpool mit Min-Max auf
 scoring:
   anchor_centroid_weight: 1.0
   anchor_free_span_weight: 1.0
-  template_bbox_weight: 1.0
   template_centroid_weight: 1.0
   template_new_cell_bonus_weight: 1.5
   template_local_density_penalty_weight: 1.0
@@ -49,21 +48,16 @@ Für den Anchor-Score wird kein exakter Template-Count berechnet. `free_cross_ax
 
 Die besten `top_anchor_count` Anchors werden expandiert. Der Wert ist ein Compute-Limit in der YAML.
 
-Bounding-Box-Wachstum wird bewusst nicht im Anchor-Score verwendet. Beim Anchor wäre es nur eine grobe Approximation über mehrere mögliche Slots und kann gute Anchors unfair abwerten. Die konkrete Bounding-Box-Entscheidung passiert im Template-Score.
-
 ## Template-Score
 
-Wenn mehrere Templates für einen Anchor übrig bleiben, werden kompakte Templates bevorzugt, aber dichte Innenbereiche und Ein-Buchstaben-Anbauten werden abgeschwächt:
+Wenn mehrere Templates für einen Anchor übrig bleiben, werden zentrale neue Zellen bevorzugt, aber dichte Innenbereiche und Ein-Buchstaben-Anbauten werden abgeschwächt:
 
 ```text
 template_score =
-  - template_bbox_weight                  * norm(bbox_area_increase)
   - template_centroid_weight              * norm(distance_of_new_cells_to_centroid)
   + template_new_cell_bonus_weight        * norm(new_cell_count)
   - template_local_density_penalty_weight * norm(local_adjacent_density)
 ```
-
-`bbox_area_increase`: Wie stark das konkrete Template die Bounding Box vergrößert. `template_bbox_weight` höher verhindert ausufernde Arme; niedriger erleichtert Außenexpansion.
 
 `distance_of_new_cells_to_centroid`: Mittlerer Abstand der neu belegten Zellen zum Schwerpunkt. `template_centroid_weight` höher füllt eher innen und zentral; niedriger gibt Randkandidaten mehr Chancen.
 
@@ -75,6 +69,6 @@ Bei gleichem Score wird deterministisch das erste Template in der stabil sortier
 
 Die besten `top_template_count` Templates werden an das lokale Slot-CSP gegeben. Der Wert ist ein Compute-Limit in der YAML.
 
-Die Heuristik bevorzugt weiterhin kompakte Boards. Damit daraus kein deterministisches Quadrat entsteht, muss die Config eine echte Längenrange verwenden; V1 sampelt inklusiv von `start = 3` bis `end = 7`. Eine Range mit `start = end = 7` ist nur für Debugging sinnvoll.
+Die Heuristik bevorzugt weiterhin zentrale Expansion. Damit daraus kein deterministisches Quadrat entsteht, muss die Config eine echte Längenrange verwenden; V1 sampelt inklusiv von `start = 3` bis `end = 7`. Eine Range mit `start = end = 7` ist nur für Debugging sinnvoll.
 
-Praktische Tuning-Richtung: Wenn der Generator zu viel in dichten Mittelzonen probiert, `template_local_density_penalty_weight` erhöhen oder `template_centroid_weight` senken. Wenn das Board zu stark ausfranst, `template_bbox_weight` erhöhen.
+Praktische Tuning-Richtung: Wenn der Generator zu viel in dichten Mittelzonen probiert, `template_local_density_penalty_weight` erhöhen oder `template_centroid_weight` senken. Wenn Ein-Buchstaben-Anbauten zu häufig werden, `template_new_cell_bonus_weight` erhöhen.

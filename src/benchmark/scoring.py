@@ -3,19 +3,10 @@ from __future__ import annotations
 import math
 
 from ..domain.board import Board
-from ..domain.models import BoundingBox, Coord
+from ..domain.models import Coord
 
 
 class BoardScoring:
-    @staticmethod
-    def bounds(board: Board) -> BoundingBox:
-        if not board.cells:
-            raise ValueError("Cannot compute bounds for an empty board.")
-        dimensions = board.dimensions
-        mins = tuple(min(coord[dim] for coord in board.cells) for dim in range(dimensions))
-        maxs = tuple(max(coord[dim] for coord in board.cells) for dim in range(dimensions))
-        return BoundingBox(min_coord=mins, max_coord=maxs)
-
     @staticmethod
     def centroid(board: Board) -> tuple[float, ...]:
         if not board.cells:
@@ -24,16 +15,6 @@ class BoardScoring:
             sum(coord[dim] for coord in board.cells) / len(board.cells)
             for dim in range(board.dimensions)
         )
-
-    @staticmethod
-    def bbox_area_increase(board: Board, coords: tuple[Coord, ...]) -> float:
-        if not coords:
-            raise ValueError("Cannot score an empty coordinate set.")
-        if not board.cells:
-            return float(_bounds_for_coords(coords).area())
-        before = BoardScoring.bounds(board).area()
-        after = _bounds_for_coords(tuple(board.cells) + coords).area()
-        return float(after - before)
 
     @staticmethod
     def distance_to_centroid(board: Board, coord: Coord) -> float:
@@ -84,13 +65,6 @@ class BoardScoring:
                     if board.get(neighbor) is not None:
                         density += 1
         return density
-
-
-def _bounds_for_coords(coords: tuple[Coord, ...]) -> BoundingBox:
-    dimensions = len(coords[0])
-    mins = tuple(min(coord[dim] for coord in coords) for dim in range(dimensions))
-    maxs = tuple(max(coord[dim] for coord in coords) for dim in range(dimensions))
-    return BoundingBox(min_coord=mins, max_coord=maxs)
 
 
 def _advance(coord: Coord, axis: int, offset: int) -> Coord:

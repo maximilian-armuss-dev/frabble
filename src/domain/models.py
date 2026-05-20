@@ -102,24 +102,6 @@ class Move:
 
 
 @dataclass(frozen=True)
-class BoundingBox:
-    min_coord: Coord
-    max_coord: Coord
-
-    def area(self) -> int:
-        area = 1
-        for lower, upper in zip(self.min_coord, self.max_coord):
-            area *= upper - lower + 1
-        return area
-
-    def to_json(self) -> dict[str, list[int]]:
-        return {
-            "min": list(self.min_coord),
-            "max": list(self.max_coord),
-        }
-
-
-@dataclass(frozen=True)
 class ValidationResult:
     ok: bool
     failure_type: str | None = None
@@ -132,7 +114,6 @@ class AnchorCandidate:
     symbol: Symbol
     axis: int
     score: float
-    bbox_area_increase: float
     distance_to_centroid: float
     free_cross_axis_span: int
 
@@ -142,7 +123,6 @@ class AnchorCandidate:
             "symbol": self.symbol,
             "axis": self.axis,
             "score": self.score,
-            "bbox_area_increase": self.bbox_area_increase,
             "distance_to_centroid": self.distance_to_centroid,
             "free_cross_axis_span": self.free_cross_axis_span,
         }
@@ -152,7 +132,6 @@ class AnchorCandidate:
 class TemplateCandidate:
     template: SlotTemplate
     score: float
-    bbox_area_increase: float
     distance_to_centroid: float
 
     def to_json(self) -> dict[str, object]:
@@ -167,7 +146,6 @@ class TemplateCandidate:
                 "covered_coords": [list(coord) for coord in self.template.covered_coords],
             },
             "score": self.score,
-            "bbox_area_increase": self.bbox_area_increase,
             "distance_to_centroid": self.distance_to_centroid,
         }
 
@@ -180,7 +158,7 @@ class SolverAttempt:
 
     def to_json(self) -> dict[str, object]:
         return {
-            "template": TemplateCandidate(self.template, 0.0, 0.0, 0.0).to_json()["template"],
+            "template": TemplateCandidate(self.template, 0.0, 0.0).to_json()["template"],
             "status": self.status,
             "sequence": list(self.sequence) if self.sequence is not None else None,
         }

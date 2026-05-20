@@ -14,24 +14,20 @@ def top_anchors(
     limit: int,
     scoring: ScoringConfig,
 ) -> tuple[AnchorCandidate, ...]:
-    raw_candidates: list[tuple[Coord, str, int, float, float, int]] = []
+    raw_candidates: list[tuple[Coord, str, int, float, int]] = []
     for coord, symbol in board.occupied_sorted():
         axis = _cross_axis(board, coord)
         if axis is None:
             continue
-        coords = _slot_coords_around_anchor(board, coord, axis, length)
-        bbox_increase = BoardScoring.bbox_area_increase(board, coords)
         distance = BoardScoring.distance_to_centroid(board, coord)
         free_span = BoardScoring.free_cross_axis_span(board, coord, axis, length)
-        raw_candidates.append((coord, symbol, axis, bbox_increase, distance, free_span))
+        raw_candidates.append((coord, symbol, axis, distance, free_span))
 
-    normalized_distance = _normalize_feature(item[4] for item in raw_candidates)
-    normalized_free_span = _normalize_feature(item[5] for item in raw_candidates)
+    normalized_distance = _normalize_feature(item[3] for item in raw_candidates)
+    normalized_free_span = _normalize_feature(item[4] for item in raw_candidates)
 
     candidates: list[AnchorCandidate] = []
-    for index, (coord, symbol, axis, bbox_increase, distance, free_span) in enumerate(
-        raw_candidates
-    ):
+    for index, (coord, symbol, axis, distance, free_span) in enumerate(raw_candidates):
         score = (
             -scoring.anchor_centroid_weight * normalized_distance[index]
             + scoring.anchor_free_span_weight * normalized_free_span[index]
@@ -42,7 +38,6 @@ def top_anchors(
                 symbol=symbol,
                 axis=axis,
                 score=score,
-                bbox_area_increase=bbox_increase,
                 distance_to_centroid=distance,
                 free_cross_axis_span=free_span,
             )
@@ -67,7 +62,7 @@ def top_templates(
     limit: int,
     scoring: ScoringConfig,
 ) -> tuple[TemplateCandidate, ...]:
-    raw_candidates: list[tuple[SlotTemplate, float, float, int, int]] = []
+    raw_candidates: list[tuple[SlotTemplate, float, int, int]] = []
     for anchor in anchors:
         for anchor_index in range(length):
             start = tuple(
@@ -91,23 +86,20 @@ def top_templates(
             )
             if not new_coords:
                 continue
-            bbox_increase = BoardScoring.bbox_area_increase(board, template.covered_coords)
             distance = BoardScoring.mean_distance_to_centroid(board, new_coords)
             local_density = BoardScoring.local_adjacent_density(board, new_coords)
             raw_candidates.append(
-                (template, bbox_increase, distance, len(new_coords), local_density)
+                (template, distance, len(new_coords), local_density)
             )
 
-    normalized_bbox = _normalize_feature(item[1] for item in raw_candidates)
-    normalized_distance = _normalize_feature(item[2] for item in raw_candidates)
-    normalized_new_cell_count = _normalize_feature(item[3] for item in raw_candidates)
-    normalized_local_density = _normalize_feature(item[4] for item in raw_candidates)
+    normalized_distance = _normalize_feature(item[1] for item in raw_candidates)
+    normalized_new_cell_count = _normalize_feature(item[2] for item in raw_candidates)
+    normalized_local_density = _normalize_feature(item[3] for item in raw_candidates)
 
     candidates: list[TemplateCandidate] = []
-    for index, (template, bbox_increase, distance, _, _) in enumerate(raw_candidates):
+    for index, (template, distance, _, _) in enumerate(raw_candidates):
         score = (
-            -scoring.template_bbox_weight * normalized_bbox[index]
-            - scoring.template_centroid_weight * normalized_distance[index]
+            -scoring.template_centroid_weight * normalized_distance[index]
             + scoring.template_new_cell_bonus_weight * normalized_new_cell_count[index]
             - scoring.template_local_density_penalty_weight
             * normalized_local_density[index]
@@ -116,7 +108,6 @@ def top_templates(
             TemplateCandidate(
                 template=template,
                 score=score,
-                bbox_area_increase=bbox_increase,
                 distance_to_centroid=distance,
             )
         )
@@ -154,18 +145,3 @@ def _cross_axis(board: Board, coord: Coord) -> int | None:
         return 0
     return None
 
-
-def _slot_coords_around_anchor(
-    board: Board,
-    anchor: Coord,
-    axis: int,
-    length: int,
-) -> tuple[Coord, ...]:
-    coords: list[Coord] = []
-    for anchor_index in range(length):
-        start = tuple(
-            value - (anchor_index if dim == axis else 0)
-            for dim, value in enumerate(anchor)
-        )
-        coords.extend(board.coords_for_slot(start, axis, length))
-    return tuple(coords)

@@ -2,7 +2,6 @@ from .board import Board
 from .models import (
     AnchorCandidate,
     BoardConfiguration,
-    BoundingBox,
     Coord,
     DFA,
     Move,
@@ -22,7 +21,6 @@ __all__ = [
     "AnchorCandidate",
     "Board",
     "BoardConfiguration",
-    "BoundingBox",
     "Coord",
     "DFA",
     "Move",
