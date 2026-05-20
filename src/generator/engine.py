@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 import random
 
@@ -29,6 +30,25 @@ class GenerationError(RuntimeError):
     pass
 
 
+@dataclass(frozen=True)
+class LengthFailure:
+    length: int
+    reason: str
+    anchor_count: int
+    template_count: int
+    solver_attempt_count: int
+    attempt_statuses: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class TemplateSearchResult:
+    board: Board
+    transition: ScenarioTransition | None
+    solved: bool
+    reason: str
+    solver_attempts: tuple[SolverAttempt, ...]
+
+
 class ScenarioGenerator:
     def __init__(self, config: GeneratorConfig) -> None:
         self.config = config
@@ -49,45 +69,20 @@ class ScenarioGenerator:
         initial_board = self._initial_board()
         board = initial_board
         transitions: list[ScenarioTransition] = []
-        failed_searches = 0
 
-        while (
-            len(transitions) < self.config.target_witness_count
-            and failed_searches < self.config.failure_budget
-        ):
-            sampled_length = self._sample_length()
-            top_anchor_candidates = top_anchors(
-                board,
-                sampled_length,
-                self.config.top_anchor_count,
-                self.config.scoring,
-            )
-            top_template_candidates = top_templates(
-                board,
-                top_anchor_candidates,
-                sampled_length,
-                self.config.top_template_count,
-                self.config.scoring,
-            )
-            board, transition, solved = self._try_templates(
-                board,
-                sampled_length,
-                top_template_candidates,
-            )
-            if solved:
-                transitions.append(transition)
-                if progress_callback is not None:
-                    progress_callback(1)
-                failed_searches = 0
-            else:
-                failed_searches += 1
-
-        if len(transitions) < self.config.target_witness_count:
-            raise GenerationError(
-                "Generator produced "
-                f"{len(transitions)} of {self.config.target_witness_count} target witnesses "
-                "before failure budget exhaustion."
-            )
+        while len(transitions) < self.config.target_witness_count:
+            board, transition, failures = self._generate_next_transition(board)
+            if transition is None:
+                raise GenerationError(
+                    _format_generation_failure(
+                        produced=len(transitions),
+                        target=self.config.target_witness_count,
+                        failures=failures,
+                    )
+                )
+            transitions.append(transition)
+            if progress_callback is not None:
+                progress_callback(1)
 
         return ScenarioRun(
             config_name=self.config.config_name,
@@ -98,6 +93,78 @@ class ScenarioGenerator:
             initial_board=initial_board,
             transitions=tuple(transitions),
         )
+
+    def _generate_next_transition(
+        self,
+        board: Board,
+    ) -> tuple[Board, ScenarioTransition | None, tuple[LengthFailure, ...]]:
+        failures: list[LengthFailure] = []
+        remaining_lengths = list(
+            range(
+                self.config.length_distribution.start,
+                self.config.length_distribution.end + 1,
+            )
+        )
+        while remaining_lengths:
+            sampled_length = _pop_random(self.rng, remaining_lengths)
+            anchor_candidates = top_anchors(
+                board,
+                sampled_length,
+                self.config.top_anchor_count,
+                self.config.scoring,
+            )
+            if not anchor_candidates:
+                failures.append(
+                    LengthFailure(
+                        length=sampled_length,
+                        reason="no_anchor_candidates",
+                        anchor_count=0,
+                        template_count=0,
+                        solver_attempt_count=0,
+                        attempt_statuses=(),
+                    )
+                )
+                continue
+
+            template_candidates = top_templates(
+                board,
+                anchor_candidates,
+                sampled_length,
+                self.config.top_template_count,
+                self.config.scoring,
+            )
+            if not template_candidates:
+                failures.append(
+                    LengthFailure(
+                        length=sampled_length,
+                        reason="no_template_candidates",
+                        anchor_count=len(anchor_candidates),
+                        template_count=0,
+                        solver_attempt_count=0,
+                        attempt_statuses=(),
+                    )
+                )
+                continue
+
+            result = self._try_templates(board, sampled_length, template_candidates)
+            if result.solved:
+                if result.transition is None:
+                    raise GenerationError("Solved template search returned no transition.")
+                return result.board, result.transition, tuple(failures)
+            failures.append(
+                LengthFailure(
+                    length=sampled_length,
+                    reason=result.reason,
+                    anchor_count=len(anchor_candidates),
+                    template_count=len(template_candidates),
+                    solver_attempt_count=len(result.solver_attempts),
+                    attempt_statuses=tuple(
+                        attempt.status for attempt in result.solver_attempts
+                    ),
+                )
+            )
+
+        return board, None, tuple(failures)
 
     def write(self, scenario_run: ScenarioRun) -> Path:
         output = Path(self.config.output_path)
@@ -117,16 +184,12 @@ class ScenarioGenerator:
         move = Move(start=start, axis=self.config.initial_word_axis, sequence=sequence)
         return Board.empty(self.config.dimensions).place(move)
 
-    def _sample_length(self) -> int:
-        distribution = self.config.length_distribution
-        return self.rng.randint(distribution.start, distribution.end)
-
     def _try_templates(
         self,
         board: Board,
         sampled_length: int,
         top_templates: tuple[TemplateCandidate, ...],
-    ) -> tuple[Board, ScenarioTransition, bool]:
+    ) -> TemplateSearchResult:
         attempts: list[SolverAttempt] = []
         for candidate in top_templates:
             domains = self._domains_for_template(board, candidate.template)
@@ -155,24 +218,26 @@ class ScenarioGenerator:
                 sampled_length=sampled_length,
                 solver_attempts=tuple(attempts),
             )
-            return (
-                next_board,
-                ScenarioTransition(
+            return TemplateSearchResult(
+                board=next_board,
+                transition=ScenarioTransition(
                     rack=rack,
                     move=move,
                     placed=placed,
                     search_log=search_log,
                 ),
-                True,
+                solved=True,
+                reason="solved",
+                solver_attempts=tuple(attempts),
             )
 
-        search_log = SearchLog(
-            sampled_length=sampled_length,
+        return TemplateSearchResult(
+            board=board,
+            transition=None,
+            solved=False,
+            reason=_template_failure_reason(attempts),
             solver_attempts=tuple(attempts),
         )
-        empty_move = Move(start=(0, 0), axis=0, sequence=())
-        empty_transition = ScenarioTransition((), empty_move, (), search_log)
-        return board, empty_transition, False
 
     def _domains_for_template(
         self,
@@ -260,4 +325,74 @@ def _placed_cells(board: Board, move: Move) -> tuple[tuple[Coord, Symbol], ...]:
         (coord, symbol)
         for coord, symbol in zip(move.coords(), move.sequence, strict=True)
         if board.get(coord) is None
+    )
+
+
+def _pop_random(rng: random.Random, values: list[int]) -> int:
+    index = rng.randrange(len(values))
+    return values.pop(index)
+
+
+def _template_failure_reason(attempts: list[SolverAttempt]) -> str:
+    statuses = {attempt.status for attempt in attempts}
+    if statuses == {"no_solution"}:
+        return "no_solver_solution"
+    if statuses == {"validator_failed"}:
+        return "validator_rejected_all"
+    return "templates_exhausted"
+
+
+def _format_generation_failure(
+    *,
+    produced: int,
+    target: int,
+    failures: tuple[LengthFailure, ...],
+) -> str:
+    lines = [
+        f"Generator produced {produced} of {target} target witnesses.",
+        "All lengths in length_distribution were tried once for the current board state.",
+    ]
+    if failures:
+        lines.append("Failure summary by sampled length:")
+        for failure in sorted(failures, key=lambda item: item.length):
+            status_summary = _status_summary(failure.attempt_statuses)
+            detail = (
+                f"length={failure.length}: {failure.reason}; "
+                f"anchors={failure.anchor_count}, templates={failure.template_count}, "
+                f"solver_attempts={failure.solver_attempt_count}"
+            )
+            if status_summary:
+                detail += f", statuses={status_summary}"
+            lines.append(f"- {detail}")
+    lines.append(_failure_suggestion(failures))
+    return "\n".join(lines)
+
+
+def _status_summary(statuses: tuple[str, ...]) -> str:
+    if not statuses:
+        return ""
+    counts = {status: statuses.count(status) for status in sorted(set(statuses))}
+    return ", ".join(f"{status}:{count}" for status, count in counts.items())
+
+
+def _failure_suggestion(failures: tuple[LengthFailure, ...]) -> str:
+    reasons = {failure.reason for failure in failures}
+    if "no_anchor_candidates" in reasons:
+        return (
+            "Suggestion: the board has no available cross-axis anchors for at least "
+            "one length; check dimensions or the generated board geometry."
+        )
+    if reasons == {"no_template_candidates"}:
+        return (
+            "Suggestion: increase top_anchor_count or widen length_distribution; "
+            "all selected anchors were pruned before solving."
+        )
+    if reasons <= {"no_solver_solution", "templates_exhausted", "validator_rejected_all"}:
+        return (
+            "Suggestion: increase top_template_count/top_anchor_count, widen "
+            "length_distribution, or relax the language/scoring constraints."
+        )
+    return (
+        "Suggestion: inspect the per-length reasons above; likely config levers are "
+        "top_anchor_count, top_template_count, length_distribution, and scoring."
     )

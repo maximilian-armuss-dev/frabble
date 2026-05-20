@@ -14,7 +14,7 @@ Dieser Ordner enthält die implementierungsnahe Spezifikation für den V1-Puzzle
 
 - Boardgenerierung ist unbounded.
 - Exportierte Szenarien erhalten später eine ROI beziehungsweise Bounding Box.
-- V1 nutzt `dimensions = 2`.
+- V1 unterstützt `dimensions = 2` und `dimensions = 3`.
 - V1 nutzt `k = 2`.
 - V1 nutzt eine einfache Strictly-Local-Sprache über forbidden snippets.
 - Wörter der Länge `1` und `2` sind ungültig.

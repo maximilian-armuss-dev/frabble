@@ -14,8 +14,8 @@ cells: dict[Coord, Symbol]
 Für V1 gilt:
 
 ```python
-dimensions = 2
-Coord = tuple[int, int]
+dimensions in {2, 3}
+Coord = tuple[int, ...]
 ```
 
 ## Segmente

@@ -16,7 +16,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--config",
         required=True,
-        help="Config name under config/, for example: generator_v1",
+        help="Config name under config/generation/, for example: generator_v1",
     )
     return parser
 

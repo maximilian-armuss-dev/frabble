@@ -19,9 +19,11 @@ Der Generator erzeugt intern Übergänge `B_t -> B_{t+1}`. Für ein Szenario wir
 
 V1 erzeugt und validiert nur Züge, die mindestens ein bestehendes Symbol konsistent überlappen. Reine Nachbarschaft ohne Überlappung ist ungültig. Diese Einschränkung reduziert die Kandidatensuche und macht die Validierung im Prototypen stabiler.
 
-## Alternating Criss-Cross Generation
+## Criss-Cross Generation
 
-Der V1-Generator baut intern ein Criss-Cross-Board auf. Nach dem ersten Wort alterniert die Legerichtung:
+Der V1-Generator baut intern ein Criss-Cross-Board auf.
+
+In 2D alterniert die Legerichtung effektiv:
 
 ```text
 axis = 0, dann axis = 1, dann axis = 0, dann axis = 1, ...
@@ -29,11 +31,11 @@ axis = 0, dann axis = 1, dann axis = 0, dann axis = 1, ...
 
 Ein neues Wort wird über ein gemeinsames Symbol mit der bestehenden Struktur gekreuzt. Wenn das bestehende Wort an der Overlap-Koordinate entlang `axis = 0` liegt, wird das neue Wort entlang `axis = 1` gelegt. Wenn das bestehende Wort dort entlang `axis = 1` liegt, wird das neue Wort entlang `axis = 0` gelegt.
 
-Dieser Ansatz vermeidet Kandidaten entlang derselben Achse und passt zur Regel, dass bestehende Wörter nicht verlängert oder entlang derselben Sequenz überdeckt werden dürfen.
+In 3D werden pro Anchor alle Achsen berücksichtigt, auf denen die Anchor-Koordinate noch nicht Teil eines bestehenden Wortes ist. Dieser Ansatz vermeidet Kandidaten entlang derselben Achse und passt zur Regel, dass bestehende Wörter nicht verlängert oder entlang derselben Sequenz überdeckt werden dürfen.
 
 ## Unbounded Generation und ROI
 
-Die interne Generierung ist nicht durch eine feste Boardgröße beschränkt. Der Generator kann Koordinaten in einem unbeschränkten 2D-Raum verwenden und daraus später eine Region of Interest ableiten.
+Die interne Generierung ist nicht durch eine feste Boardgröße beschränkt. Der Generator kann Koordinaten in einem unbeschränkten zwei- oder dreidimensionalen Raum verwenden und daraus später eine Region of Interest ableiten.
 
 Für das Modell werden alle relevanten belegten Symbole mit Koordinaten sowie eine Bounding Box oder Boardshape ausgegeben. Dadurch wird die Generierung weniger fragil, während die Modellantwort weiterhin einfach über Bounds validiert werden kann.
 

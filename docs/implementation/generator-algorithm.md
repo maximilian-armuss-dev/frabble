@@ -10,9 +10,8 @@ Alle zufälligen Entscheidungen nutzen denselben kontrollierten RNG oder determi
 
 - initiales Wort.
 - Wortlänge.
-- eventuelle Auswahl aus gleichwertigen Kandidaten, falls Sampling aktiviert wird.
 
-Sortierungen sind stabil. Bei gleichem Score wird deterministisch nach festen Feldern sortiert, zum Beispiel nach Koordinate, Achse, Anchor-Index und Sequenz. Dadurch hängt das Ergebnis nicht von Dictionary-Iteration oder Set-Reihenfolgen ab.
+Sortierungen sind stabil. Bei gleichem Score wird deterministisch nach festen Feldern sortiert, zum Beispiel nach Koordinate, Achse, Anchor-Index und Sequenz.
 
 ## Ablauf
 
@@ -24,14 +23,14 @@ Sortierungen sind stabil. Bei gleichem Score wird deterministisch nach festen Fe
    - sample eine Wortlänge aus der erlaubten Längenverteilung.
    - score alle belegten Koordinaten billig als mögliche Anchors.
    - behalte die Top-M Anchors.
-   - bestimme pro Top-M Anchor die Zielachse über Criss-Cross-Logik.
+   - bestimme pro Top-M Anchor die zulässigen Zielachsen über Criss-Cross-Logik.
    - erzeuge SlotTemplates für alle möglichen Anchor-Indizes dieser Länge.
    - prune geometrisch unmögliche Templates.
    - score alle übrigen Templates.
    - behalte die Top-K Templates.
    - löse pro Top-K Template ein lokales Slot-CSP.
    - bei Lösung: platziere Wort, speichere Segment, speichere Transition als Witness.
-   - bei keiner Lösung: gehe ins Backoff-Modell.
+   - bei keiner Lösung: markiere die Länge für diesen Board-State als verbraucht und beginne von vorn, bis der Pool an möglichen Längen erschöpft ist.
 
 ## Globaler Candidate-Ansatz
 
@@ -51,6 +50,8 @@ try slot CSP for top_templates in order
 
 Dadurch entscheidet nicht die Symbolfrequenz allein, sondern die konkrete geometrische Qualität eines Anchors und seiner Templates. Das reduziert schlechte frühe Anchor-Entscheidungen, begrenzt aber trotzdem die Compute-Kosten.
 
+Pro unverändertem Board-State wird jede Länge aus der konfigurierten Range höchstens einmal gesampelt. Wenn keine Länge einen Move erzeugt, bricht der Generator mit einem Failure-Report ab. Nach einem erfolgreichen Move wird die Längenrange für den neuen Board-State wieder frisch verwendet.
+
 Für V1 sind sinnvolle Defaults:
 
 ```text
@@ -68,16 +69,16 @@ length_distribution.start = 3
 length_distribution.end = 7
 ```
 
-Eine Range mit `start = end = 7` sampelt zwar formal pro Schritt neu, erzeugt aber praktisch immer gleich breite Slots; zusammen mit kompakter BBox/Centroid-Heuristik führt das zu einem fast quadratischen Auffüllen.
+Eine Range mit `start = end = 7` sampelt zwar formal pro Schritt neu, erzeugt aber praktisch immer gleich breite Slots; zusammen mit Centroid-Heuristik führt das zu einem sehr regelmäßigen Auffüllen.
 
 ## Criss-Cross-Achsenlogik
 
-Im 2D-Fall gilt:
+Für jeden Anchor werden alle Achsen erzeugt, auf denen die Anchor-Koordinate noch nicht Teil eines bestehenden Wortes ist. Im 2D-Fall ergibt das die klassische Criss-Cross-Logik:
 
 - Wenn der Anchor Teil eines bestehenden Wortes entlang `axis = 0` ist, wird entlang `axis = 1` gelegt.
 - Wenn der Anchor Teil eines bestehenden Wortes entlang `axis = 1` ist, wird entlang `axis = 0` gelegt.
 
-In höheren Dimensionen wird später eine Ordnung über die zulässigen Cross-Achsen definiert. V1 implementiert nur den 2D-Fall.
+Im 3D-Fall kann eine Anchor-Koordinate mehrere Zielachsen erzeugen. Liegt ein Tile nur auf `axis = 0`, entstehen Kandidaten entlang `axis = 1` und `axis = 2`. Liegt ein Tile bereits auf `axis = 0` und `axis = 1`, bleibt nur `axis = 2`. Die spätere stabile Sortierung über Score, Koordinate und Achse hält die Generierung reproduzierbar, die Beschränkung auf Top-K Kandidaten hält sie kompakt.
 
 ## Template-Pruning
 

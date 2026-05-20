@@ -16,12 +16,10 @@ def top_anchors(
 ) -> tuple[AnchorCandidate, ...]:
     raw_candidates: list[tuple[Coord, str, int, float, int]] = []
     for coord, symbol in board.occupied_sorted():
-        axis = _cross_axis(board, coord)
-        if axis is None:
-            continue
-        distance = BoardScoring.distance_to_centroid(board, coord)
-        free_span = BoardScoring.free_cross_axis_span(board, coord, axis, length)
-        raw_candidates.append((coord, symbol, axis, distance, free_span))
+        for axis in _cross_axes(board, coord):
+            distance = BoardScoring.distance_to_centroid(board, coord)
+            free_span = BoardScoring.free_cross_axis_span(board, coord, axis, length)
+            raw_candidates.append((coord, symbol, axis, distance, free_span))
 
     normalized_distance = _normalize_feature(item[3] for item in raw_candidates)
     normalized_free_span = _normalize_feature(item[4] for item in raw_candidates)
@@ -137,11 +135,8 @@ def _normalize_feature(values: Iterable[float]) -> tuple[float, ...]:
     return tuple((value - minimum) / span for value in typed_values)
 
 
-def _cross_axis(board: Board, coord: Coord) -> int | None:
+def _cross_axes(board: Board, coord: Coord) -> tuple[int, ...]:
     axes = board.axes_at(coord)
-    if axes == {0}:
-        return 1
-    if axes == {1}:
-        return 0
-    return None
-
+    if not axes:
+        return ()
+    return tuple(axis for axis in range(board.dimensions) if axis not in axes)

@@ -4,7 +4,7 @@ Der V1-Prototyp ist ein Machbarkeitstest. Er soll zeigen, ob ein LLM eine Scrabb
 
 ## Festlegungen
 
-- Board-Dimensionalität ist fest `2`.
+- Board-Dimensionalität ist per YAML auf `2` oder `3` konfigurierbar.
 - Evaluation ist binär: valider Zug oder ungültiger Zug.
 - Kein Scrabble-Punktwert.
 - Keine Optimierung über eine Lösungsmenge.
@@ -17,6 +17,6 @@ Der V1-Prototyp ist ein Machbarkeitstest. Er soll zeigen, ob ein LLM eine Scrabb
 
 ## Kernaufgabe
 
-Das Modell erhält ein frisches zweidimensionales Board, ein Rack mit verfügbaren Symbolen und eine formale Sprachdefinition. Es soll genau eine vollständige Symbolsequenz auf dem Board platzieren.
+Das Modell erhält ein frisches zwei- oder dreidimensionales Board, ein Rack mit verfügbaren Symbolen und eine formale Sprachdefinition. Es soll genau eine vollständige Symbolsequenz auf dem Board platzieren.
 
 Evaluationsinstanzen sind voneinander unabhängig. Das Modell spielt keinen fortlaufenden Spielverlauf, sondern bekommt pro Instanz ein neues Board in einem arbiträren Zustand.

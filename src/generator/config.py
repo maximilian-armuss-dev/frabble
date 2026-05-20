@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_DIR = PROJECT_ROOT / "config"
+GENERATION_CONFIG_DIR = CONFIG_DIR / "generation"
 
 
 class ConfigError(ValueError):
@@ -78,7 +79,6 @@ class GeneratorConfig(BaseModel):
     length_distribution: LengthDistribution
     top_anchor_count: int = Field(gt=0)
     top_template_count: int = Field(gt=0)
-    failure_budget: int = Field(gt=0)
     target_witness_count: int = Field(gt=0)
     scoring: ScoringConfig
     additional_rack_noise: int = Field(ge=0)
@@ -87,8 +87,8 @@ class GeneratorConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_generator(self) -> "GeneratorConfig":
-        if self.dimensions != 2:
-            raise ValueError("V1 supports exactly dimensions = 2.")
+        if self.dimensions not in {2, 3}:
+            raise ValueError("V1 supports dimensions = 2 or dimensions = 3.")
         if self.initial_word_axis < 0 or self.initial_word_axis >= self.dimensions:
             raise ValueError("initial_word_axis is outside configured dimensions.")
         if self.initial_word_length < self.language.min_word_length:
@@ -120,7 +120,7 @@ def resolve_config_path(config_name: str) -> Path:
     if "/" in config_name or "\\" in config_name:
         raise ConfigError("--config must be a config name, not a path.")
     filename = config_name if config_name.endswith(".yaml") else f"{config_name}.yaml"
-    return CONFIG_DIR / filename
+    return GENERATION_CONFIG_DIR / filename
 
 
 def load_generator_config(config_name: str) -> GeneratorConfig:

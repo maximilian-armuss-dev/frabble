@@ -13,8 +13,8 @@ from src.formal.language import StrictlyLocalLanguage
 from src.formal.parsing import parse_move
 from src.formal.slot_csp import SlotCSP
 from src.formal.validation import validate_move
-from src.generator.config import GeneratorConfig, load_generator_config
-from src.generator.candidates import _normalize_feature
+from src.generator.config import GeneratorConfig, load_generator_config, resolve_config_path
+from src.generator.candidates import _normalize_feature, top_anchors
 from src.generator.engine import GenerationError, ScenarioGenerator
 from src.generator.readable_json import dumps_readable_json
 from src.generator.reconstruction import reconstruct_boards
@@ -41,10 +41,10 @@ def language() -> StrictlyLocalLanguage:
     )
 
 
-def config_dict(output_path: str) -> dict[str, object]:
+def config_dict(output_path: str, *, dimensions: int = 2) -> dict[str, object]:
     return {
         "config_name": "unit",
-        "dimensions": 2,
+        "dimensions": dimensions,
         "seed": 11,
         "language": {
             "language_id": "test",
@@ -65,7 +65,6 @@ def config_dict(output_path: str) -> dict[str, object]:
         "length_distribution": {"start": 5, "end": 5},
         "top_anchor_count": 12,
         "top_template_count": 24,
-        "failure_budget": 8,
         "target_witness_count": 3,
         "scoring": {
             "anchor_centroid_weight": 1.0,
@@ -139,6 +138,38 @@ class V1Tests(unittest.TestCase):
         self.assertEqual(_normalize_feature([3, 3, 3]), (0.0, 0.0, 0.0))
         self.assertEqual(_normalize_feature([]), ())
 
+    def test_3d_anchor_candidates_use_all_available_cross_axes(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            config = GeneratorConfig.model_validate(
+                config_dict(str(Path(temp_dir) / "scenarios.json"), dimensions=3)
+            )
+        board = Board.empty(3).place(
+            Move(start=(-1, 0, 0), axis=0, sequence=("A", "B", "C"))
+        )
+
+        candidates = top_anchors(board, 3, 20, config.scoring)
+        center_axes = {
+            candidate.axis
+            for candidate in candidates
+            if candidate.coord == (0, 0, 0)
+        }
+
+        self.assertEqual(center_axes, {1, 2})
+
+    def test_3d_board_allows_crossing_on_third_axis(self):
+        sl = language()
+        board = Board.empty(3)
+        for move in (
+            Move(start=(-1, 0, 0), axis=0, sequence=("A", "B", "C")),
+            Move(start=(0, -1, 0), axis=1, sequence=("A", "B", "C")),
+        ):
+            board = board.place(move)
+        move = Move(start=(0, 0, -1), axis=2, sequence=("A", "B", "C"))
+
+        result = validate_move(board, sl, ("A", "C"), move)
+
+        self.assertTrue(result.ok)
+
     def test_validator_accepts_crossing_and_rejects_extension(self):
         sl = language()
         board = Board.empty(2).place(Move(start=(-1, 0), axis=0, sequence=("A", "B", "C")))
@@ -201,8 +232,9 @@ class V1Tests(unittest.TestCase):
         config = load_generator_config("generator_v1")
 
         self.assertEqual(config.config_name, "generator_v1")
+        self.assertEqual(resolve_config_path("generator_v1").parent.name, "generation")
         invalid = config_dict("unused.json")
-        invalid.pop("failure_budget")
+        invalid.pop("top_template_count")
         with self.assertRaises(ValidationError):
             GeneratorConfig.model_validate(invalid)
         invalid = config_dict("unused.json")
@@ -258,15 +290,54 @@ class V1Tests(unittest.TestCase):
         self.assertNotIn("board_after_move", data["transitions"][0])
         self.assertNotIn("top_anchors", data["transitions"][0]["search_log"])
         self.assertNotIn("top_templates", data["transitions"][0]["search_log"])
-        self.assertIn("placed", data["transitions"][0])
 
-    def test_generator_fails_when_target_witness_count_is_not_reached(self):
-        config = GeneratorConfig.model_validate(
-            config_dict("unused.json") | {"failure_budget": 1, "target_witness_count": 10}
+    def test_generator_accepts_3d_config(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data = config_dict(str(Path(temp_dir) / "scenarios.json"), dimensions=3)
+            data["target_witness_count"] = 1
+            config = GeneratorConfig.model_validate(data)
+
+            run = ScenarioGenerator(config).generate()
+            boards = reconstruct_boards(run)
+
+        self.assertEqual(run.initial_board.dimensions, 3)
+        self.assertEqual(len(run.transitions), 1)
+        self.assertTrue(
+            all(len(coord) == 3 for board in boards for coord in board.cells)
         )
 
-        with self.assertRaisesRegex(GenerationError, r"\d+ of 10 target witnesses"):
+    def test_generator_failure_reports_exhausted_lengths_and_config_levers(self):
+        data = config_dict("unused.json") | {
+            "length_distribution": {"start": 3, "end": 3},
+            "top_anchor_count": 1,
+            "top_template_count": 1,
+            "target_witness_count": 10,
+        }
+        config = GeneratorConfig.model_validate(data)
+
+        with self.assertRaisesRegex(
+            GenerationError,
+            r"All lengths in length_distribution were tried once",
+        ):
             ScenarioGenerator(config).generate()
+
+    def test_generator_tries_each_length_once_per_board_state(self):
+        data = config_dict("unused.json") | {
+            "length_distribution": {"start": 3, "end": 5},
+        }
+        config = GeneratorConfig.model_validate(data)
+        board = Board.empty(2)
+        for move in (
+            Move(start=(0, 0), axis=0, sequence=("A",)),
+            Move(start=(0, 0), axis=1, sequence=("A",)),
+        ):
+            board = board.place(move)
+
+        _, transition, failures = ScenarioGenerator(config)._generate_next_transition(board)
+
+        self.assertIsNone(transition)
+        self.assertEqual(sorted(failure.length for failure in failures), [3, 4, 5])
+        self.assertEqual({failure.reason for failure in failures}, {"no_anchor_candidates"})
 
     def test_readable_json_truncates_floats(self):
         rendered = dumps_readable_json({"score": 1.23456, "loss": -1.23456})
@@ -285,6 +356,7 @@ class V1Tests(unittest.TestCase):
         run_boards = reconstruct_boards(scenario_run)
 
         self.assertNotIn("search_log", data["transitions"][0])
+        self.assertIn("placed", data["transitions"][0])
         self.assertEqual(
             [board.occupied_sorted() for board in run_boards],
             [board.occupied_sorted() for board in loaded_boards],

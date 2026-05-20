@@ -1,0 +1,3 @@
+* config so umstellen, dass der filename ohne suffix bestimmt, was der uv generate command erwartet, wie die json im output folder heißt, und den config namen an sich selbst natürlich. "config_name" ist somit nicht mehr nötig in der yaml.
+* files wie engine.py sind mittlerweile 400 Zeilen lang, man muss sich alle files mal anschauen und überlegen, ob man die sinnvoll aufteilen sollte oder nicht
+* auch wenn ein witness nicht generiert werden kann sollte die .json bis zu diesem punkt geschrieben werden, damit man den trace zum debuggen anschauen kann

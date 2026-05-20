@@ -10,13 +10,14 @@ uv sync
 
 ## Szenarien generieren
 
-Generator-Konfigurationen liegen unter `config/`. Der fachliche Konfigurationsort ist die YAML-Datei; die CLI bleibt absichtlich dünn und nimmt nur den Confignamen entgegen.
+Generator-Konfigurationen liegen unter `config/generation/`. Der fachliche Konfigurationsort ist die YAML-Datei; die CLI bleibt absichtlich dünn und nimmt nur den Confignamen entgegen.
 
 ```bash
 uv run generate --config generator_v1
+uv run generate --config generator_3d
 ```
 
-`--config generator_v1` lädt `config/generator_v1.yaml`. Fehlende oder unvollständige Config-Werte führen zu einem harten Fehler; es gibt keine stillen Code-Defaults.
+`--config generator_v1` lädt `config/generation/generator_v1.yaml`, `--config generator_3d` lädt die 3D-Variante. Fehlende oder unvollständige Config-Werte führen zu einem harten Fehler; es gibt keine stillen Code-Defaults.
 
 ## Tests
 
