@@ -14,6 +14,7 @@ from src.formal.parsing import parse_move
 from src.formal.slot_csp import SlotCSP
 from src.formal.validation import validate_move
 from src.generator.config import GeneratorConfig, load_generator_config
+from src.generator.candidates import _normalize_feature
 from src.generator.engine import GenerationError, ScenarioGenerator
 from src.generator.readable_json import dumps_readable_json
 from src.generator.reconstruction import reconstruct_boards
@@ -66,6 +67,14 @@ def config_dict(output_path: str) -> dict[str, object]:
         "top_template_count": 24,
         "failure_budget": 8,
         "target_witness_count": 3,
+        "scoring": {
+            "anchor_centroid_weight": 1.0,
+            "anchor_free_span_weight": 1.0,
+            "template_bbox_weight": 1.0,
+            "template_centroid_weight": 1.0,
+            "template_new_cell_bonus_weight": 1.5,
+            "template_local_density_penalty_weight": 1.0,
+        },
         "additional_rack_noise": 1,
         "output_path": output_path,
         "include_search_logs": True,
@@ -125,6 +134,11 @@ class V1Tests(unittest.TestCase):
         density = BoardScoring.local_adjacent_density(board, ((0, 1), (0, 2)))
 
         self.assertEqual(density, 3)
+
+    def test_candidate_feature_normalization_is_pool_local(self):
+        self.assertEqual(_normalize_feature([2, 4, 6]), (0.0, 0.5, 1.0))
+        self.assertEqual(_normalize_feature([3, 3, 3]), (0.0, 0.0, 0.0))
+        self.assertEqual(_normalize_feature([]), ())
 
     def test_validator_accepts_crossing_and_rejects_extension(self):
         sl = language()

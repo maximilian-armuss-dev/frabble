@@ -56,6 +56,17 @@ class LengthDistribution(BaseModel):
         return self
 
 
+class ScoringConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    anchor_centroid_weight: float = Field(ge=0)
+    anchor_free_span_weight: float = Field(ge=0)
+    template_bbox_weight: float = Field(ge=0)
+    template_centroid_weight: float = Field(ge=0)
+    template_new_cell_bonus_weight: float = Field(ge=0)
+    template_local_density_penalty_weight: float = Field(ge=0)
+
+
 class GeneratorConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -70,6 +81,7 @@ class GeneratorConfig(BaseModel):
     top_template_count: int = Field(gt=0)
     failure_budget: int = Field(gt=0)
     target_witness_count: int = Field(gt=0)
+    scoring: ScoringConfig
     additional_rack_noise: int = Field(ge=0)
     output_path: str
     include_search_logs: bool

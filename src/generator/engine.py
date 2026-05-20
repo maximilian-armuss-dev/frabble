@@ -60,12 +60,14 @@ class ScenarioGenerator:
                 board,
                 sampled_length,
                 self.config.top_anchor_count,
+                self.config.scoring,
             )
             top_template_candidates = top_templates(
                 board,
                 top_anchor_candidates,
                 sampled_length,
                 self.config.top_template_count,
+                self.config.scoring,
             )
             board, transition, solved = self._try_templates(
                 board,

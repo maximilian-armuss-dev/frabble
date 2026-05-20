@@ -28,6 +28,13 @@ top_anchor_count: 40
 top_template_count: 200
 failure_budget: 100
 target_witness_count: 80
+scoring:
+  anchor_centroid_weight: 1.0
+  anchor_free_span_weight: 2.0
+  template_bbox_weight: 1.0
+  template_centroid_weight: 1.0
+  template_new_cell_bonus_weight: 1.5
+  template_local_density_penalty_weight: 1.0
 additional_rack_noise: 1
 output_path: outputs/generator_v1.json
 include_search_logs: true
