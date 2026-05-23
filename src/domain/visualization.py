@@ -19,15 +19,15 @@ def build_dfa_graph(dfa: DFA) -> nx.DiGraph:
 
     edge_labels: dict[tuple[str, str], list[str]] = {}
     for source, transitions in dfa.transitions.items():
-        for token, target in transitions.items():
+        for symbol, target in transitions.items():
             graph.add_edge(source, target)
-            edge_labels.setdefault((source, target), []).append(token)
+            edge_labels.setdefault((source, target), []).append(symbol)
 
     nx.set_edge_attributes(
         graph,
         {
-            edge: ",".join(sorted(tokens))
-            for edge, tokens in edge_labels.items()
+            edge: ",".join(sorted(symbols))
+            for edge, symbols in edge_labels.items()
         },
         "label",
     )
@@ -80,7 +80,7 @@ def render_dfa_png(dfa: DFA, output_path: str | Path) -> Path:
         bbox={"boxstyle": "round,pad=0.2", "facecolor": "white", "edgecolor": "none"},
     )
 
-    plt.title("Demo DFA", fontsize=14)
+    plt.title("Strictly Local DFA", fontsize=14)
     plt.axis("off")
     plt.tight_layout()
     plt.savefig(output, dpi=180)

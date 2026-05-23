@@ -1,6 +1,6 @@
-# LLM Scrabble Bench Prototype
+# LLM Scrabble Bench
 
-Minimal prototype for a Scrabble-like LLM environment with a formal language, DFA validator, prompt templates, token scoring, and optional model calls through [litellm](https://github.com/BerriAI/litellm) (supporting OpenAI, Anthropic, Google, Cohere, and more).
+V1-Implementierung für einen Scrabble-artigen LLM-Benchmark mit formaler Sprache, sparse Board, lokalem Slot-CSP und deterministischer Witness-Generierung.
 
 ## Setup
 
@@ -8,38 +8,22 @@ Minimal prototype for a Scrabble-like LLM environment with a formal language, DF
 uv sync
 ```
 
-For a real model call:
+## Szenarien generieren
+
+Generator-Konfigurationen liegen unter `config/generation/`. Der fachliche Konfigurationsort ist die YAML-Datei; die CLI bleibt absichtlich dünn und nimmt nur den Confignamen entgegen.
 
 ```bash
-cp .env.example .env
-# Set the active profile (LLM_MODEL_NAME) and the required provider keys in .env.
-# Model profiles are defined in model_configs.yaml.
-
-uv run scrabble-prototype --call-model
+uv run generate --config generator_v1
+uv run generate --config generator_3d
 ```
 
-You can also set the variables directly in the shell. Shell variables override values from `.env`.
+`--config generator_v1` lädt `config/generation/generator_v1.yaml`, `--config generator_3d` lädt die 3D-Variante. Fehlende oder unvollständige Config-Werte führen zu einem harten Fehler; es gibt keine stillen Code-Defaults.
 
-Without an API key, you can still run the local oracle/validator loop:
+## Tests
 
 ```bash
-uv run scrabble-prototype --dry-run --show-prompt
-uv run scrabble-prototype --dry-run --reference-max-length 5
-uv run scrabble-prototype --call-model --model-name google_gemini_flash
-uv run check-model --model-name openai_gpt5_mini
-uv run check-model --all
-uv run python -m unittest discover -s tests
+uv run python -m unittest discover -s tests -q
 ```
-
-A DFA visualization can be generated as a PNG:
-
-```bash
-uv run scrabble-prototype --dry-run --visualize-dfa outputs/demo-dfa.png
-```
-
-## Grammar Sampling
-
-Instead of the hard-coded demo DFA, you can sample a random **Strictly Local (SL_k)** grammar and use it as the formal language for a scenario.
 
 ### Sample a grammar
 
@@ -127,13 +111,21 @@ uv run scrabble-prototype --dry-run --grammar grammars/my_grammar.json --show-pr
 - `cli.py`: command-line loop.
 - `prototype.py`: re-exports all public symbols.
 
-## Model Check
+## Modellcheck
 
-The additional CLI intentionally sends only a minimal ping/pong prompt to the selected model to keep token usage low.
+Der zusätzliche Modellcheck sendet nur einen minimalen Ping/Pong-Prompt an ein konfiguriertes Modell.
 
 ```bash
 uv run check-model --model-name openai_gpt5_mini
 uv run check-model --all
 ```
 
-The output shows the profile name, the concrete LiteLLM model, and the first 80 characters of the response or an error.
+## Code-Struktur
+
+- `domain/`: Sparse-Board, Moves, Segmente, Templates und Witness-Typen.
+- `formal/`: Strictly-Local-Sprache, OR-Tools-Slot-CSP, Parsing und Validierung.
+- `generator/`: strikter YAML-Config-Loader, Candidate-Ranking, Generationslauf, Scenario-Codec, Datei-I/O und Board-Rekonstruktion.
+- `benchmark/`: Board-Scoring-Helfer.
+- `llm/`: Prompt-Aufbau, Modellkonfiguration aus `.env` und `model_configs.yaml` sowie der LiteLLM-Client.
+- `tools/check_model.py`: kleine CLI zum Prüfen einzelner oder aller Modellprofile.
+- `prompts/`: System- und User-Prompt-Templates.
