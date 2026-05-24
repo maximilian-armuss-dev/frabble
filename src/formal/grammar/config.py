@@ -5,7 +5,7 @@ from pathlib import Path
 
 import yaml
 
-CONFIG_DIR = Path(__file__).resolve().parents[2] / "config"
+CONFIG_DIR = Path(__file__).resolve().parents[3] / "config"
 GRAMMAR_CONFIGS_PATH = CONFIG_DIR / "grammar_configs.yaml"
 
 
@@ -24,7 +24,6 @@ class AutoResampleConfig:
 class SLSamplingConfig:
     alphabet_case: str
     forbidden_fraction: float
-    minimize_dfa: bool
     auto_resample: AutoResampleConfig
 
 
@@ -35,7 +34,6 @@ def load_sl_sampling_config() -> SLSamplingConfig:
     return SLSamplingConfig(
         alphabet_case=str(sl["alphabet_case"]),
         forbidden_fraction=float(sl["forbidden_fraction"]),
-        minimize_dfa=bool(sl["minimize_dfa"]),
         auto_resample=AutoResampleConfig(
             enabled=bool(ar["enabled"]),
             max_attempts=int(ar["max_attempts"]),
