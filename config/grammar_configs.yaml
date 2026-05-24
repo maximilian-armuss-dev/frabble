@@ -1,7 +1,6 @@
 sl_grammar:
   alphabet_case: "upper"
   forbidden_fraction: 0.35
-  minimize_dfa: true
 
   auto_resample:
     enabled: true
