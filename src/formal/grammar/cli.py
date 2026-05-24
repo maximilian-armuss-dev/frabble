@@ -142,9 +142,7 @@ def cmd_analyze() -> None:
 
     grammar, _, name = load_grammar(args.grammar_file)
     print(f"Grammar: {name}")
-    print(f"  {grammar.describe()}")
-    forbidden_display = sorted("".join(s) for s in grammar.forbidden_snippets)
-    print(f"  Forbidden patterns: {forbidden_display}")
+    print(f"{grammar.describe()}")
 
     lam = perron_eigenvalue(grammar)
     print(f"\nPerron eigenvalue: {lam:.6f}")

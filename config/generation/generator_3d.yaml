@@ -1,24 +1,7 @@
 config_name: generator_3d
 dimensions: 3
 seed: 71
-language:
-  language_id: no_equal_neighbors_v1
-  alphabet:
-    - A
-    - B
-    - C
-    - D
-    - E
-    - F
-  k: 2
-  forbidden_snippets:
-    - [A, A]
-    - [B, B]
-    - [C, C]
-    - [D, D]
-    - [E, E]
-    - [F, F]
-  min_word_length: 3
+grammar_path: outputs/grammars/generator_3d_grammar.json
 initial_word_axis: 0
 initial_word_length: 5
 length_distribution:

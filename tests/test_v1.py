@@ -46,20 +46,7 @@ def config_dict(output_path: str, *, dimensions: int = 2) -> dict[str, object]:
         "config_name": "unit",
         "dimensions": dimensions,
         "seed": 11,
-        "language": {
-            "language_id": "test",
-            "alphabet": ["A", "B", "C", "D", "E", "F"],
-            "k": 2,
-            "forbidden_snippets": [
-                ["A", "A"],
-                ["B", "B"],
-                ["C", "C"],
-                ["D", "D"],
-                ["E", "E"],
-                ["F", "F"],
-            ],
-            "min_word_length": 3,
-        },
+        "grammar_path": "grammars/generator_v1_grammar.json",
         "initial_word_axis": 0,
         "initial_word_length": 5,
         "length_distribution": {"start": 5, "end": 5},
@@ -279,7 +266,7 @@ class V1Tests(unittest.TestCase):
         )
         self.assertEqual(len(loaded_boards), 4)
         self.assertIn('\n  "initial_board"', written_text)
-        self.assertIn('"alphabet": ["A", "B", "C", "D", "E", "F"]', written_text)
+        self.assertIn('"grammar_name"', written_text)
         self.assertEqual(
             [board.occupied_sorted() for board in run_boards],
             [board.occupied_sorted() for board in loaded_boards],

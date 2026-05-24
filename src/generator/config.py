@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_DIR = PROJECT_ROOT / "config"
@@ -13,35 +13,6 @@ GENERATION_CONFIG_DIR = CONFIG_DIR / "generation"
 
 class ConfigError(ValueError):
     pass
-
-
-class LanguageConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    language_id: str
-    alphabet: tuple[str, ...]
-    k: int
-    forbidden_snippets: tuple[tuple[str, ...], ...]
-    min_word_length: int
-
-    @field_validator("alphabet")
-    @classmethod
-    def validate_alphabet(cls, value: tuple[str, ...]) -> tuple[str, ...]:
-        _validate_alphabet(value)
-        return value
-
-    @model_validator(mode="after")
-    def validate_language(self) -> "LanguageConfig":
-        _validate_v1_language_shape(self.k, self.min_word_length)
-        alphabet = set(self.alphabet)
-        for snippet in self.forbidden_snippets:
-            if not snippet:
-                raise ValueError("forbidden snippets must not be empty.")
-            if len(snippet) > self.k:
-                raise ValueError("forbidden snippets must not be wider than k.")
-            if set(snippet) - alphabet:
-                raise ValueError("forbidden snippets must use only alphabet symbols.")
-        return self
 
 
 class LengthDistribution(BaseModel):
@@ -73,7 +44,7 @@ class GeneratorConfig(BaseModel):
     config_name: str
     dimensions: int
     seed: int
-    language: LanguageConfig
+    grammar_path: str
     initial_word_axis: int
     initial_word_length: int
     length_distribution: LengthDistribution
@@ -91,27 +62,7 @@ class GeneratorConfig(BaseModel):
             raise ValueError("V1 supports dimensions = 2 or dimensions = 3.")
         if self.initial_word_axis < 0 or self.initial_word_axis >= self.dimensions:
             raise ValueError("initial_word_axis is outside configured dimensions.")
-        if self.initial_word_length < self.language.min_word_length:
-            raise ValueError("initial_word_length must satisfy min_word_length.")
-        if self.length_distribution.start < self.language.min_word_length:
-            raise ValueError("length_distribution.start must satisfy min_word_length.")
         return self
-
-
-def _validate_alphabet(value: tuple[str, ...]) -> None:
-    if not value:
-        raise ValueError("alphabet must not be empty.")
-    if len(set(value)) != len(value):
-        raise ValueError("alphabet must contain unique symbols.")
-    if any(not symbol for symbol in value):
-        raise ValueError("alphabet symbols must be non-empty strings.")
-
-
-def _validate_v1_language_shape(k: int, min_word_length: int) -> None:
-    if k != 2:
-        raise ValueError("V1 supports exactly k = 2.")
-    if min_word_length != 3:
-        raise ValueError("V1 supports exactly min_word_length = 3.")
 
 
 def resolve_config_path(config_name: str) -> Path:
@@ -124,6 +75,8 @@ def resolve_config_path(config_name: str) -> Path:
 
 
 def load_generator_config(config_name: str) -> GeneratorConfig:
+    from ..formal.grammar.serialization import load_grammar
+
     path = resolve_config_path(config_name)
     if not path.exists():
         raise ConfigError(f"Config file does not exist: {path}")
@@ -137,6 +90,25 @@ def load_generator_config(config_name: str) -> GeneratorConfig:
         raise ConfigError(
             f"config_name must match file name: expected {expected_name!r}, got {config.config_name!r}."
         )
+
+    grammar_path = Path(config.grammar_path)
+    if not grammar_path.is_absolute():
+        grammar_path = PROJECT_ROOT / grammar_path
+    if not grammar_path.exists():
+        raise ConfigError(f"grammar_path does not exist: {grammar_path}")
+    grammar, _cfg, _name = load_grammar(grammar_path)
+
+    if config.initial_word_length < grammar.min_word_length:
+        raise ConfigError(
+            f"initial_word_length ({config.initial_word_length}) must be >= "
+            f"grammar min_word_length ({grammar.min_word_length})."
+        )
+    if config.length_distribution.start < grammar.min_word_length:
+        raise ConfigError(
+            f"length_distribution.start ({config.length_distribution.start}) must be >= "
+            f"grammar min_word_length ({grammar.min_word_length})."
+        )
+
     return config
 
 

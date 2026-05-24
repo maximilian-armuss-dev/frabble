@@ -29,9 +29,9 @@ def generate_scenario(
     rng = random.Random(seed)
 
     if grammar_path is not None:
-        from ..grammar.serialization import load_grammar
+        from ..formal.grammar.serialization import load_grammar
         grammar, config, _ = load_grammar(grammar_path)
-        dfa = grammar.to_dfa(minimize=config.minimize_dfa)
+        dfa = grammar.to_dfa()
     else:
         dfa = build_demo_dfa()
 

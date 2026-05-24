@@ -38,7 +38,7 @@ class StrictlyLocalLanguage:
                 f"k: {self.k}",
                 f"Minimum word length: {self.min_word_length}",
                 f"Forbidden snippets: {{{snippets}}}",
-                "A sequence is valid iff it has the minimum length and contains no forbidden snippet.",
+                f"A sequence is valid iff it has the minimum length of {self.min_word_length} and contains no forbidden snippet.",
             ]
         )
 

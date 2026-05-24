@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 import random
 
+from pathlib import Path
+
 from ..domain.board import Board
 from ..domain.models import (
     Coord,
@@ -18,7 +20,7 @@ from ..domain.models import (
     TemplateCandidate,
 )
 from ..formal.automata import enumerate_accepted_sequences
-from ..formal.language import StrictlyLocalLanguage
+from ..formal.grammar.serialization import load_grammar
 from ..formal.slot_csp import SlotCSP
 from ..formal.validation import validate_move
 from .candidates import top_anchors, top_templates
@@ -53,13 +55,10 @@ class ScenarioGenerator:
     def __init__(self, config: GeneratorConfig) -> None:
         self.config = config
         self.rng = random.Random(config.seed)
-        self.language = StrictlyLocalLanguage(
-            language_id=config.language.language_id,
-            alphabet=config.language.alphabet,
-            k=config.language.k,
-            forbidden_snippets=config.language.forbidden_snippets,
-            min_word_length=config.language.min_word_length,
-        )
+        grammar_path = Path(config.grammar_path)
+        if not grammar_path.is_absolute():
+            grammar_path = PROJECT_ROOT / grammar_path
+        self.language, _cfg, self.grammar_name = load_grammar(grammar_path)
         self.solver = SlotCSP(self.language)
 
     def generate(
@@ -88,7 +87,7 @@ class ScenarioGenerator:
             config_name=self.config.config_name,
             config=self.config.model_dump(mode="json"),
             seed=self.config.seed,
-            language_id=self.language.language_id,
+            grammar_name=self.grammar_name,
             forbidden_snippets=self.language.forbidden_snippets,
             initial_board=initial_board,
             transitions=tuple(transitions),

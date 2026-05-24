@@ -189,9 +189,9 @@ class ScenarioRun:
     config_name: str
     config: Mapping[str, object]
     seed: int
-    language_id: str
+    grammar_name: str
     forbidden_snippets: tuple[tuple[Symbol, ...], ...]
-    initial_board: "Board"
+    initial_board: "Board" #TODO is this intended?
     transitions: tuple[ScenarioTransition, ...]
 
 

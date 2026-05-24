@@ -20,7 +20,7 @@ def scenario_run_to_json(scenario_run: ScenarioRun) -> dict[str, object]:
         "config_name": scenario_run.config_name,
         "config": scenario_run.config,
         "seed": scenario_run.seed,
-        "language_id": scenario_run.language_id,
+        "grammar_name": scenario_run.grammar_name,
         "forbidden_snippets": [
             list(snippet) for snippet in scenario_run.forbidden_snippets
         ],
@@ -45,7 +45,7 @@ def scenario_run_from_json(data: dict[str, object]) -> ScenarioRun:
         config_name=str(data["config_name"]),
         config=cast(dict[str, object], data["config"]),
         seed=int(data["seed"]),
-        language_id=str(data["language_id"]),
+        grammar_name=str(data["grammar_name"]),
         forbidden_snippets=tuple(
             tuple(str(symbol) for symbol in snippet)
             for snippet in cast(list[list[str]], data["forbidden_snippets"])
