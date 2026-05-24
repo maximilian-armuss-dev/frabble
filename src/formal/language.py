@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass
 from typing import Sequence
 
@@ -13,6 +14,7 @@ class StrictlyLocalLanguage:
     k: int
     forbidden_snippets: tuple[tuple[Symbol, ...], ...]
     min_word_length: int
+    seed: int | None = None
 
     def accepts(self, sequence: Sequence[Symbol]) -> bool:
         symbols = tuple(sequence)
@@ -41,23 +43,7 @@ class StrictlyLocalLanguage:
         )
 
     def to_dfa(self) -> DFA:
-        states, transitions = self._automaton_parts()
-        state_names = tuple(self._state_name(state) for state in states)
-        named_transitions = {
-            self._state_name(state): {
-                symbol: self._state_name(target)
-                for symbol, target in transitions[state].items()
-            }
-            for state in states
-        }
-        return DFA(
-            alphabet=self.alphabet,
-            states=state_names,
-            start_state=self._state_name(()),
-            accepting_states=frozenset(state_names),
-            transitions=named_transitions,
-            grammar_hint=self.describe(),
-        )
+        return _build_phase_dfa(self)
 
     def ortools_automaton(self) -> tuple[int, list[int], list[tuple[int, int, int]], dict[Symbol, int]]:
         states, transitions = self._automaton_parts()
@@ -110,3 +96,66 @@ class StrictlyLocalLanguage:
     @staticmethod
     def _state_name(state: tuple[Symbol, ...]) -> str:
         return "START" if not state else "S_" + "_".join(state)
+
+
+def _phase_state_name(phase: int, history: str, min_word_length: int) -> str:
+    if phase < min_word_length:
+        return f"p{phase}:{history}"
+    return f"r:{history}"
+
+
+def _build_phase_dfa(language: StrictlyLocalLanguage) -> DFA:
+    alphabet = language.alphabet
+    k = language.k
+    min_wl = language.min_word_length
+    forbidden = frozenset(
+        "".join(s) for s in language.forbidden_snippets if len(s) == k
+    )
+    DEAD = "dead"
+
+    transitions: dict[str, dict[str, str]] = {}
+    transitions[DEAD] = {sym: DEAD for sym in alphabet}
+
+    queue: deque[tuple[int, str]] = deque([(0, "")])
+    visited: set[tuple[int, str]] = {(0, "")}
+
+    while queue:
+        phase, history = queue.popleft()
+        key = _phase_state_name(phase, history, min_wl)
+        transitions.setdefault(key, {})
+
+        for sym in alphabet:
+            next_phase = min(phase + 1, min_wl)
+
+            if phase >= k - 1:
+                kgram = history + sym
+                if kgram in forbidden:
+                    transitions[key][sym] = DEAD
+                    continue
+                next_history = kgram[1:]
+            else:
+                next_history = history + sym
+
+            next_key = _phase_state_name(next_phase, next_history, min_wl)
+            transitions[key][sym] = next_key
+
+            nxt = (next_phase, next_history)
+            if nxt not in visited:
+                visited.add(nxt)
+                queue.append(nxt)
+
+    all_keys: set[str] = set(transitions.keys())
+    for sym_map in transitions.values():
+        all_keys.update(sym_map.values())
+
+    states = tuple(sorted(all_keys))
+    accepting = frozenset(s for s in states if s.startswith("r:"))
+
+    return DFA(
+        alphabet=alphabet,
+        states=states,
+        start_state=_phase_state_name(0, "", min_wl),
+        accepting_states=accepting,
+        transitions=transitions,
+        grammar_hint=language.describe(),
+    )
