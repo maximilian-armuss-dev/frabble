@@ -23,10 +23,8 @@ dependencies = [
 [project.scripts]
 generate = "src.cli:main"
 check-model = "src.tools.check_model:main"
-sample-grammar = "src.grammar.cli:cmd_sample"
-check-grammar = "src.grammar.cli:cmd_check"
-analyze-grammar = "src.grammar.cli:cmd_analyze"
-visualize-grammar = "src.grammar.cli:cmd_visualize"
+sample-grammar = "src.formal.grammar.cli:cmd_sample"
+analyze-grammar = "src.formal.grammar.cli:cmd_analyze"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
