@@ -10,6 +10,12 @@ uv sync
 
 ## Workflow
 
+There are two configuration layers:
+
+- `config/grammar_configs.yaml` contains defaults used while sampling a grammar. Sampling produces a concrete, reproducible JSON grammar under `outputs/grammars/`.
+- `config/generation/<name>.yaml` controls a board/scenario run and selects one
+  sampled grammar through `grammar_path`.
+
 ### 1. Sample a grammar
 
 Sample a random strictly-local (SL_k) grammar and save it to `outputs/grammars/<name>.json`:
@@ -18,7 +24,7 @@ Sample a random strictly-local (SL_k) grammar and save it to `outputs/grammars/<
 uv run sample-grammar --name my_grammar --alphabet-size 5 --k 3 --seed 42 --show-stats
 ```
 
-Global defaults (Perron bounds, word-count window, DFA minimisation, etc.) are read from `config/grammar_configs.yaml`. Any CLI flag overrides just that one value for the run. All resolved parameters are written into the JSON for full traceability.
+Global defaults (forbidden fraction, Perron bounds, word-count window, etc.) are read from `config/grammar_configs.yaml`. Any CLI flag overrides just that one value for the run. All resolved parameters are written into the JSON for full traceability.
 
 Key flags (all optional — unset flags fall back to `config/grammar_configs.yaml`):
 
@@ -61,6 +67,45 @@ uv run generate --config generator_3d
 ```
 
 `--config generator_v1` loads `config/generation/generator_v1.yaml`, `--config generator_3d` loads the 3D variant. Missing or incomplete config values cause a hard error; there are no silent code defaults.
+
+### 4. Visualize a generated 2D board
+
+The notebook reads a generated scenario JSON, not a grammar JSON. The checked-in
+`generator_v1` config and the 2D notebook already agree on the scenario path:
+
+```bash
+uv run generate --config generator_v1
+```
+
+Then run `visualization/visualize_2d.ipynb`, which loads
+`outputs/generator_v1.json`.
+
+### End-to-end run with a new 2D grammar
+
+To use a newly sampled grammar without replacing the checked-in example, create
+a generation config such as `config/generation/my_2d.yaml` from
+`generator_v1.yaml` and change these fields:
+
+```yaml
+config_name: my_2d
+grammar_path: outputs/grammars/my_2d_grammar.json
+output_path: outputs/my_2d.json
+```
+
+Sample the grammar and generate its scenario:
+
+```bash
+uv run sample-grammar --name my_2d_grammar --alphabet-size 5 --k 3 --seed 42 --show-stats
+uv run analyze-grammar outputs/grammars/my_2d_grammar.json --max-length 7
+uv run generate --config my_2d
+```
+
+Finally, set `SCENARIO_PATH` in `visualization/visualize_2d.ipynb` to
+`ROOT / "outputs" / "my_2d.json"` and run the notebook.
+
+The current checked-in samples use `k = 3`. To run the older V1 convention
+described in `docs/implementation/README.md` (`k = 2` while still rejecting
+words shorter than length 3), sample with `--k 2 --min-word-length 3`.
 
 ## Tests
 

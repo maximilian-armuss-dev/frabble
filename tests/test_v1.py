@@ -46,7 +46,7 @@ def config_dict(output_path: str, *, dimensions: int = 2) -> dict[str, object]:
         "config_name": "unit",
         "dimensions": dimensions,
         "seed": 11,
-        "grammar_path": "grammars/generator_v1_grammar.json",
+        "grammar_path": "outputs/grammars/generator_v1_grammar.json",
         "initial_word_axis": 0,
         "initial_word_length": 5,
         "length_distribution": {"start": 5, "end": 5},
