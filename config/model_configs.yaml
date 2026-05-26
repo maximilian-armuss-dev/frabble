@@ -9,3 +9,8 @@ models:
     model: gemini/gemini-2.5-flash
     api_key_env: GEMINI_API_KEY
     temperature: 1
+
+  - name: anthropic_sonnet-4-5
+    model: anthropic/claude-sonnet-4-5-20250929
+    api_key_env: ANTHROPIC_API_KEY
+    temperature: 1

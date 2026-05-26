@@ -24,9 +24,17 @@ def generate_scenario(
     seed: int = 7,
     rack_size: int = 4,
     reference_max_length: int | None = None,
+    grammar_path: str | None = None,
 ) -> Scenario:
     rng = random.Random(seed)
-    dfa = build_demo_dfa()
+
+    if grammar_path is not None:
+        from ..formal.grammar.serialization import load_grammar
+        grammar, config, _ = load_grammar(grammar_path)
+        dfa = grammar.to_dfa()
+    else:
+        dfa = build_demo_dfa()
+
     board = build_demo_board()
     if reference_max_length is None:
         reference_max_length = max(board.shape)

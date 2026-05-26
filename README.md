@@ -1,6 +1,6 @@
-# LLM Scrabble Bench Prototype
+# LLM Scrabble Bench
 
-Minimal prototype for a Scrabble-like LLM environment with a formal language, DFA validator, prompt templates, token scoring, and optional model calls through [litellm](https://github.com/BerriAI/litellm) (supporting OpenAI, Anthropic, Google, Cohere, and more).
+A formal-language Scrabble-style LLM benchmark with strictly-local grammars, sparse n-dimensional boards, a local slot CSP, and deterministic witness generation.
 
 ## Setup
 
@@ -8,66 +8,76 @@ Minimal prototype for a Scrabble-like LLM environment with a formal language, DF
 uv sync
 ```
 
-For a real model call:
+## Workflow
+
+### 1. Sample a grammar
+
+Sample a random strictly-local (SL_k) grammar and save it to `outputs/grammars/<name>.json`:
 
 ```bash
-cp .env.example .env
-# Set the active profile (LLM_MODEL_NAME) and the required provider keys in .env.
-# Model profiles are defined in model_configs.yaml.
-
-uv run scrabble-prototype --call-model
+uv run sample-grammar --name my_grammar --alphabet-size 5 --k 3 --seed 42 --show-stats
 ```
 
-You can also set the variables directly in the shell. Shell variables override values from `.env`.
+Global defaults (Perron bounds, word-count window, DFA minimisation, etc.) are read from `config/grammar_configs.yaml`. Any CLI flag overrides just that one value for the run. All resolved parameters are written into the JSON for full traceability.
 
-Without an API key, you can still run the local oracle/validator loop:
+Key flags (all optional — unset flags fall back to `config/grammar_configs.yaml`):
+
+```
+--name TEXT                  Grammar name; file saved as outputs/grammars/<name>.json
+--output-dir PATH            Output directory (default: outputs/grammars/)
+--alphabet-size INT          Number of symbols (default: 5)
+--k INT                      Forbidden pattern length (default: 3)
+--forbidden-fraction FLOAT   Fraction of k-grams to forbid independently
+--min-word-length INT        Minimum accepted word length (default: k)
+--seed INT                   Base random seed (default: 42)
+--alphabet-case upper|lower
+--auto-resample / --no-auto-resample
+--max-attempts INT           Max resample attempts
+--perron-min FLOAT           Minimum Perron eigenvalue for auto-resample
+--perron-max FLOAT           Maximum Perron eigenvalue for auto-resample
+--resample-length-min INT    Word-count window start length
+--resample-length-max INT    Word-count window end length
+--min-word-count INT         Min words in the resample length window
+--show-stats                 Print Perron eigenvalue and word-count spectrum
+```
+
+### 2. Analyse a grammar
+
+Inspect the Perron eigenvalue (language growth rate) and the exact word count at each length:
 
 ```bash
-uv run scrabble-prototype --dry-run --show-prompt
-uv run scrabble-prototype --dry-run --reference-max-length 5
-uv run scrabble-prototype --call-model --model-name google_gemini_flash
-uv run check-model --model-name openai_gpt5_mini
-uv run check-model --all
-uv run python -m unittest discover -s tests
+uv run analyze-grammar outputs/grammars/my_grammar.json --max-length 10
 ```
 
-A DFA visualization can be generated as a PNG:
+### 3. Generate scenarios
+
+Generator configurations live under `config/generation/`. The YAML file is the single source of truth; the CLI only takes the config name.
+
+Each config references a pre-sampled grammar via `grammar_path`. Generate the grammar first (step 1), then point the config at it.
 
 ```bash
-uv run scrabble-prototype --dry-run --visualize-dfa outputs/demo-dfa.png
+uv run generate --config generator_v1
+uv run generate --config generator_3d
 ```
 
-## What The Prototype Does
+`--config generator_v1` loads `config/generation/generator_v1.yaml`, `--config generator_3d` loads the 3D variant. Missing or incomplete config values cause a hard error; there are no silent code defaults.
 
-- Defines a small formal language over the alphabet `{A, B, C}`.
-- Uses a loop-capable DFA for the language `A+ B A* C`.
-- Represents boards as n-dimensional NumPy arrays.
-- Generates a simple 5x5 demo board state with one anchor token already placed.
-- Samples a rack from the token-frequency distribution of a finite reference set of accepted words.
-- Computes token scores from inverse token frequency.
-- Enumerates all legal moves and determines the local optimum.
-- Builds a prompt template with grammar, board, rack, scoring, and output schema.
-- Validates the model response as a Pydantic-checked JSON move with `start`, `axis`, and `tokens`.
+## Tests
+
+```bash
+uv run python -m unittest discover -s tests -q
+```
 
 ## Code Structure
 
-- `domain/`: core data types, board helpers, and DFA visualization.
-- `formal/`: automata logic, response parsing, and rule validation.
-- `benchmark/`: scenario generation, prompt construction, and scoring.
-- `llm/`: model configuration from `.env` and `model_configs.yaml`, plus the LiteLLM client.
-- `tools/check_model.py`: minimal ping/pong CLI for validating one or all model profiles.
-- `prompts/`: system and user prompt templates.
-- `model_configs.yaml`: model matrix with LiteLLM model IDs and related config values.
-- `cli.py`: command-line loop.
-- `prototype.py`: re-exports all public symbols.
-
-## Model Check
-
-The additional CLI intentionally sends only a minimal ping/pong prompt to the selected model to keep token usage low.
-
-```bash
-uv run check-model --model-name openai_gpt5_mini
-uv run check-model --all
-```
-
-The output shows the profile name, the concrete LiteLLM model, and the first 80 characters of the response or an error.
+- `domain/`: Core data types — sparse board, moves, segments, templates, and witness types.
+- `formal/`: Strictly-local language definition, OR-Tools slot CSP, response parsing, and move validation.
+- `formal/grammar/`: SL grammar sampling, DFA construction, Perron analysis, serialization, and the `sample-grammar` / `analyze-grammar` CLI entry points.
+- `generator/`: Strict YAML config loader, candidate ranking, generation engine, scenario codec, file I/O, and board reconstruction.
+- `benchmark/`: Board scoring helpers.
+- `llm/`: Prompt construction, model configuration from `.env` and `config/model_configs.yaml`, and the LiteLLM client.
+- `tools/check_model.py`: Small CLI for validating individual or all model profiles.
+- `prompts/`: System and user prompt templates.
+- `config/grammar_configs.yaml`: Global defaults for SL grammar sampling.
+- `config/generation/`: Per-run generator configs (dimensions, grammar path, target witness count, scoring weights, etc.).
+- `config/model_configs.yaml`: Model matrix with LiteLLM model IDs and related config values.

@@ -1,14 +1,38 @@
-from .board import build_demo_board
-from .models import Board, DFA, Move, Scenario, ValidationResult
+from .board import Board
+from .models import (
+    AnchorCandidate,
+    BoardConfiguration,
+    Coord,
+    DFA,
+    Move,
+    ScenarioRun,
+    ScenarioTransition,
+    SearchLog,
+    Segment,
+    SlotAnalysis,
+    SlotTemplate,
+    Symbol,
+    TemplateCandidate,
+    ValidationResult,
+)
 from .visualization import build_dfa_graph, render_dfa_png
 
 __all__ = [
+    "AnchorCandidate",
     "Board",
+    "BoardConfiguration",
+    "Coord",
     "DFA",
     "Move",
-    "Scenario",
+    "ScenarioRun",
+    "ScenarioTransition",
+    "SearchLog",
+    "Segment",
+    "SlotAnalysis",
+    "SlotTemplate",
+    "Symbol",
+    "TemplateCandidate",
     "ValidationResult",
-    "build_demo_board",
     "build_dfa_graph",
     "render_dfa_png",
 ]

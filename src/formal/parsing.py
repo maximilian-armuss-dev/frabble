@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..domain.models import Move
@@ -7,25 +9,24 @@ from ..domain.models import Move
 
 class SubmittedMove(BaseModel):
     model_config = ConfigDict(extra="forbid")
-
     start: tuple[int, ...] = Field(
-        description="Zero-based start vector for the first token."
+        description="Start vector for the first symbol in the submitted sequence."
     )
-    axis: int = Field(ge=0, description="Board axis along which the token sequence runs.")
-    tokens: str = Field(min_length=2)
+    axis: int = Field(ge=0, description="Board axis along which the sequence runs.")
+    sequence: tuple[str, ...] = Field(min_length=1)
 
-    @field_validator("tokens", mode="before")
+    @field_validator("sequence", mode="before")
     @classmethod
-    def normalize_tokens(cls, value: object) -> str:
-        if isinstance(value, list):
-            value = "".join(str(token) for token in value)
-        return str(value).strip().upper()
+    def normalize_sequence(cls, value: Iterable) -> tuple[str, ...]:
+        if isinstance(value, str | bytes):
+            raise ValueError("sequence must be a list of symbols, not a string.")
+        return tuple(str(symbol).strip().upper() for symbol in value)
 
     def to_move(self) -> Move:
         return Move(
             start=self.start,
             axis=self.axis,
-            tokens=self.tokens,
+            sequence=self.sequence,
         )
 
 
