@@ -1,4 +1,5 @@
-Your task is to place exactly one contiguous word on the board.
+Your task is to place exactly one contiguous word on the board, scoring as many points as possible.
+Each symbol placed scores points, so you should place the longest valid word you can.
 
 Coordinates are zero-based vectors. In this {dimensions}D board, coordinates have {dimensions} entries.
 {axis_description}
