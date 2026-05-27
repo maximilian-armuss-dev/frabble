@@ -66,7 +66,7 @@ uv run generate --config generator_v1
 uv run generate --config generator_3d
 ```
 
-`--config generator_v1` loads `config/generation/generator_v1.yaml`, `--config generator_3d` loads the 3D variant. Missing or incomplete config values cause a hard error; there are no silent code defaults.
+`--config generator_v1` loads `config/generation/generator_v1.yaml`, `--config generator_3d` loads the 3D variant. A generation config may set any `dimensions >= 2`, including higher-dimensional scenarios. Missing or incomplete config values cause a hard error; there are no silent code defaults.
 
 ### 4. Visualize a generated 2D board
 
@@ -81,8 +81,22 @@ Then run `visualization/visualize_2d.ipynb`, which loads
 `outputs/generator_v1.json`.
 
 Use `visualization/visualize_3d.ipynb` for scenarios generated with
-`dimensions: 3`. A 2D view cannot faithfully display occupied cells from
-different Z levels at the same projected position and will reject that case.
+`dimensions: 3`. For higher-dimensional boards, choose two or three visible
+axes and fix every remaining coordinate to render a slice:
+
+```python
+from visualization.board_figures import board_from_scenario_json, plot_board_3d
+
+board = board_from_scenario_json("outputs/my_7d.json")
+plot_board_3d(
+    board,
+    axes=(0, 1, 2),
+    slice_coords={3: 0, 4: 0, 5: 0, 6: 0},
+)
+```
+
+`plot_board_2d` and `animate_scenario_2d` use the same `slice_coords`
+argument, requiring one fixed coordinate for each axis not shown.
 
 ### End-to-end run with a new 2D grammar
 

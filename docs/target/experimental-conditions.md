@@ -1,6 +1,6 @@
 # Experimentelle Bedingungen
 
-Diese Bedingungen gehören zum späteren Benchmark-Zielbild. V1 implementiert nur einen kleinen Full-Puzzle-Kern mit binärer Validierung; die Board-Dimensionalität ist auf 2D oder 3D konfigurierbar.
+Diese Bedingungen gehören zum späteren Benchmark-Zielbild. V1 implementiert nur einen kleinen Full-Puzzle-Kern mit binärer Validierung; die sparse Board-Dimensionalität ist für beliebige Werte `dimensions >= 2` konfigurierbar.
 
 ## E1: Membership
 

@@ -60,7 +60,7 @@ class ScenarioGenerator:
         if not grammar_path.is_absolute():
             grammar_path = PROJECT_ROOT / grammar_path
         self.language, _cfg, self.grammar_name = load_grammar(grammar_path)
-        self.solver = SlotCSP(self.language)
+        self.solver = SlotCSP(self.language, rng=self.rng)
 
     def generate(
         self,

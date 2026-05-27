@@ -10,6 +10,7 @@ Alle zufälligen Entscheidungen nutzen denselben kontrollierten RNG oder determi
 
 - initiales Wort.
 - Wortlänge.
+- Symbolpräferenzen der CSP-Suche für freie Slotpositionen.
 
 Sortierungen sind stabil. Bei gleichem Score wird deterministisch nach festen Feldern sortiert, zum Beispiel nach Koordinate, Achse, Anchor-Index und Sequenz.
 
@@ -101,7 +102,7 @@ Ein Cross-Wort darf damit neu entstehen, aber kein bereits gültiges Wort verlä
 
 Alle Anchors und Templates werden stabil sortiert. Templates werden in Score-Reihenfolge an das lokale Slot-CSP gegeben. Wenn mehrere Templates denselben Score haben, wird das erste Template in stabiler Sortierreihenfolge genutzt.
 
-Dadurch ist die Generierung bei gleicher Config und gleichem Seed reproduzierbar.
+Innerhalb des gewählten Templates priorisiert das Slot-CSP pro freier Position eine seeded zufällige Symbolreihenfolge. Dadurch wird nicht stets die erste alphabetisch erreichbare Lösung verwendet, während die Generierung bei gleicher Config und gleichem Seed reproduzierbar bleibt.
 
 ## Logging
 

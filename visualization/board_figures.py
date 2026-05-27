@@ -60,22 +60,26 @@ def plot_board_2d(
     highlight_coords: Iterable[Coord] = (),
     title: str | None = None,
     axes: tuple[int, int] = (0, 1),
+    slice_coords: Mapping[int, int] | None = None,
 ) -> object:
-    """Create an interactive Plotly 2D board figure."""
+    """Create an interactive Plotly 2D slice of a sparse board."""
     if board.dimensions < 2:
         raise ValueError("2D plotting requires at least two board dimensions.")
     import plotly.graph_objects as go
 
+    resolved_slice = _resolve_slice_coords(board, axes, slice_coords)
+    extent_board = _slice_extent(board, resolved_slice)
     fig = go.Figure()
     fig.add_trace(
         _board_heatmap_trace(
             board,
             highlight_coords=highlight_coords,
             axes=axes,
-            letter_size=_letter_size_2d(board, axes),
+            slice_coords=resolved_slice,
+            letter_size=_letter_size_2d(extent_board, axes),
         )
     )
-    _style_plotly_xy(fig, board, axes, title)
+    _style_plotly_xy(fig, extent_board, axes, title)
     return fig
 
 
@@ -85,14 +89,16 @@ def plot_board_3d(
     highlight_coords: Iterable[Coord] = (),
     title: str | None = None,
     axes: tuple[int, int, int] = (0, 1, 2),
+    slice_coords: Mapping[int, int] | None = None,
 ) -> object:
-    """Create an interactive Plotly 3D sparse-board figure."""
+    """Create an interactive Plotly 3D slice of a sparse board."""
     if board.dimensions < 3:
         raise ValueError("3D plotting requires at least three board dimensions.")
     import plotly.graph_objects as go
 
+    resolved_slice = _resolve_slice_coords(board, axes, slice_coords)
     highlight = set(highlight_coords)
-    rows = _projected_rows(board, axes)
+    rows = _projected_rows(board, axes, resolved_slice)
     marker_colors = [
         HIGHLIGHT_EDGE if row["coord"] in highlight else "#6b7280"
         for row in rows
@@ -135,12 +141,14 @@ def animate_scenario_2d(
     *,
     title: str | None = None,
     axes: tuple[int, int] = (0, 1),
+    slice_coords: Mapping[int, int] | None = None,
 ) -> object:
-    """Create an interactive Plotly slider over all scenario boards."""
+    """Create an interactive Plotly slider over one 2D scenario slice."""
     import plotly.graph_objects as go
 
     boards, placements = scenario_boards_and_placements(scenario)
-    range_board = _union_board_extent(boards)
+    resolved_slice = _resolve_slice_coords(boards[0], axes, slice_coords)
+    range_board = _slice_extent(_union_board_extent(boards), resolved_slice)
     letter_size = _letter_size_2d(range_board, axes)
     base_fig = go.Figure()
     base_fig.add_trace(
@@ -148,6 +156,7 @@ def animate_scenario_2d(
             boards[0],
             highlight_coords=placements[0],
             axes=axes,
+            slice_coords=resolved_slice,
             letter_size=letter_size,
         )
     )
@@ -161,6 +170,7 @@ def animate_scenario_2d(
                         board,
                         highlight_coords=placed,
                         axes=axes,
+                        slice_coords=resolved_slice,
                         letter_size=letter_size,
                     )
                 ],
@@ -203,22 +213,17 @@ def _board_heatmap_trace(
     *,
     highlight_coords: Iterable[Coord],
     axes: tuple[int, int],
+    slice_coords: Mapping[int, int],
     letter_size: int,
 ) -> object:
     import plotly.graph_objects as go
 
     highlight = set(highlight_coords)
-    x_values, y_values = _axis_values(board, axes)
+    visible_cells = _visible_cells(board, slice_coords)
+    x_values, y_values = _axis_values(visible_cells, axes)
     projected_cells: dict[tuple[int, int], tuple[Coord, str]] = {}
-    for coord, symbol in board.occupied_sorted():
+    for coord, symbol in visible_cells:
         projected_coord = (coord[axes[0]], coord[axes[1]])
-        existing = projected_cells.get(projected_coord)
-        if existing is not None and existing[0] != coord:
-            raise ValueError(
-                "2D projection overlaps multiple occupied cells at "
-                f"{projected_coord}: {existing[0]} and {coord}. "
-                "Use the 3D visualization or select axes without overlaps."
-            )
         projected_cells[projected_coord] = (coord, symbol)
     z: list[list[int | None]] = []
     text: list[list[str]] = []
@@ -271,12 +276,19 @@ def _board_heatmap_trace(
     )
 
 
-def _axis_values(board: Board, axes: tuple[int, int]) -> tuple[list[int], list[int]]:
-    if not board.cells:
+def _axis_values(
+    cells: Iterable[tuple[Coord, str]] | Board,
+    axes: tuple[int, int],
+) -> tuple[list[int], list[int]]:
+    occupied = cells.occupied_sorted() if isinstance(cells, Board) else tuple(cells)
+    if not occupied:
         return [0], [0]
-    x_coords = [coord[axes[0]] for coord in board.cells]
-    y_coords = [coord[axes[1]] for coord in board.cells]
-    return list(range(min(x_coords), max(x_coords) + 1)), list(range(min(y_coords), max(y_coords) + 1))
+    x_coords = [coord[axes[0]] for coord, _ in occupied]
+    y_coords = [coord[axes[1]] for coord, _ in occupied]
+    return (
+        list(range(min(x_coords), max(x_coords) + 1)),
+        list(range(min(y_coords), max(y_coords) + 1)),
+    )
 
 
 def _union_board_extent(boards: Sequence[Board]) -> Board:
@@ -287,9 +299,13 @@ def _union_board_extent(boards: Sequence[Board]) -> Board:
     return Board(dimensions=dimensions, cells=cells, segments=())
 
 
-def _projected_rows(board: Board, axes: Sequence[int]) -> list[dict[str, object]]:
+def _projected_rows(
+    board: Board,
+    axes: Sequence[int],
+    slice_coords: Mapping[int, int],
+) -> list[dict[str, object]]:
     rows = []
-    for coord, symbol in board.occupied_sorted():
+    for coord, symbol in _visible_cells(board, slice_coords):
         row = {
             "coord": coord,
             "symbol": symbol,
@@ -301,6 +317,52 @@ def _projected_rows(board: Board, axes: Sequence[int]) -> list[dict[str, object]
             row["z"] = coord[axes[2]]
         rows.append(row)
     return rows
+
+
+def _resolve_slice_coords(
+    board: Board,
+    axes: Sequence[int],
+    slice_coords: Mapping[int, int] | None,
+) -> dict[int, int]:
+    if len(set(axes)) != len(axes) or any(
+        axis < 0 or axis >= board.dimensions for axis in axes
+    ):
+        raise ValueError("Visible axes must be distinct valid board dimensions.")
+    hidden_axes = set(range(board.dimensions)) - set(axes)
+    resolved = dict(slice_coords or {})
+    unknown_axes = set(resolved) - hidden_axes
+    if unknown_axes:
+        raise ValueError(
+            f"slice_coords may contain only hidden axes; got {sorted(unknown_axes)}."
+        )
+    missing_axes = hidden_axes - set(resolved)
+    if missing_axes:
+        raise ValueError(
+            "Visualization requires slice_coords for every hidden axis; "
+            f"missing {sorted(missing_axes)}."
+        )
+    if any(not isinstance(value, int) for value in resolved.values()):
+        raise ValueError("slice_coords values must be integer coordinates.")
+    return resolved
+
+
+def _visible_cells(
+    board: Board,
+    slice_coords: Mapping[int, int],
+) -> tuple[tuple[Coord, str], ...]:
+    return tuple(
+        (coord, symbol)
+        for coord, symbol in board.occupied_sorted()
+        if all(coord[axis] == value for axis, value in slice_coords.items())
+    )
+
+
+def _slice_extent(board: Board, slice_coords: Mapping[int, int]) -> Board:
+    return Board(
+        dimensions=board.dimensions,
+        cells=dict(_visible_cells(board, slice_coords)),
+        segments=(),
+    )
 
 
 def _bounds(board: Board, axes: Sequence[int], *, pad: float = 0.75) -> tuple[float, float, float, float]:

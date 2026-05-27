@@ -64,6 +64,8 @@ model.AddAutomaton(
 
 Der OR-Tools-Automat ist innerhalb einer `SlotCSP`-Instanz unverändert und wird deshalb einmal lazy erzeugt und für weitere Template-Versuche wiederverwendet.
 
+Erhält `SlotCSP` den seeded Generator-RNG, wird für jede nicht fixierte Wortposition vor dem Solve eine zufällige Symbolpräferenz erzeugt. Diese Präferenzen werden als Branching-Entscheidungen vor den eigentlichen Integer-Variablen verwendet. Der Solver sucht damit weiterhin nur irgendeine gültige Belegung, startet aber nicht bei jedem Slot mit derselben alphabetischen Sequenz. Gleiches Board, gleiche Config und gleicher Seed bleiben reproduzierbar.
+
 Der Solver liefert:
 
 ```python

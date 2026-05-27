@@ -14,7 +14,7 @@ cells: dict[Coord, Symbol]
 Für V1 gilt:
 
 ```python
-dimensions in {2, 3}
+dimensions >= 2
 Coord = tuple[int, ...]
 ```
 

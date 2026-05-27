@@ -1,12 +1,12 @@
 config_name: test
-dimensions: 2
-seed: 71
-grammar_path: outputs/grammars/test_grammar.json
+dimensions: 4
+seed: 65
+grammar_path: outputs/grammars/generator_v1_grammar.json
 initial_word_axis: 0
-initial_word_length: 5
+initial_word_length: 7
 length_distribution:
-  start: 3
-  end: 7
+  start: 5
+  end: 10
 top_anchor_count: 40
 max_anchor_count: null
 top_template_count: 200

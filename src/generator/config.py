@@ -43,7 +43,7 @@ class GeneratorConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     config_name: str
-    dimensions: int
+    dimensions: int = Field(ge=2)
     seed: int
     grammar_path: str
     initial_word_axis: int
@@ -60,8 +60,6 @@ class GeneratorConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_generator(self) -> "GeneratorConfig":
-        if self.dimensions not in {2, 3}:
-            raise ValueError("V1 supports dimensions = 2 or dimensions = 3.")
         if self.initial_word_axis < 0 or self.initial_word_axis >= self.dimensions:
             raise ValueError("initial_word_axis is outside configured dimensions.")
         return self

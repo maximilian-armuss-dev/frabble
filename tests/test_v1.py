@@ -1,4 +1,5 @@
 import json
+import random
 import tempfile
 import unittest
 from pathlib import Path
@@ -27,7 +28,11 @@ from src.generator.scenario_codec import scenario_run_to_json
 from src.generator.scenario_io import load_scenario_run
 from src.llm.prompting import build_prompt
 from src.tools.check_model import clip_preview
-from visualization.board_figures import animate_scenario_2d, plot_board_2d
+from visualization.board_figures import (
+    animate_scenario_2d,
+    plot_board_2d,
+    plot_board_3d,
+)
 
 
 def language() -> StrictlyLocalLanguage:
@@ -120,6 +125,20 @@ class V1Tests(unittest.TestCase):
         self.assertEqual(solver.solve([{"B"}, {"A"}, {"B"}]), ("B", "A", "B"))
         self.assertEqual(counted_language.automaton_calls, 1)
 
+    def test_slot_csp_randomized_search_is_seeded_and_varies_solutions(self):
+        domains = [set(language().alphabet) for _ in range(5)]
+
+        first_solver = SlotCSP(language(), rng=random.Random(17))
+        second_solver = SlotCSP(language(), rng=random.Random(17))
+        first = tuple(first_solver.solve(domains) for _ in range(8))
+        second = tuple(second_solver.solve(domains) for _ in range(8))
+
+        self.assertEqual(first, second)
+        self.assertGreater(len(set(first)), 1)
+        self.assertTrue(
+            all(sequence is not None and language().accepts(sequence) for sequence in first)
+        )
+
     def test_board_is_sparse_immutable_and_analyzes_slot(self):
         board = Board.empty(2).place(Move(start=(-1, 0), axis=0, sequence=("A", "B", "C")))
         template = SlotTemplate(
@@ -191,13 +210,35 @@ class V1Tests(unittest.TestCase):
 
         self.assertTrue(result.ok)
 
-    def test_2d_visualization_rejects_overlapping_3d_projection(self):
+    def test_2d_visualization_requires_and_applies_hidden_axis_slice(self):
         board = Board.empty(3).place(
             Move(start=(0, 0, 0), axis=2, sequence=("A", "B", "C"))
         )
 
-        with self.assertRaisesRegex(ValueError, "2D projection overlaps"):
+        with self.assertRaisesRegex(ValueError, "slice_coords"):
             plot_board_2d(board)
+        figure = plot_board_2d(board, slice_coords={2: 1})
+        visible_symbols = tuple(
+            symbol for row in figure.data[0].text for symbol in row
+        )
+
+        self.assertIn("B", visible_symbols)
+        self.assertNotIn("A", visible_symbols)
+        self.assertNotIn("C", visible_symbols)
+
+    def test_3d_visualization_selects_slice_from_higher_dimensional_board(self):
+        board = Board.empty(5)
+        for move in (
+            Move(start=(-1, 0, 0, 4, -2), axis=0, sequence=("A", "B", "C")),
+            Move(start=(-1, 0, 0, 5, -2), axis=0, sequence=("D", "E", "F")),
+        ):
+            board = board.place(move)
+
+        with self.assertRaisesRegex(ValueError, r"missing \[3, 4\]"):
+            plot_board_3d(board)
+        figure = plot_board_3d(board, slice_coords={3: 4, 4: -2})
+
+        self.assertEqual(tuple(figure.data[0].text), ("A", "B", "C"))
 
     def test_2d_animation_shows_only_current_step_number_beside_slider(self):
         config = GeneratorConfig.model_validate(
@@ -491,20 +532,29 @@ class V1Tests(unittest.TestCase):
         self.assertNotIn("top_anchors", data["transitions"][0]["search_log"])
         self.assertNotIn("top_templates", data["transitions"][0]["search_log"])
 
-    def test_generator_accepts_3d_config(self):
+    def test_generator_accepts_nd_config(self):
         with tempfile.TemporaryDirectory() as temp_dir:
-            data = config_dict(str(Path(temp_dir) / "scenarios.json"), dimensions=3)
-            data["target_witness_count"] = 1
-            config = GeneratorConfig.model_validate(data)
+            for dimensions in (3, 4, 7):
+                with self.subTest(dimensions=dimensions):
+                    data = config_dict(
+                        str(Path(temp_dir) / "scenarios.json"),
+                        dimensions=dimensions,
+                    )
+                    data["target_witness_count"] = 1
+                    config = GeneratorConfig.model_validate(data)
 
-            run = ScenarioGenerator(config).generate()
-            boards = reconstruct_boards(run)
+                    run = ScenarioGenerator(config).generate()
+                    boards = reconstruct_boards(run)
 
-        self.assertEqual(run.initial_board.dimensions, 3)
-        self.assertEqual(len(run.transitions), 1)
-        self.assertTrue(
-            all(len(coord) == 3 for board in boards for coord in board.cells)
-        )
+                    self.assertEqual(run.initial_board.dimensions, dimensions)
+                    self.assertEqual(len(run.transitions), 1)
+                    self.assertTrue(
+                        all(
+                            len(coord) == dimensions
+                            for board in boards
+                            for coord in board.cells
+                        )
+                    )
 
     def test_generator_failure_reports_exhausted_lengths_and_config_levers(self):
         data = config_dict("unused.json") | {
