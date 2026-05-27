@@ -22,7 +22,7 @@ from ..domain.models import (
 from ..formal.automata import enumerate_accepted_sequences
 from ..formal.grammar.serialization import load_grammar
 from ..formal.slot_csp import SlotCSP
-from ..formal.validation import validate_move
+from ..formal.validation import extends_existing_axis_sequence, validate_move
 from .candidates import top_anchors, top_templates
 from .config import GeneratorConfig, PROJECT_ROOT
 from .scenario_io import write_scenario_run
@@ -131,6 +131,12 @@ class ScenarioGenerator:
                 sampled_length,
                 self.config.top_template_count,
                 self.config.scoring,
+                prune=lambda template: extends_existing_axis_sequence(
+                    board,
+                    template.covered_coords,
+                    template.axis,
+                    self.language,
+                ),
             )
             if not template_candidates:
                 failures.append(

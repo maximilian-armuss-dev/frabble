@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 
 from ..benchmark.scoring import BoardScoring
 from ..domain.board import Board
@@ -59,6 +59,8 @@ def top_templates(
     length: int,
     limit: int,
     scoring: ScoringConfig,
+    *,
+    prune: Callable[[SlotTemplate], bool] | None = None,
 ) -> tuple[TemplateCandidate, ...]:
     raw_candidates: list[tuple[SlotTemplate, float, int, int]] = []
     for anchor in anchors:
@@ -78,6 +80,8 @@ def top_templates(
             )
             analysis = board.analyze_slot(template)
             if not analysis.valid_geometry:
+                continue
+            if prune is not None and prune(template):
                 continue
             new_coords = tuple(
                 coord for coord in template.covered_coords if board.get(coord) is None

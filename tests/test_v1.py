@@ -8,13 +8,13 @@ from pydantic import ValidationError
 from src.benchmark.scoring import BoardScoring
 from src.cli import build_parser
 from src.domain.board import Board
-from src.domain.models import Move, SlotTemplate
+from src.domain.models import AnchorCandidate, Move, SlotTemplate
 from src.formal.language import StrictlyLocalLanguage
 from src.formal.parsing import parse_move
 from src.formal.slot_csp import SlotCSP
-from src.formal.validation import validate_move
+from src.formal.validation import extends_existing_axis_sequence, validate_move
 from src.generator.config import GeneratorConfig, load_generator_config, resolve_config_path
-from src.generator.candidates import _normalize_feature, top_anchors
+from src.generator.candidates import _normalize_feature, top_anchors, top_templates
 from src.generator.engine import GenerationError, ScenarioGenerator
 from src.generator.readable_json import dumps_readable_json
 from src.generator.reconstruction import reconstruct_boards
@@ -39,6 +39,21 @@ def language() -> StrictlyLocalLanguage:
         ),
         min_word_length=3,
     )
+
+
+class CountingLanguage:
+    def __init__(self, delegate: StrictlyLocalLanguage) -> None:
+        self.delegate = delegate
+        self.automaton_calls = 0
+
+    def __getattr__(self, name: str) -> object:
+        return getattr(self.delegate, name)
+
+    def ortools_automaton(
+        self,
+    ) -> tuple[int, list[int], list[tuple[int, int, int]], dict[str, int]]:
+        self.automaton_calls += 1
+        return self.delegate.ortools_automaton()
 
 
 def config_dict(output_path: str, *, dimensions: int = 2) -> dict[str, object]:
@@ -85,6 +100,17 @@ class V1Tests(unittest.TestCase):
         )
 
         self.assertEqual(result, ("A", "B", "A"))
+
+    def test_slot_csp_skips_empty_domains_and_reuses_automaton(self):
+        counted_language = CountingLanguage(language())
+        solver = SlotCSP(counted_language)  # type: ignore[arg-type]
+
+        self.assertIsNone(solver.solve([{"A"}, set(), {"B"}]))
+        self.assertEqual(counted_language.automaton_calls, 0)
+
+        self.assertEqual(solver.solve([{"A"}, {"B"}, {"A"}]), ("A", "B", "A"))
+        self.assertEqual(solver.solve([{"B"}, {"A"}, {"B"}]), ("B", "A", "B"))
+        self.assertEqual(counted_language.automaton_calls, 1)
 
     def test_board_is_sparse_immutable_and_analyzes_slot(self):
         board = Board.empty(2).place(Move(start=(-1, 0), axis=0, sequence=("A", "B", "C")))
@@ -189,6 +215,39 @@ class V1Tests(unittest.TestCase):
 
         self.assertFalse(result.ok)
         self.assertEqual(result.failure_type, "word_extension")
+
+    def test_templates_prune_deterministic_implicit_word_extensions_before_solving(self):
+        sl = language()
+        board = Board.empty(2)
+        for move in (
+            Move(start=(-2, -2), axis=1, sequence=("B", "A", "B")),
+            Move(start=(-1, -2), axis=1, sequence=("A", "B", "A")),
+            Move(start=(0, -2), axis=1, sequence=("B", "A", "B")),
+            Move(start=(1, -2), axis=1, sequence=("A", "B", "A")),
+        ):
+            board = board.place(move)
+        anchor = AnchorCandidate((-2, -2), "B", 0, 0.0, 0.0, 0)
+        extension_start = (-2, -2)
+        scoring = GeneratorConfig.model_validate(config_dict("unused.json")).scoring
+
+        unpruned = top_templates(board, (anchor,), 5, 10, scoring)
+        pruned = top_templates(
+            board,
+            (anchor,),
+            5,
+            10,
+            scoring,
+            prune=lambda template: extends_existing_axis_sequence(
+                board, template.covered_coords, template.axis, sl
+            ),
+        )
+
+        self.assertTrue(
+            any(candidate.template.start == extension_start for candidate in unpruned)
+        )
+        self.assertFalse(
+            any(candidate.template.start == extension_start for candidate in pruned)
+        )
 
     def test_validator_allows_gap_fill_from_non_word_crossing_symbols(self):
         sl = language()

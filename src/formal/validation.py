@@ -56,7 +56,7 @@ def validate_move(
             "word_extension",
             "Move extends an existing word along the same axis.",
         )
-    if _extends_existing_axis_sequence(board, coords, move.axis, language):
+    if extends_existing_axis_sequence(board, coords, move.axis, language):
         return ValidationResult(
             False,
             "word_extension",
@@ -115,7 +115,7 @@ def _touches_same_axis_neighbor(
     return axis in board.axes_at(before) or axis in board.axes_at(after)
 
 
-def _extends_existing_axis_sequence(
+def extends_existing_axis_sequence(
     board: Board,
     coords: tuple[Coord, ...],
     axis: int,
