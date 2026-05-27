@@ -8,7 +8,7 @@ Ein Zug ist valide, wenn alle folgenden Bedingungen erfüllt sind:
 - Neue Symbole widersprechen keinen bereits belegten Zellen.
 - Der Zug legt mindestens ein neues Symbol.
 - Der Zug verbindet sich durch mindestens eine konsistente Überlappung mit der bestehenden Boardstruktur.
-- Der Zug verlängert kein bereits bestehendes Wort entlang derselben Achse.
+- Der Zug verlängert kein bereits bestehendes gültiges Wort auf einer durch den Zug berührten Achse.
 - Alle durch den Zug entstehenden Sequenzen entlang aller relevanten Achsen sind gültige Wörter der formalen Sprache.
 - Die neu zu legenden Symbole können aus dem Rack bezahlt werden.
 - Wörter der Länge `<3` sind nicht gültig.
@@ -17,11 +17,11 @@ V1 akzeptiert nur Overlap-Verbindungen. Reine Nachbarschaft ohne Überlappung is
 
 ## Wortverlängerung
 
-Ein Zug darf ein bestehendes Wort nicht entlang derselben Achse verlängern. Eine Verlängerung liegt vor, wenn der Zug an eine bereits vorhandene gültige Sequenz auf seiner Legerichtung andockt oder sie überlappt und durch neue Symbole zu einer längeren zusammenhängenden Sequenz macht.
+Ein Zug darf ein bestehendes gültiges Wort weder auf seiner Legerichtung noch auf einer durch neu gelegte Tiles berührten Cross-Achse verlängern. Eine Verlängerung liegt vor, wenn der Zug an eine bereits vorhandene gültige Sequenz andockt oder sie überlappt und durch neue Symbole zu einer längeren zusammenhängenden Sequenz macht.
 
-Das gilt auch dann, wenn die vorhandene Sequenz nicht als eigenes Segment gespeichert wurde, sondern nur implizit aus Buchstaben anderer Kreuzungswörter entstanden ist. Entscheidend ist die Board-Geometrie vor dem Zug: Liegen auf der Legerichtung bereits mindestens drei zusammenhängende Symbole, die ein gültiges Wort der formalen Sprache bilden, darf der neue Zug diese Sequenz nicht erweitern.
+Das gilt auch dann, wenn die vorhandene Sequenz nicht als eigenes Segment gespeichert wurde, sondern nur implizit aus Buchstaben anderer Kreuzungswörter entstanden ist. Entscheidend ist die Board-Geometrie vor dem Zug: Liegen auf einer betroffenen Achse bereits mindestens drei zusammenhängende Symbole, die ein gültiges Wort der formalen Sprache bilden, darf der neue Zug diese Sequenz nicht erweitern.
 
-Erlaubt bleibt, bestehende Symbole aus anderen Wörtern als Kreuzungen auf der Legerichtung zu nutzen, wenn diese Symbole vor dem Zug noch keine gültige zusammenhängende Sequenz auf dieser Achse bilden. Dadurch darf ein neuer Zug Lücken füllen und erst mit den neu gelegten Symbolen ein gültiges Wortbild erzeugen.
+Erlaubt bleibt, bestehende Symbole aus anderen Wörtern als Kreuzungen zu nutzen, wenn diese Symbole vor dem Zug noch keine gültige zusammenhängende Sequenz auf der betroffenen Achse bilden. Dadurch darf ein neuer Zug Lücken füllen und erst mit den neu gelegten Symbolen ein gültiges Wortbild erzeugen.
 
 ## Validierungsreihenfolge
 
@@ -34,7 +34,7 @@ Die geplante Validierungsreihenfolge ist:
 5. Prüfe Overlaps und räumliche Konflikte.
 6. Prüfe, ob mindestens ein neues Symbol gelegt wird.
 7. Prüfe, ob mindestens eine konsistente Überlappung mit der bestehenden Boardstruktur existiert.
-8. Prüfe, dass kein bestehendes Wort entlang der Legerichtung verlängert wird.
+8. Prüfe, dass kein bestehendes gültiges Wort auf der Legerichtung oder auf einer durch neue Tiles berührten Cross-Achse verlängert wird.
 9. Simuliere den Boardzustand nach dem Zug.
 10. Extrahiere alle durch den Zug entstehenden relevanten Sequenzen entlang aller Achsen.
 11. Prüfe, dass alle Sequenzen der Länge mindestens `3` gültige Wörter der Sprache sind.

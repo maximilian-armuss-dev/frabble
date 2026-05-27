@@ -21,18 +21,18 @@ Sortierungen sind stabil. Bei gleichem Score wird deterministisch nach festen Fe
 4. Speichere das erste Segment.
 5. Wiederhole bis zum Abbruch:
    - sample eine Wortlänge aus der erlaubten Längenverteilung.
-   - score alle belegten Koordinaten billig als mögliche Anchors.
-   - behalte die Top-M Anchors.
-   - bestimme pro Top-M Anchor die zulässigen Zielachsen über Criss-Cross-Logik.
+   - score und sortiere alle Anchor-Achsen-Paare billig.
+   - expandiere zunächst nur den nächsten Anchor-Batch.
    - erzeuge SlotTemplates für alle möglichen Anchor-Indizes dieser Länge.
-   - prune geometrisch unmögliche Templates.
-   - score alle übrigen Templates.
-   - behalte die Top-K Templates.
-   - löse pro Top-K Template ein lokales Slot-CSP.
+   - prune geometrisch unmögliche Templates, doppelte Slots und deterministische Wortverlängerungen auf allen berührten Achsen.
+   - extrahiere Cross-Domains und prune Templates mit mindestens einer leeren Domain.
+   - score die verbleibenden Templates inklusive Domain-Slack.
+   - löse Templates bis zum kumulativen Top-K-CSP-Budget.
+   - bei keinem Erfolg: expandiere nur den nächsten noch nicht betrachteten Anchor-Batch.
    - bei Lösung: platziere Wort, speichere Segment, speichere Transition als Witness.
    - bei keiner Lösung: markiere die Länge für diesen Board-State als verbraucht und beginne von vorn, bis der Pool an möglichen Längen erschöpft ist.
 
-## Globaler Candidate-Ansatz
+## Feasibility-Aware Candidate-Ansatz
 
 V1 sampelt nicht zuerst ein einzelnes Anchor-Symbol. Stattdessen wird pro Schritt eine Wortlänge gesampelt und anschließend ein globaler Kandidatenpool aufgebaut.
 
@@ -40,15 +40,17 @@ Der Ablauf ist:
 
 ```text
 sample length L
-score all occupied coords as anchors
-top_anchors = top M anchors
-templates = expand top_anchors for length L
-templates = cheap geometry prune
-top_templates = top K templates by template_score
-try slot CSP for top_templates in order
+score and sort all anchor-axis candidates once
+for fresh batch in sorted_anchors[0:40], [40:80], ...:
+    templates = expand only fresh batch for length L
+    templates = geometry / duplicate / any-axis deterministic-extension prune
+    templates = cross-domain extraction and empty-domain prune
+    templates = rank feasible templates including domain slack
+    try new templates while cumulative CSP attempts < K
+    stop on first valid move
 ```
 
-Dadurch entscheidet nicht die Symbolfrequenz allein, sondern die konkrete geometrische Qualität eines Anchors und seiner Templates. Das reduziert schlechte frühe Anchor-Entscheidungen, begrenzt aber trotzdem die Compute-Kosten.
+Dadurch bleibt zentrale Expansion die erste Präferenz, blockiert die Suche aber nicht dauerhaft: Liefert ein dichter innerer Batch keine machbaren Templates, werden ohne Wiederholung weiter außen liegende Anchors untersucht, solange das kumulative CSP-Budget noch nicht ausgeschöpft ist. Exakte Feasibility wird auf Template-Ebene bewertet, weil erst das konkrete Template seine Cross-Wort-Constraints bestimmt.
 
 Pro unverändertem Board-State wird jede Länge aus der konfigurierten Range höchstens einmal gesampelt. Wenn keine Länge einen Move erzeugt, bricht der Generator mit einem Failure-Report ab. Nach einem erfolgreichen Move wird die Längenrange für den neuen Board-State wieder frisch verwendet.
 
@@ -57,10 +59,10 @@ Für V1 sind sinnvolle Defaults:
 ```text
 top_anchor_count = 40
 top_template_count = 120
+max_anchor_count = null
 ```
 
-Diese Werte sind Generatorparameter und werden mit der Config gespeichert.
-Nach der Extension-Prüfung für implizite Same-Axis-Sequenzen muss der Candidate-Pool breit genug sein, weil kompakte Templates häufiger als Wortverlängerungen ausfallen.
+`top_anchor_count` ist die Größe eines Anchor-Batches, nicht mehr der zwingende Gesamtabbruch nach den zentralsten Anchors. `top_template_count` begrenzt CSP-Versuche je Wortlänge kumulativ über alle Batches. `max_anchor_count` ist optional und schränkt das Widening hart ein.
 
 Die Längenverteilung ist eine inklusive Range:
 
@@ -89,8 +91,11 @@ Bevor ein Template an den Solver geht, werden einfache geometrische Fälle entfe
 - der Slot würde ein bestehendes Wort entlang derselben Achse verlängern.
 - der Slot läuft entlang derselben Achse in ein bestehendes Segment hinein.
 - das Template hat keine konsistente Overlap-Verbindung.
+- der Slot ist ein Duplikat eines bereits aus einem anderen Anchor betrachteten geometrischen Slots.
+- der Slot würde eine bereits vorhandene gültige Sequenz auf der Legeachse oder auf einer durch neue Tiles berührten Cross-Achse deterministisch verlängern.
+- mindestens eine Cross-Domain ist leer, also erlaubt für eine neue Zelle kein Symbol ein gültiges Kreuzwort.
 
-Das Pruning soll billig sein. Es ersetzt nicht den Validator, sondern reduziert nur die Anzahl der Solver-Aufrufe.
+Ein Cross-Wort darf damit neu entstehen, aber kein bereits gültiges Wort verlängern. Die berechneten nicht-leeren Domains werden für den nachfolgenden Slot-CSP wiederverwendet. Das Pruning ersetzt nicht den Validator, sondern reduziert Solver-Aufrufe und verhindert, dass beweisbar unmögliche Innenkandidaten das Top-K-Budget verbrauchen.
 
 ## Deterministische Candidate-Wahl
 

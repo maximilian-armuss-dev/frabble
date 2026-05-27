@@ -36,6 +36,7 @@ class ScoringConfig(BaseModel):
     template_centroid_weight: float = Field(ge=0)
     template_new_cell_bonus_weight: float = Field(ge=0)
     template_local_density_penalty_weight: float = Field(ge=0)
+    template_domain_slack_weight: float = Field(default=1.0, ge=0)
 
 
 class GeneratorConfig(BaseModel):
@@ -49,6 +50,7 @@ class GeneratorConfig(BaseModel):
     initial_word_length: int
     length_distribution: LengthDistribution
     top_anchor_count: int = Field(gt=0)
+    max_anchor_count: int | None = Field(default=None, gt=0)
     top_template_count: int = Field(gt=0)
     target_witness_count: int = Field(gt=0)
     scoring: ScoringConfig

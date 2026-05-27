@@ -80,6 +80,10 @@ uv run generate --config generator_v1
 Then run `visualization/visualize_2d.ipynb`, which loads
 `outputs/generator_v1.json`.
 
+Use `visualization/visualize_3d.ipynb` for scenarios generated with
+`dimensions: 3`. A 2D view cannot faithfully display occupied cells from
+different Z levels at the same projected position and will reject that case.
+
 ### End-to-end run with a new 2D grammar
 
 To use a newly sampled grammar without replacing the checked-in example, create

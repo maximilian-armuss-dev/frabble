@@ -17,8 +17,7 @@ class BoardScoring:
         )
 
     @staticmethod
-    def distance_to_centroid(board: Board, coord: Coord) -> float:
-        centroid = BoardScoring.centroid(board)
+    def distance_to_centroid(coord: Coord, centroid: tuple[float, ...]) -> float:
         return math.sqrt(
             sum((value - centroid[dim]) ** 2 for dim, value in enumerate(coord))
         )
@@ -47,10 +46,13 @@ class BoardScoring:
         return usable_templates
 
     @staticmethod
-    def mean_distance_to_centroid(board: Board, coords: tuple[Coord, ...]) -> float:
+    def mean_distance_to_centroid(
+        coords: tuple[Coord, ...],
+        centroid: tuple[float, ...],
+    ) -> float:
         if not coords:
             return 0.0
-        return sum(BoardScoring.distance_to_centroid(board, coord) for coord in coords) / len(coords)
+        return sum(BoardScoring.distance_to_centroid(coord, centroid) for coord in coords) / len(coords)
 
     @staticmethod
     def local_adjacent_density(board: Board, coords: tuple[Coord, ...]) -> int:

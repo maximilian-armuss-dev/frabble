@@ -24,6 +24,7 @@ LETTER_SCALE_FACTOR_2D = 1.75
 MIN_PLOT_SIZE_2D = 180
 MAX_PLOT_SIZE_2D = 520
 ANIMATION_CONTROLS_HEIGHT = 56
+TRANSPARENT_COLOR = "rgba(0, 0, 0, 0)"
 
 
 def load_scenario_json(path: str | Path) -> dict[str, object]:
@@ -171,12 +172,19 @@ def animate_scenario_2d(
     base_fig.update_layout(
         sliders=[
             {
-                "currentvalue": {"visible": False},
+                "currentvalue": {
+                    "visible": True,
+                    "prefix": "",
+                    "xanchor": "left",
+                    "font": {"color": TEXT_COLOR},
+                },
+                "font": {"color": TRANSPARENT_COLOR},
+                "tickcolor": TRANSPARENT_COLOR,
                 "pad": {"t": 6},
                 "ticklen": 0,
                 "steps": [
                     {
-                        "label": _slider_endpoint_label(index, len(boards) - 1),
+                        "label": str(index),
                         "method": "animate",
                         "args": [[str(index)], {"mode": "immediate", "frame": {"duration": 0, "redraw": True}}],
                     }
@@ -190,12 +198,6 @@ def animate_scenario_2d(
     return base_fig
 
 
-def _slider_endpoint_label(index: int, final_index: int) -> str:
-    if index == 0 or index == final_index:
-        return str(index)
-    return ""
-
-
 def _board_heatmap_trace(
     board: Board,
     *,
@@ -207,10 +209,17 @@ def _board_heatmap_trace(
 
     highlight = set(highlight_coords)
     x_values, y_values = _axis_values(board, axes)
-    projected_cells = {
-        (coord[axes[0]], coord[axes[1]]): (coord, symbol)
-        for coord, symbol in board.occupied_sorted()
-    }
+    projected_cells: dict[tuple[int, int], tuple[Coord, str]] = {}
+    for coord, symbol in board.occupied_sorted():
+        projected_coord = (coord[axes[0]], coord[axes[1]])
+        existing = projected_cells.get(projected_coord)
+        if existing is not None and existing[0] != coord:
+            raise ValueError(
+                "2D projection overlaps multiple occupied cells at "
+                f"{projected_coord}: {existing[0]} and {coord}. "
+                "Use the 3D visualization or select axes without overlaps."
+            )
+        projected_cells[projected_coord] = (coord, symbol)
     z: list[list[int | None]] = []
     text: list[list[str]] = []
     customdata: list[list[list[object] | None]] = []

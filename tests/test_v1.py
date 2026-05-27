@@ -2,17 +2,22 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from pydantic import ValidationError
 
 from src.benchmark.scoring import BoardScoring
 from src.cli import build_parser
 from src.domain.board import Board
-from src.domain.models import AnchorCandidate, Move, SlotTemplate
+from src.domain.models import AnchorCandidate, Move, SlotTemplate, TemplateCandidate
 from src.formal.language import StrictlyLocalLanguage
 from src.formal.parsing import parse_move
 from src.formal.slot_csp import SlotCSP
-from src.formal.validation import extends_existing_axis_sequence, validate_move
+from src.formal.validation import (
+    extends_existing_axis_sequence,
+    extends_existing_sequence_in_any_axis,
+    validate_move,
+)
 from src.generator.config import GeneratorConfig, load_generator_config, resolve_config_path
 from src.generator.candidates import _normalize_feature, top_anchors, top_templates
 from src.generator.engine import GenerationError, ScenarioGenerator
@@ -22,6 +27,7 @@ from src.generator.scenario_codec import scenario_run_to_json
 from src.generator.scenario_io import load_scenario_run
 from src.llm.prompting import build_prompt
 from src.tools.check_model import clip_preview
+from visualization.board_figures import animate_scenario_2d, plot_board_2d
 
 
 def language() -> StrictlyLocalLanguage:
@@ -66,6 +72,7 @@ def config_dict(output_path: str, *, dimensions: int = 2) -> dict[str, object]:
         "initial_word_length": 5,
         "length_distribution": {"start": 5, "end": 5},
         "top_anchor_count": 12,
+        "max_anchor_count": None,
         "top_template_count": 24,
         "target_witness_count": 3,
         "scoring": {
@@ -74,6 +81,7 @@ def config_dict(output_path: str, *, dimensions: int = 2) -> dict[str, object]:
             "template_centroid_weight": 1.0,
             "template_new_cell_bonus_weight": 1.5,
             "template_local_density_penalty_weight": 1.0,
+            "template_domain_slack_weight": 1.0,
         },
         "additional_rack_noise": 1,
         "output_path": output_path,
@@ -183,6 +191,32 @@ class V1Tests(unittest.TestCase):
 
         self.assertTrue(result.ok)
 
+    def test_2d_visualization_rejects_overlapping_3d_projection(self):
+        board = Board.empty(3).place(
+            Move(start=(0, 0, 0), axis=2, sequence=("A", "B", "C"))
+        )
+
+        with self.assertRaisesRegex(ValueError, "2D projection overlaps"):
+            plot_board_2d(board)
+
+    def test_2d_animation_shows_only_current_step_number_beside_slider(self):
+        config = GeneratorConfig.model_validate(
+            config_dict("unused.json") | {"target_witness_count": 1}
+        )
+        scenario = scenario_run_to_json(ScenarioGenerator(config).generate())
+
+        slider = animate_scenario_2d(scenario).layout.sliders[0]
+
+        self.assertTrue(slider.currentvalue.visible)
+        self.assertEqual(slider.currentvalue.prefix, "")
+        self.assertEqual(slider.currentvalue.xanchor, "left")
+        self.assertEqual(slider.currentvalue.font.color, "#15181d")
+        self.assertEqual([step.label for step in slider.steps], ["0", "1"])
+        self.assertEqual(slider.font.color, "rgba(0, 0, 0, 0)")
+        self.assertEqual(slider.tickcolor, "rgba(0, 0, 0, 0)")
+        self.assertIsNone(slider.x)
+        self.assertIsNone(slider.len)
+
     def test_validator_accepts_crossing_and_rejects_extension(self):
         sl = language()
         board = Board.empty(2).place(Move(start=(-1, 0), axis=0, sequence=("A", "B", "C")))
@@ -212,6 +246,21 @@ class V1Tests(unittest.TestCase):
             ("C",),
             Move(start=(-2, -2), axis=0, sequence=("B", "A", "B", "A", "C")),
         )
+
+        self.assertFalse(result.ok)
+        self.assertEqual(result.failure_type, "word_extension")
+
+    def test_validator_rejects_valid_cross_axis_sequence_extension(self):
+        sl = language()
+        board = Board.empty(2)
+        for move in (
+            Move(start=(0, -2), axis=1, sequence=("A", "B", "A")),
+            Move(start=(1, 0), axis=1, sequence=("B", "A", "B")),
+        ):
+            board = board.place(move)
+        move = Move(start=(0, 1), axis=0, sequence=("B", "A", "B"))
+
+        result = validate_move(board, sl, ("B", "B"), move)
 
         self.assertFalse(result.ok)
         self.assertEqual(result.failure_type, "word_extension")
@@ -248,6 +297,111 @@ class V1Tests(unittest.TestCase):
         self.assertFalse(
             any(candidate.template.start == extension_start for candidate in pruned)
         )
+
+    def test_templates_prune_deterministic_cross_axis_word_extensions(self):
+        sl = language()
+        board = Board.empty(2)
+        for move in (
+            Move(start=(0, -2), axis=1, sequence=("A", "B", "A")),
+            Move(start=(1, 0), axis=1, sequence=("B", "A", "B")),
+        ):
+            board = board.place(move)
+        scoring = GeneratorConfig.model_validate(config_dict("unused.json")).scoring
+        anchor = AnchorCandidate((1, 1), "A", 0, 0.0, 0.0, 0)
+
+        templates = top_templates(
+            board,
+            (anchor,),
+            3,
+            10,
+            scoring,
+            prune=lambda template: extends_existing_sequence_in_any_axis(
+                board, template.covered_coords, template.axis, sl
+            ),
+        )
+
+        self.assertFalse(
+            any(candidate.template.start == (0, 1) for candidate in templates)
+        )
+
+    def test_templates_prune_empty_cross_domains_before_ranking(self):
+        sl = language()
+        board = Board.empty(2)
+        for move in (
+            Move(start=(-1, 0), axis=0, sequence=("A", "B", "C")),
+            Move(start=(1, -2), axis=1, sequence=("B", "C", "C")),
+        ):
+            board = board.place(move)
+        config = GeneratorConfig.model_validate(config_dict("unused.json"))
+        generator = ScenarioGenerator(config)
+        generator.language = sl
+        anchor = AnchorCandidate((0, 0), "B", 1, 0.0, 0.0, 0)
+
+        templates = top_templates(
+            board,
+            (anchor,),
+            3,
+            10,
+            config.scoring,
+            domains_for_template=lambda template: generator._domains_for_template(
+                board, template
+            ),
+        )
+
+        self.assertFalse(
+            any(candidate.template.start == (0, -1) for candidate in templates)
+        )
+
+    def test_generator_progressive_widening_expands_only_new_anchor_batches(self):
+        data = config_dict("unused.json") | {
+            "length_distribution": {"start": 3, "end": 3},
+            "top_anchor_count": 1,
+            "target_witness_count": 1,
+        }
+        config = GeneratorConfig.model_validate(data)
+        generator = ScenarioGenerator(config)
+        generator.language = language()
+        generator.solver = SlotCSP(generator.language)
+        board = Board.empty(2).place(
+            Move(start=(-1, 0), axis=0, sequence=("A", "B", "C"))
+        )
+        first = AnchorCandidate((-1, 0), "A", 1, 2.0, 0.0, 1)
+        second = AnchorCandidate((0, 0), "B", 1, 1.0, 1.0, 1)
+        template = SlotTemplate(
+            anchor_coord=(0, 0),
+            anchor_symbol="B",
+            axis=1,
+            length=3,
+            anchor_index=1,
+            start=(0, -1),
+            covered_coords=((0, -1), (0, 0), (0, 1)),
+        )
+        candidate = TemplateCandidate(
+            template=template,
+            score=1.0,
+            distance_to_centroid=0.0,
+            domains=(frozenset({"A"}), frozenset({"B"}), frozenset({"A"})),
+            domain_slack=2,
+        )
+        batches: list[tuple[AnchorCandidate, ...]] = []
+
+        def fake_templates(
+            _board: Board,
+            anchors: tuple[AnchorCandidate, ...],
+            *_args: object,
+            **_kwargs: object,
+        ) -> tuple[TemplateCandidate, ...]:
+            batches.append(anchors)
+            return () if anchors == (first,) else (candidate,)
+
+        with (
+            patch("src.generator.engine.top_anchors", return_value=(first, second)),
+            patch("src.generator.engine.top_templates", side_effect=fake_templates),
+        ):
+            _, transition, _ = generator._generate_next_transition(board)
+
+        self.assertIsNotNone(transition)
+        self.assertEqual(batches, [(first,), (second,)])
 
     def test_validator_allows_gap_fill_from_non_word_crossing_symbols(self):
         sl = language()
@@ -356,6 +510,7 @@ class V1Tests(unittest.TestCase):
         data = config_dict("unused.json") | {
             "length_distribution": {"start": 3, "end": 3},
             "top_anchor_count": 1,
+            "max_anchor_count": 1,
             "top_template_count": 1,
             "target_witness_count": 10,
         }

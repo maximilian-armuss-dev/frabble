@@ -41,6 +41,8 @@ Zusätzlich gilt für V1:
 - keine verbotenen Snippets.
 - keine Wörter der Länge `1` oder `2`.
 
+Cross-Wort-Constraints werden bereits vor dem CSP in die Domains eingetragen. Ist eine Domain danach leer, existiert an dieser Zellposition kein Symbol, das alle orthogonalen Kreuzwörter gültig machen kann. Das gesamte Template wird dann ohne CSP-Aufruf verworfen. Für nicht-leere Domains speichert der Template-Kandidat die extrahierten Mengen und reicht sie unverändert an den Solver weiter.
+
 ## OR-Tools-Modell
 
 Jede Wortposition wird als Integer-Variable modelliert.
@@ -59,6 +61,8 @@ model.AddAutomaton(
     transitions,
 )
 ```
+
+Der OR-Tools-Automat ist innerhalb einer `SlotCSP`-Instanz unverändert und wird deshalb einmal lazy erzeugt und für weitere Template-Versuche wiederverwendet.
 
 Der Solver liefert:
 

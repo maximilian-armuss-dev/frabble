@@ -56,11 +56,11 @@ def validate_move(
             "word_extension",
             "Move extends an existing word along the same axis.",
         )
-    if extends_existing_axis_sequence(board, coords, move.axis, language):
+    if extends_existing_sequence_in_any_axis(board, coords, move.axis, language):
         return ValidationResult(
             False,
             "word_extension",
-            "Move extends an already valid sequence along the same axis.",
+            "Move extends an already valid sequence on a touched axis.",
         )
 
     next_board = board.place(move)
@@ -121,40 +121,43 @@ def extends_existing_axis_sequence(
     axis: int,
     language: StrictlyLocalLanguage,
 ) -> bool:
-    line_origin = coords[0]
-
-    def on_move_line(coord: Coord) -> bool:
-        return all(
-            value == line_origin[dim]
-            for dim, value in enumerate(coord)
-            if dim != axis
-        )
-
-    existing_by_position = {
-        coord[axis]: coord
-        for coord in board.cells
-        if on_move_line(coord)
-    }
-    if not existing_by_position:
-        return False
-
-    start = coords[0][axis]
-    end = coords[-1][axis]
-    while start - 1 in existing_by_position:
-        start -= 1
-    while end + 1 in existing_by_position:
-        end += 1
-
     run: list[Symbol] = []
-    for position in range(start, end + 1):
-        coord = existing_by_position.get(position)
-        if coord is None:
+    line_coords: list[Coord] = list(coords)
+    cursor = _advance(coords[0], axis, -1)
+    while board.get(cursor) is not None:
+        line_coords.insert(0, cursor)
+        cursor = _advance(cursor, axis, -1)
+    cursor = _advance(coords[-1], axis, 1)
+    while board.get(cursor) is not None:
+        line_coords.append(cursor)
+        cursor = _advance(cursor, axis, 1)
+
+    for coord in line_coords:
+        symbol = board.get(coord)
+        if symbol is None:
             if _is_existing_valid_sequence(run, language):
                 return True
             run = []
             continue
-        run.append(str(board.get(coord)))
+        run.append(symbol)
     return _is_existing_valid_sequence(run, language)
+
+
+def extends_existing_sequence_in_any_axis(
+    board: Board,
+    coords: tuple[Coord, ...],
+    move_axis: int,
+    language: StrictlyLocalLanguage,
+) -> bool:
+    if extends_existing_axis_sequence(board, coords, move_axis, language):
+        return True
+    return any(
+        board.get(coord) is None
+        and axis != move_axis
+        and extends_existing_axis_sequence(board, (coord,), axis, language)
+        for coord in coords
+        for axis in range(board.dimensions)
+    )
 
 
 def _is_existing_valid_sequence(

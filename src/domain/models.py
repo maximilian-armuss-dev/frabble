@@ -133,6 +133,8 @@ class TemplateCandidate:
     template: SlotTemplate
     score: float
     distance_to_centroid: float
+    domains: tuple[frozenset[Symbol], ...] = ()
+    domain_slack: int = 0
 
     def to_json(self) -> dict[str, object]:
         return {
@@ -147,6 +149,7 @@ class TemplateCandidate:
             },
             "score": self.score,
             "distance_to_centroid": self.distance_to_centroid,
+            "domain_slack": self.domain_slack,
         }
 
 
