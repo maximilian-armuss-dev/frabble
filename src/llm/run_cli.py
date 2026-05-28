@@ -12,6 +12,12 @@ from ..generator.scenario_io import load_scenario_run
 from .client import call_llm
 from .evaluation import evaluate_granular
 from .prompting import build_prompt
+from .representers import (
+    BOARD_REPRESENTERS,
+    LANGUAGE_REPRESENTERS,
+    RACK_REPRESENTERS,
+    RepresenterConfig,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -48,6 +54,25 @@ def build_parser() -> argparse.ArgumentParser:
         "--show-prompt",
         action="store_true",
         help="Print the system and user prompts before calling the LLM.",
+    )
+    default_config = RepresenterConfig()
+    parser.add_argument(
+        "--language-representer",
+        choices=list(LANGUAGE_REPRESENTERS),
+        default=default_config.language.name,
+        help=f"How to present the formal language in the prompt. Default: {default_config.language.name}.",
+    )
+    parser.add_argument(
+        "--board-representer",
+        choices=list(BOARD_REPRESENTERS),
+        default=default_config.board.name,
+        help=f"How to present the board in the prompt. Default: {default_config.board.name}.",
+    )
+    parser.add_argument(
+        "--rack-representer",
+        choices=list(RACK_REPRESENTERS),
+        default=default_config.rack.name,
+        help=f"How to present the rack in the prompt. Default: {default_config.rack.name}.",
     )
     return parser
 
@@ -100,7 +125,12 @@ def main() -> None:
     transition = scenario_run.transitions[n]
     rack = transition.rack
 
-    system_prompt, user_prompt = build_prompt(board, transition, language)
+    representers = RepresenterConfig(
+        language=LANGUAGE_REPRESENTERS[args.language_representer],
+        board=BOARD_REPRESENTERS[args.board_representer],
+        rack=RACK_REPRESENTERS[args.rack_representer],
+    )
+    system_prompt, user_prompt = build_prompt(board, transition, language, representers)
 
     if args.show_prompt:
         print("=== SYSTEM PROMPT ===")
@@ -142,6 +172,11 @@ def main() -> None:
         "transition_index": n,
         "model": args.model,
         "timestamp": timestamp.isoformat(),
+        "representers": {
+            "language": representers.language.name,
+            "board": representers.board.name,
+            "rack": representers.rack.name,
+        },
         "system_prompt": system_prompt,
         "user_prompt": user_prompt,
         "raw_response": raw_response,

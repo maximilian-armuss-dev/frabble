@@ -75,13 +75,18 @@ The model name must match a profile in `config/model_configs.yaml`. The run log 
 Key flags:
 
 ```
---scenario PATH       Scenario JSON file produced by the generate step
---transition INT      Transition index N (0-indexed); board is populated with transitions 0..N-1
---model TEXT          Model name from config/model_configs.yaml (not required with --dry-run)
---output-dir PATH     Output directory for run logs (default: outputs/runs/)
---dry-run             Build the prompt but skip the LLM call and do not write any output
---show-prompt         Print the system and user prompts before calling the LLM
+--scenario PATH              Scenario JSON file produced by the generate step
+--transition INT             Transition index N (0-indexed); board is populated with transitions 0..N-1
+--model TEXT                 Model name from config/model_configs.yaml (not required with --dry-run)
+--output-dir PATH            Output directory for run logs (default: outputs/runs/)
+--dry-run                    Build the prompt but skip the LLM call and do not write any output
+--show-prompt                Print the system and user prompts before calling the LLM
+--language-representer NAME  How to present the formal language (default: forbidden-snippets)
+--board-representer NAME     How to present the board (default: coordinates-json)
+--rack-representer NAME      How to present the rack (default: symbol-json)
 ```
+
+The representer names logged under `representers` in every run log identify which formatting was used. Passing an invalid name is rejected at startup with the list of valid choices.
 
 To verify that scenario loading and prompt generation work without making an API call:
 

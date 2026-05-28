@@ -29,10 +29,8 @@ def build_prompt(
     board: Board,
     transition: ScenarioTransition,
     language: StrictlyLocalLanguage,
-    representers: RepresenterConfig | None = None,
+    representers: RepresenterConfig,
 ) -> tuple[str, str]:
-    if representers is None:
-        representers = RepresenterConfig()
     response_example = {
         "start": [0 for _ in range(board.dimensions)],
         "axis": 0,
