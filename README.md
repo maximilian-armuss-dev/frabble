@@ -77,8 +77,17 @@ Key flags:
 ```
 --scenario PATH       Scenario JSON file produced by the generate step
 --transition INT      Transition index N (0-indexed); board is populated with transitions 0..N-1
---model TEXT          Model name from config/model_configs.yaml
+--model TEXT          Model name from config/model_configs.yaml (not required with --dry-run)
 --output-dir PATH     Output directory for run logs (default: outputs/runs/)
+--dry-run             Build the prompt but skip the LLM call and do not write any output
+--show-prompt         Print the system and user prompts before calling the LLM
+```
+
+To verify that scenario loading and prompt generation work without making an API call:
+
+```bash
+uv run run-scenario --scenario outputs/generator_v1.json --transition 20 --dry-run
+uv run run-scenario --scenario outputs/generator_v1.json --transition 20 --dry-run --show-prompt
 ```
 
 The log file contains a granular evaluation breakdown:

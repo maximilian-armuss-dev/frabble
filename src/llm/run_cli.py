@@ -31,13 +31,23 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--model",
-        required=True,
-        help="Model name as registered in config/model_configs.yaml.",
+        required=False,
+        help="Model name as registered in config/model_configs.yaml. Not required with --dry-run.",
     )
     parser.add_argument(
         "--output-dir",
         default="outputs/runs",
         help="Directory to write the run log. Default: outputs/runs.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Build the prompt but skip the LLM call and do not write any output.",
+    )
+    parser.add_argument(
+        "--show-prompt",
+        action="store_true",
+        help="Print the system and user prompts before calling the LLM.",
     )
     return parser
 
@@ -56,6 +66,11 @@ def _resolve_grammar_path(grammar_path: str, scenario_path: Path) -> Path:
 
 def main() -> None:
     args = build_parser().parse_args()
+
+    if not args.dry_run and args.model is None:
+        print("--model is required unless --dry-run is set.")
+        raise SystemExit(1)
+
     scenario_path = Path(args.scenario)
 
     try:
@@ -86,6 +101,18 @@ def main() -> None:
     rack = transition.rack
 
     system_prompt, user_prompt = build_prompt(board, transition, language)
+
+    if args.show_prompt:
+        print("=== SYSTEM PROMPT ===")
+        print(system_prompt)
+        print()
+        print("=== USER PROMPT ===")
+        print(user_prompt)
+        print()
+
+    if args.dry_run:
+        print("Dry run complete — prompt built successfully, no LLM call made.")
+        return
 
     print(f"Calling {args.model} for transition {n} of {scenario_path.name} ...")
     try:
