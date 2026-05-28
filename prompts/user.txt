@@ -15,6 +15,9 @@ Formal language:
 Board configuration:
 {board}
 
+Rack:
+{rack}
+
 Your response must validate against this JSON Schema:
 {output_schema}
 
