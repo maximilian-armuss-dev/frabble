@@ -39,6 +39,49 @@ class ForbiddenSnippetsLanguageRepresenter:
         return language.describe()
 
 
+class ForbiddenSnippetsProductionRulesLanguageRepresenter:
+    @property
+    def name(self) -> str:
+        return "forbidden-snippets-production-rules"
+
+    def represent(self, language: StrictlyLocalLanguage) -> str:
+        _, transitions = language._automaton_parts()
+        steady_length = language.k - 1
+
+        lines = [
+            f"Language ID: {language.language_id}",
+            f"Alphabet: {{{', '.join(language.alphabet)}}}",
+            f"k: {language.k}, minimum word length: {language.min_word_length}",
+            "",
+            "Production rules (context → allowed next symbols):",
+        ]
+
+        if steady_length == 0:
+            # k=1: single symbols can themselves be forbidden
+            allowed = sorted(transitions.get((), {}).keys())
+            lines.append(f"  [any position] → {' | '.join(allowed)}")
+        else:
+            if steady_length > 1:
+                lines.append(
+                    f"  (first {steady_length} symbols are unconstrained — any from alphabet)"
+                )
+            for state in sorted(transitions, key=lambda s: (len(s), s)):
+                if len(state) != steady_length:
+                    continue
+                allowed = sorted(transitions[state])
+                if not allowed:
+                    continue
+                lines.append(f"  {' '.join(state)} → {' | '.join(allowed)}")
+
+        lines += [
+            "",
+            f"A sequence is accepted iff it has length ≥ {language.min_word_length}"
+            " and every symbol follows the rule for its context.",
+        ]
+
+        return "\n".join(lines)
+
+
 class CoordinatesJsonBoardRepresenter:
     @property
     def name(self) -> str:
@@ -72,7 +115,10 @@ class RepresenterConfig:
 
 
 LANGUAGE_REPRESENTERS: dict[str, LanguageRepresenter] = {
-    r.name: r for r in [ForbiddenSnippetsLanguageRepresenter()]
+    r.name: r for r in [
+        ForbiddenSnippetsLanguageRepresenter(),
+        ForbiddenSnippetsProductionRulesLanguageRepresenter(),
+    ]
 }
 
 BOARD_REPRESENTERS: dict[str, BoardRepresenter] = {
