@@ -81,7 +81,7 @@ Key flags:
 --output-dir PATH            Output directory for run logs (default: outputs/runs/)
 --dry-run                    Build the prompt but skip the LLM call and do not write any output
 --show-prompt                Print the system and user prompts before calling the LLM
---language-representer NAME  How to present the formal language (choices: forbidden-snippets [default], forbidden-snippets-production-rules)
+--language-representer NAME  How to present the formal language (choices: forbidden-snippets [default], forbidden-snippets-production-rules, generic-production-rules)
 --board-representer NAME     How to present the board (choices: coordinates-json [default])
 --rack-representer NAME      How to present the rack (choices: symbol-json [default])
 ```

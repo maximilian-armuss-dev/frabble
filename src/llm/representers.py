@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import deque
 from dataclasses import dataclass, field
 from typing import Protocol
 
@@ -82,6 +83,74 @@ class ForbiddenSnippetsProductionRulesLanguageRepresenter:
         return "\n".join(lines)
 
 
+class GenericProductionRulesLanguageRepresenter:
+    @property
+    def name(self) -> str:
+        return "generic-production-rules"
+
+    def represent(self, language: StrictlyLocalLanguage) -> str:
+        dfa = language.to_dfa()
+
+        # BFS from start state to assign readable labels Q0, Q1, Q2, ...
+        # Dead/sink states (no accepting state reachable) are excluded.
+        labels: dict[str, str] = {}
+        queue: deque[str] = deque([dfa.start_state])
+        visited: set[str] = {dfa.start_state}
+        while queue:
+            state = queue.popleft()
+            labels[state] = f"Q{len(labels)}"
+            for symbol in sorted(dfa.alphabet):
+                nxt = dfa.transitions.get(state, {}).get(symbol)
+                if nxt and nxt not in visited and nxt in dfa.states:
+                    # Only follow transitions that lead somewhere reachable
+                    # and are not the dead state (sink with no accepting successor)
+                    if _can_reach_accepting(nxt, dfa):
+                        visited.add(nxt)
+                        queue.append(nxt)
+
+        lines = [
+            f"Language ID: {language.language_id}",
+            f"Alphabet: {{{', '.join(dfa.alphabet)}}}",
+            f"Start: {labels[dfa.start_state]}",
+            "",
+            "Productions:",
+        ]
+
+        for state, label in labels.items():
+            parts: list[str] = []
+            for symbol in sorted(dfa.alphabet):
+                nxt = dfa.transitions.get(state, {}).get(symbol)
+                if nxt and nxt in labels:
+                    parts.append(f"{symbol} {labels[nxt]}")
+            if state in dfa.accepting_states:
+                parts.append("ε")
+            if parts:
+                lines.append(f"  {label} → {' | '.join(parts)}")
+
+        lines += [
+            "",
+            "ε means the sequence may end at that state.",
+        ]
+
+        return "\n".join(lines)
+
+
+def _can_reach_accepting(start: str, dfa) -> bool:
+    visited: set[str] = set()
+    queue: deque[str] = deque([start])
+    while queue:
+        state = queue.popleft()
+        if state in dfa.accepting_states:
+            return True
+        if state in visited:
+            continue
+        visited.add(state)
+        for nxt in dfa.transitions.get(state, {}).values():
+            if nxt not in visited:
+                queue.append(nxt)
+    return False
+
+
 class CoordinatesJsonBoardRepresenter:
     @property
     def name(self) -> str:
@@ -118,6 +187,7 @@ LANGUAGE_REPRESENTERS: dict[str, LanguageRepresenter] = {
     r.name: r for r in [
         ForbiddenSnippetsLanguageRepresenter(),
         ForbiddenSnippetsProductionRulesLanguageRepresenter(),
+        GenericProductionRulesLanguageRepresenter(),
     ]
 }
 
