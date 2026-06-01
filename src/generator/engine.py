@@ -23,7 +23,7 @@ from ..domain.models import (
 from ..formal.automata import enumerate_accepted_sequences
 from ..formal.grammar.serialization import load_grammar
 from ..formal.slot_csp import SlotCSP
-from ..formal.validation import extends_existing_sequence_in_any_axis, validate_move
+from ..formal.validation import extends_existing_sequence_in_any_axis, validate_move_detailed
 from .candidates import top_anchors, top_templates
 from .config import GeneratorConfig, PROJECT_ROOT
 from .scenario_io import write_scenario_run
@@ -243,12 +243,12 @@ class ScenarioGenerator:
                 sequence=sequence,
             )
             rack = self._rack_for_move(board, move)
-            result = validate_move(board, self.language, rack, move)
-            if not result.ok:
+            report = validate_move_detailed(board, self.language, rack, move)
+            if not report.overall:
                 attempts.append(SolverAttempt(candidate.template, "validator_failed", sequence))
-                if result.failure_type in {"word_extension", "invalid_main_word"}:
+                if report.failure_type in {"word_extension", "invalid_main_word"}:
                     continue
-                raise GenerationError(f"Generated move failed validation: {result}")
+                raise GenerationError(f"Generated move failed validation: {report.result}")
 
             next_board = board.place(move)
             attempts.append(SolverAttempt(candidate.template, "solved", sequence))

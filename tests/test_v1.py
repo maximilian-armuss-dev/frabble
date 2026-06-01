@@ -12,12 +12,13 @@ from src.cli import build_parser
 from src.domain.board import Board
 from src.domain.models import AnchorCandidate, Move, SlotTemplate, TemplateCandidate
 from src.formal.language import StrictlyLocalLanguage
-from src.formal.parsing import parse_move
+from src.formal.parsing import SubmittedMove, parse_move
 from src.formal.slot_csp import SlotCSP
 from src.formal.validation import (
     extends_existing_axis_sequence,
     extends_existing_sequence_in_any_axis,
     validate_move,
+    validate_move_detailed,
 )
 from src.generator.config import GeneratorConfig, load_generator_config, resolve_config_path
 from src.generator.candidates import _normalize_feature, top_anchors, top_templates
@@ -26,6 +27,7 @@ from src.generator.readable_json import dumps_readable_json
 from src.generator.reconstruction import reconstruct_boards
 from src.generator.scenario_codec import scenario_run_to_json
 from src.generator.scenario_io import load_scenario_run
+from src.llm.evaluation import evaluate_granular
 from src.llm.prompting import build_prompt
 from src.llm.representers import RepresenterConfig
 from src.tools.check_model import clip_preview
@@ -430,6 +432,45 @@ class V1Tests(unittest.TestCase):
 
         self.assertFalse(result.ok)
         self.assertEqual(result.failure_type, "word_extension")
+
+    def test_detailed_validator_reports_granular_fields(self):
+        sl = language()
+        board = Board.empty(2).place(Move(start=(-1, 0), axis=0, sequence=("A", "B", "C")))
+        move = Move(start=(0, -1), axis=1, sequence=("A", "B", "C"))
+
+        result = validate_move(board, sl, ("A", "C"), move)
+        report = validate_move_detailed(board, sl, ("A", "C"), move)
+
+        self.assertEqual(report.result, result)
+        self.assertTrue(report.overall)
+        self.assertTrue(report.sequence_valid)
+        self.assertTrue(report.min_length_fulfilled)
+        self.assertTrue(report.spatial_valid)
+        self.assertTrue(report.overlap_valid)
+        self.assertTrue(report.no_word_extension)
+        self.assertTrue(report.cross_words_valid)
+        self.assertEqual(report.rack_symbols_used, 2)
+        self.assertEqual(report.rack_usage_ratio, 1.0)
+
+    def test_granular_evaluation_flags_cross_axis_word_extension(self):
+        sl = language()
+        board = Board.empty(2)
+        for move in (
+            Move(start=(0, -2), axis=1, sequence=("A", "B", "A")),
+            Move(start=(1, 0), axis=1, sequence=("B", "A", "B")),
+        ):
+            board = board.place(move)
+
+        evaluation = evaluate_granular(
+            board,
+            sl,
+            ("B", "B"),
+            SubmittedMove(start=(0, 1), axis=0, sequence=("B", "A", "B")),
+        )
+
+        self.assertFalse(evaluation.overall)
+        self.assertEqual(evaluation.failure_type, "word_extension")
+        self.assertFalse(evaluation.no_word_extension)
 
     def test_templates_prune_deterministic_implicit_word_extensions_before_solving(self):
         sl = language()
