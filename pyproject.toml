@@ -30,7 +30,7 @@ sample-grammar = "src.formal.grammar.cli:cmd_sample"
 analyze-grammar = "src.formal.grammar.cli:cmd_analyze"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["src", "visualization"]
 
 [build-system]
 requires = ["hatchling"]

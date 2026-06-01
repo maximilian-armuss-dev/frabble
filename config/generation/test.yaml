@@ -19,5 +19,5 @@ scoring:
   template_local_density_penalty_weight: 1.0
   template_domain_slack_weight: 1.0
 additional_rack_noise: 1
-output_path: outputs/test.json
+output_path: outputs/scenarios/test.json
 include_search_logs: true

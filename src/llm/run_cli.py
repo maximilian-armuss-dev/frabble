@@ -29,7 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--scenario",
         required=True,
-        help="Path to a scenario JSON file (e.g. outputs/generator_v1.json).",
+        help="Path to a scenario JSON file (e.g. outputs/scenarios/generator_v1.json).",
     )
     parser.add_argument(
         "--transition",
@@ -44,8 +44,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--output-dir",
-        default="outputs/runs",
-        help="Directory to write the run log. Default: outputs/runs.",
+        default="outputs/llm-runs",
+        help="Directory to write the run log. Default: outputs/llm-runs.",
     )
     parser.add_argument(
         "--dry-run",

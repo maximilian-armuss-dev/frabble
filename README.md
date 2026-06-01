@@ -78,7 +78,7 @@ uv run generate --config generator_v1
 ```
 
 Then run `visualization/visualize_2d.ipynb`, which loads
-`outputs/generator_v1.json`.
+`outputs/scenarios/generator_v1.json`.
 
 Use `visualization/visualize_3d.ipynb` for scenarios generated with
 `dimensions: 3`. For higher-dimensional boards, choose two or three visible
@@ -87,7 +87,7 @@ axes and fix every remaining coordinate to render a slice:
 ```python
 from visualization.board_figures import board_from_scenario_json, plot_board_3d
 
-board = board_from_scenario_json("outputs/my_7d.json")
+board = board_from_scenario_json("outputs/scenarios/my_7d.json")
 plot_board_3d(
     board,
     axes=(0, 1, 2),
@@ -107,7 +107,7 @@ a generation config such as `config/generation/my_2d.yaml` from
 ```yaml
 config_name: my_2d
 grammar_path: outputs/grammars/my_2d_grammar.json
-output_path: outputs/my_2d.json
+output_path: outputs/scenarios/my_2d.json
 ```
 
 Sample the grammar and generate its scenario:
@@ -118,8 +118,8 @@ uv run analyze-grammar outputs/grammars/my_2d_grammar.json --max-length 7
 uv run generate --config my_2d
 ```
 
-Finally, set `SCENARIO_PATH` in `visualization/visualize_2d.ipynb` to
-`ROOT / "outputs" / "my_2d.json"` and run the notebook.
+Finally, set `SCENARIO_NAME` in `visualization/inspect_scenario.ipynb` to
+`"my_2d"` and run the notebook.
 
 The current checked-in samples use `k = 3`. To run the older V1 convention
 described in `docs/implementation/README.md` (`k = 2` while still rejecting
@@ -130,10 +130,10 @@ words shorter than length 3), sample with `--k 2 --min-word-length 3`.
 Pick a generated scenario file and a transition index. The board is replayed up to that transition, and the model is asked to place a valid word using the rack from that step. Because the CSP solver found a solution at every step, a valid move is guaranteed to exist.
 
 ```bash
-uv run run-scenario --scenario outputs/generator_v1.json --transition 20 --model my_model
+uv run run-scenario --scenario outputs/scenarios/generator_v1.json --transition 20 --model my_model
 ```
 
-The model name must match a profile in `config/model_configs.yaml`. The run log (prompts, raw response, and evaluation) is written to `outputs/runs/`.
+The model name must match a profile in `config/model_configs.yaml`. The run log (prompts, raw response, and evaluation) is written to `outputs/llm-runs/`.
 
 Key flags:
 
@@ -141,7 +141,7 @@ Key flags:
 --scenario PATH              Scenario JSON file produced by the generate step
 --transition INT             Transition index N (0-indexed); board is populated with transitions 0..N-1
 --model TEXT                 Model name from config/model_configs.yaml (not required with --dry-run)
---output-dir PATH            Output directory for run logs (default: outputs/runs/)
+--output-dir PATH            Output directory for run logs (default: outputs/llm-runs/)
 --dry-run                    Build the prompt but skip the LLM call and do not write any output
 --show-prompt                Print the system and user prompts before calling the LLM
 --language-representer NAME  How to present the formal language (choices: forbidden-snippets [default], forbidden-snippets-production-rules, generic-production-rules)
@@ -154,8 +154,8 @@ The representer names logged under `representers` in every run log identify whic
 To verify that scenario loading and prompt generation work without making an API call:
 
 ```bash
-uv run run-scenario --scenario outputs/generator_v1.json --transition 20 --dry-run
-uv run run-scenario --scenario outputs/generator_v1.json --transition 20 --dry-run --show-prompt
+uv run run-scenario --scenario outputs/scenarios/generator_v1.json --transition 20 --dry-run
+uv run run-scenario --scenario outputs/scenarios/generator_v1.json --transition 20 --dry-run --show-prompt
 ```
 
 The log file contains a granular evaluation breakdown:

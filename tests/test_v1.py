@@ -233,7 +233,7 @@ class V1Tests(unittest.TestCase):
         self.assertEqual(figure.data[0].mode, "markers+text")
         self.assertEqual(figure.data[0].marker.symbol, "square")
 
-    def test_2d_visualization_uses_marker_letters_and_heatmap(self):
+    def test_2d_visualization_uses_marker_letters_without_heatmap(self):
         board = Board.empty(2).place(
             Move(start=(-1, 0), axis=0, sequence=("A", "B", "C"))
         )
@@ -243,8 +243,7 @@ class V1Tests(unittest.TestCase):
         self.assertEqual(figure.data[0].type, "scatter")
         self.assertEqual(figure.data[0].mode, "markers+text")
         self.assertEqual(tuple(figure.data[0].text), ("A", "B", "C"))
-        self.assertEqual(figure.data[0].marker.color[0], "#0057d9")
-        self.assertEqual(figure.data[0].marker.color[1], "#e60023")
+        self.assertEqual(tuple(figure.data[0].marker.color), ("#f7f8fa",) * 3)
         self.assertEqual(figure.data[0].marker.line.color, "rgba(0, 0, 0, 0)")
         self.assertEqual(figure.data[0].marker.line.width, 0)
         self.assertEqual(figure.layout.plot_bgcolor, "rgba(0, 0, 0, 0)")
