@@ -452,6 +452,23 @@ class V1Tests(unittest.TestCase):
         self.assertEqual(report.rack_symbols_used, 2)
         self.assertEqual(report.rack_usage_ratio, 1.0)
 
+    def test_detailed_validator_keeps_independent_checks_for_invalid_sequence(self):
+        sl = language()
+        board = Board.empty(2).place(Move(start=(-1, 0), axis=0, sequence=("A", "B", "C")))
+        move = Move(start=(0, -1), axis=1, sequence=("A", "B", "B"))
+
+        report = validate_move_detailed(board, sl, ("A", "B"), move)
+
+        self.assertFalse(report.overall)
+        self.assertEqual(report.failure_type, "sequence")
+        self.assertFalse(report.sequence_valid)
+        self.assertTrue(report.min_length_fulfilled)
+        self.assertTrue(report.spatial_valid)
+        self.assertTrue(report.overlap_valid)
+        self.assertTrue(report.no_word_extension)
+        self.assertTrue(report.cross_words_valid)
+        self.assertEqual(report.rack_symbols_used, 2)
+
     def test_granular_evaluation_flags_cross_axis_word_extension(self):
         sl = language()
         board = Board.empty(2)

@@ -61,10 +61,10 @@ def validate_move_detailed(
     rack: tuple[str, ...],
     move: Move,
 ) -> MoveValidationReport:
-    basic_result = _validate_basic_shape(board, language, move)
-    if not basic_result.ok:
+    schema_result = _validate_schema(board, move)
+    if not schema_result.ok:
         return _report(
-            basic_result,
+            schema_result,
             language,
             move,
             rack_size=len(rack),
@@ -75,6 +75,7 @@ def validate_move_detailed(
             rack_symbols_used=0,
         )
 
+    sequence_result = _validate_sequence(language, move)
     coords = board.coords_for_slot(move.start, move.axis, len(move.sequence))
     scan = _scan_move(board, move, coords)
     overlap_valid = not board.has_tiles() or scan.touched_existing
@@ -92,13 +93,17 @@ def validate_move_detailed(
         coords,
         scan.spatial_result.ok,
     )
-    result = _first_failure(
-        rack,
-        scan,
-        overlap_valid,
-        touches_neighbor,
-        extends_sequence,
-        cross_words_result,
+    result = (
+        sequence_result
+        if not sequence_result.ok
+        else _first_failure(
+            rack,
+            scan,
+            overlap_valid,
+            touches_neighbor,
+            extends_sequence,
+            cross_words_result,
+        )
     )
     return _report(
         result,
@@ -239,9 +244,8 @@ def _first_failure(
     return ValidationResult(True, None, "valid")
 
 
-def _validate_basic_shape(
+def _validate_schema(
     board: Board,
-    language: StrictlyLocalLanguage,
     move: Move,
 ) -> ValidationResult:
     if not move.sequence:
@@ -254,6 +258,13 @@ def _validate_basic_shape(
         )
     if move.axis < 0 or move.axis >= board.dimensions:
         return ValidationResult(False, "schema", "Axis is outside board dimensions.")
+    return ValidationResult(True, None, "valid")
+
+
+def _validate_sequence(
+    language: StrictlyLocalLanguage,
+    move: Move,
+) -> ValidationResult:
     if any(symbol not in language.alphabet for symbol in move.sequence):
         return ValidationResult(False, "sequence", "Sequence contains unknown symbols.")
     if not language.accepts(move.sequence):
