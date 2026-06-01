@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from time import perf_counter
 from datetime import datetime
 from pathlib import Path
 
@@ -10,6 +11,7 @@ from ..formal.parsing import SubmittedMove, parse_submitted_move
 from ..generator.reconstruction import board_before_transition
 from ..generator.scenario_io import load_scenario_run
 from .client import call_llm
+from .env import ENV
 from .evaluation import evaluate_granular
 from .prompting import build_prompt
 from .representers import (
@@ -144,12 +146,26 @@ def main() -> None:
         print("Dry run complete — prompt built successfully, no LLM call made.")
         return
 
-    print(f"Calling {args.model} for transition {n} of {scenario_path.name} ...")
+    model_config = ENV.get_model_config(args.model)
+    timeout = (
+        f"{model_config.timeout_seconds:g}s"
+        if model_config.timeout_seconds is not None
+        else "none"
+    )
+    reasoning = model_config.reasoning_effort or "default"
+    print(
+        f"Calling {args.model} for transition {n} of {scenario_path.name} "
+        f"(reasoning_effort={reasoning}, timeout={timeout}) ...",
+        flush=True,
+    )
+    started_at = perf_counter()
     try:
         raw_response = call_llm(system_prompt, user_prompt, args.model)
     except Exception as exc:
         print(f"LLM call failed: {exc}")
         raise SystemExit(1) from exc
+    elapsed = perf_counter() - started_at
+    print(f"LLM response received in {elapsed:.1f}s")
 
     submitted: SubmittedMove | None = None
     parse_error: str | None = None
@@ -171,7 +187,14 @@ def main() -> None:
         "scenario_file": str(scenario_path),
         "transition_index": n,
         "model": args.model,
+        "model_config": {
+            "model": model_config.model,
+            "reasoning_depth": model_config.reasoning_effort,
+            "reasoning_effort": model_config.reasoning_effort,
+            "timeout_seconds": model_config.timeout_seconds,
+        },
         "timestamp": timestamp.isoformat(),
+        "llm_elapsed_seconds": elapsed,
         "representers": {
             "language": representers.language.name,
             "board": representers.board.name,

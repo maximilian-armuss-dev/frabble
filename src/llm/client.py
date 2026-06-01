@@ -17,7 +17,8 @@ def call_llm(system_prompt: str, user_prompt: str, model_name: str) -> str:
         "temperature": config.temperature,
         "api_key": config.api_key,
         "base_url": config.base_url if config.base_url else None,
-        "reasoning_effort": config.reasoning_effort if config.reasoning_effort else None
+        "reasoning_effort": config.reasoning_effort if config.reasoning_effort else None,
+        "timeout": config.timeout_seconds,
     }
 
     response = completion(**kwargs)

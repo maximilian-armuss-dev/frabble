@@ -24,6 +24,7 @@ class ModelConfig:
     temperature: float
     reasoning_effort: str | None = None
     base_url: str | None = None
+    timeout_seconds: float | None = None
 
 
 class Environment:
@@ -61,6 +62,9 @@ class Environment:
             reasoning_effort = self._optional_config_value(raw_model, "reasoning_effort")
             base_url_env = self._optional_config_value(raw_model, "base_url_env")
             base_url = self.env_vars.get(base_url_env, "") if base_url_env else None
+            timeout_seconds = self._optional_float_config_value(
+                raw_model, "timeout_seconds"
+            )
             configs[name] = ModelConfig(
                 name=name,
                 model=model,
@@ -68,8 +72,20 @@ class Environment:
                 temperature=temperature,
                 reasoning_effort=reasoning_effort,
                 base_url=base_url,
+                timeout_seconds=timeout_seconds,
             )
         return configs
+
+    def _optional_float_config_value(
+        self, raw_model: dict[str, object], key: str
+    ) -> float | None:
+        value = raw_model.get(key)
+        if value is None:
+            return None
+        parsed = float(value)
+        if parsed <= 0:
+            raise RuntimeError(f"Model config value '{key}' must be positive.")
+        return parsed
 
     def _optional_config_value(self, raw_model: dict[str, object], key: str) -> str | None:
         value = raw_model.get(key)
