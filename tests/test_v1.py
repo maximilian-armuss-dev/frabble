@@ -27,6 +27,7 @@ from src.generator.reconstruction import reconstruct_boards
 from src.generator.scenario_codec import scenario_run_to_json
 from src.generator.scenario_io import load_scenario_run
 from src.llm.prompting import build_prompt
+from src.llm.representers import RepresenterConfig
 from src.tools.check_model import clip_preview
 from visualization.board_figures import (
     animate_scenario_2d,
@@ -746,6 +747,7 @@ class V1Tests(unittest.TestCase):
             scenario_run.initial_board,
             scenario_run.transitions[0],
             sl,
+            RepresenterConfig(),
         )
 
         self.assertIn('"sequence"', user_prompt)

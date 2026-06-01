@@ -125,6 +125,54 @@ The current checked-in samples use `k = 3`. To run the older V1 convention
 described in `docs/implementation/README.md` (`k = 2` while still rejecting
 words shorter than length 3), sample with `--k 2 --min-word-length 3`.
 
+### 4. Run a scenario against an LLM
+
+Pick a generated scenario file and a transition index. The board is replayed up to that transition, and the model is asked to place a valid word using the rack from that step. Because the CSP solver found a solution at every step, a valid move is guaranteed to exist.
+
+```bash
+uv run run-scenario --scenario outputs/generator_v1.json --transition 20 --model my_model
+```
+
+The model name must match a profile in `config/model_configs.yaml`. The run log (prompts, raw response, and evaluation) is written to `outputs/runs/`.
+
+Key flags:
+
+```
+--scenario PATH              Scenario JSON file produced by the generate step
+--transition INT             Transition index N (0-indexed); board is populated with transitions 0..N-1
+--model TEXT                 Model name from config/model_configs.yaml (not required with --dry-run)
+--output-dir PATH            Output directory for run logs (default: outputs/runs/)
+--dry-run                    Build the prompt but skip the LLM call and do not write any output
+--show-prompt                Print the system and user prompts before calling the LLM
+--language-representer NAME  How to present the formal language (choices: forbidden-snippets [default], forbidden-snippets-production-rules, generic-production-rules)
+--board-representer NAME     How to present the board (choices: coordinates-json [default])
+--rack-representer NAME      How to present the rack (choices: symbol-json [default])
+```
+
+The representer names logged under `representers` in every run log identify which formatting was used. Passing an invalid name is rejected at startup with the list of valid choices.
+
+To verify that scenario loading and prompt generation work without making an API call:
+
+```bash
+uv run run-scenario --scenario outputs/generator_v1.json --transition 20 --dry-run
+uv run run-scenario --scenario outputs/generator_v1.json --transition 20 --dry-run --show-prompt
+```
+
+The log file contains a granular evaluation breakdown:
+
+| Field | Meaning |
+|---|---|
+| `overall` | All constraints satisfied |
+| `parse_ok` | Response parsed as valid JSON move |
+| `sequence_valid` | Sequence accepted by the formal language |
+| `min_length_fulfilled` | Sequence meets minimum word length |
+| `spatial_valid` | No conflicts with existing board tiles |
+| `overlap_valid` | Move touches at least one existing tile |
+| `no_word_extension` | Move does not extend an existing valid sequence |
+| `cross_words_valid` | All cross-words formed are accepted by the language |
+| `rack_symbols_used` | Count of new tiles drawn from the rack |
+| `rack_usage_ratio` | `rack_symbols_used / rack_size` |
+
 ## Tests
 
 ```bash
@@ -138,7 +186,7 @@ uv run python -m unittest discover -s tests -q
 - `formal/grammar/`: SL grammar sampling, DFA construction, Perron analysis, serialization, and the `sample-grammar` / `analyze-grammar` CLI entry points.
 - `generator/`: Strict YAML config loader, candidate ranking, generation engine, scenario codec, file I/O, and board reconstruction.
 - `benchmark/`: Board scoring helpers.
-- `llm/`: Prompt construction, model configuration from `.env` and `config/model_configs.yaml`, and the LiteLLM client.
+- `llm/`: Prompt construction, model configuration from `.env` and `config/model_configs.yaml`, LiteLLM client, granular move evaluator (`evaluation.py`), and the `run-scenario` CLI entry point (`run_cli.py`).
 - `tools/check_model.py`: Small CLI for validating individual or all model profiles.
 - `prompts/`: System and user prompt templates.
 - `config/grammar_configs.yaml`: Global defaults for SL grammar sampling.
