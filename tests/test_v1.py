@@ -30,6 +30,9 @@ from src.llm.prompting import build_prompt
 from src.tools.check_model import clip_preview
 from visualization.board_figures import (
     animate_scenario_2d,
+    animate_scenario_2d_canvas,
+    animate_scenario_2d_image,
+    animate_scenario_3d,
     plot_board_2d,
     plot_board_3d,
 )
@@ -218,13 +221,37 @@ class V1Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "slice_coords"):
             plot_board_2d(board)
         figure = plot_board_2d(board, slice_coords={2: 1})
-        visible_symbols = tuple(
-            symbol for row in figure.data[0].text for symbol in row
-        )
+        visible_symbols = tuple(figure.data[0].text)
 
         self.assertIn("B", visible_symbols)
         self.assertNotIn("A", visible_symbols)
         self.assertNotIn("C", visible_symbols)
+        self.assertEqual(figure.data[0].type, "scatter")
+        self.assertEqual(figure.data[0].mode, "markers+text")
+        self.assertEqual(figure.data[0].marker.symbol, "square")
+
+    def test_2d_visualization_uses_marker_letters_and_heatmap(self):
+        board = Board.empty(2).place(
+            Move(start=(-1, 0), axis=0, sequence=("A", "B", "C"))
+        )
+
+        figure = plot_board_2d(board)
+
+        self.assertEqual(figure.data[0].type, "scatter")
+        self.assertEqual(figure.data[0].mode, "markers+text")
+        self.assertEqual(tuple(figure.data[0].text), ("A", "B", "C"))
+        self.assertEqual(figure.data[0].marker.color[0], "#0057d9")
+        self.assertEqual(figure.data[0].marker.color[1], "#e60023")
+        self.assertEqual(figure.data[0].marker.line.color, "rgba(0, 0, 0, 0)")
+        self.assertEqual(figure.data[0].marker.line.width, 0)
+        self.assertEqual(figure.layout.plot_bgcolor, "rgba(0, 0, 0, 0)")
+        self.assertEqual(
+            figure.data[0].textfont.family,
+            "DejaVu Sans Mono, Menlo, Consolas, monospace",
+        )
+        highlighted = plot_board_2d(board, highlight_coords={(0, 0)})
+
+        self.assertEqual(highlighted.data[0].marker.color[1], "#ff00b8")
 
     def test_3d_visualization_selects_slice_from_higher_dimensional_board(self):
         board = Board.empty(5)
@@ -238,7 +265,71 @@ class V1Tests(unittest.TestCase):
             plot_board_3d(board)
         figure = plot_board_3d(board, slice_coords={3: 4, 4: -2})
 
-        self.assertEqual(tuple(figure.data[0].text), ("A", "B", "C"))
+        self.assertEqual(tuple(figure.data[2].text), ("A", "B", "C"))
+
+    def test_3d_visualization_uses_opaque_cube_nodes_with_face_letters_and_heatmap(self):
+        board = Board.empty(3).place(
+            Move(start=(-1, 0, 0), axis=0, sequence=("A", "B", "C"))
+        )
+
+        figure = plot_board_3d(board)
+
+        self.assertEqual(figure.data[0].type, "mesh3d")
+        self.assertEqual(figure.data[0].opacity, 1.0)
+        self.assertEqual(figure.data[1].type, "mesh3d")
+        self.assertEqual(figure.data[1].color, "#15181d")
+        self.assertEqual(figure.data[2].type, "scatter3d")
+        self.assertEqual(tuple(figure.data[2].text), ("A", "B", "C"))
+        self.assertEqual(len(figure.data[0].facecolor), 36)
+        self.assertGreater(len(set(figure.data[0].facecolor)), 1)
+        self.assertEqual(figure.layout.scene.aspectmode, "manual")
+        self.assertGreater(figure.layout.scene.camera.eye.x, 3.5)
+        self.assertLess(figure.layout.scene.camera.eye.y, -4.0)
+        zoomed_in = plot_board_3d(board, camera_zoom=1.0)
+
+        self.assertLess(zoomed_in.layout.scene.camera.eye.x, figure.layout.scene.camera.eye.x)
+        self.assertEqual(tuple(figure.layout.sliders), ())
+        highlighted = plot_board_3d(board, highlight_coords={(0, 0, 0)})
+
+        self.assertIn("#ff00b8", highlighted.data[0].facecolor)
+
+    def test_3d_animation_shows_generation_steps_with_slider(self):
+        scenario = {
+            "schema_version": 1,
+            "config_name": "unit",
+            "config": {},
+            "seed": 11,
+            "grammar_name": "unit",
+            "forbidden_snippets": [],
+            "initial_board": {
+                "dimensions": 3,
+                "occupied": [
+                    [[-1, 0, 0], "A"],
+                    [[0, 0, 0], "B"],
+                    [[1, 0, 0], "C"],
+                ],
+                "segments": [
+                    {"start": [-1, 0, 0], "axis": 0, "sequence": ["A", "B", "C"]}
+                ],
+            },
+            "transitions": [
+                {
+                    "rack": ["A", "C"],
+                    "move": [[0, -1, 0], 1, ["A", "B", "C"]],
+                    "placed": [
+                        [[0, -1, 0], "A"],
+                        [[0, 1, 0], "C"],
+                    ],
+                }
+            ],
+        }
+
+        figure = animate_scenario_3d(scenario)
+
+        self.assertEqual([step.label for step in figure.layout.sliders[0].steps], ["0", "1"])
+        self.assertEqual([frame.name for frame in figure.frames], ["0", "1"])
+        self.assertEqual(figure.data[0].type, "scatter3d")
+        self.assertEqual(figure.frames[1].data[0].type, "scatter3d")
 
     def test_2d_animation_shows_only_current_step_number_beside_slider(self):
         config = GeneratorConfig.model_validate(
@@ -246,7 +337,8 @@ class V1Tests(unittest.TestCase):
         )
         scenario = scenario_run_to_json(ScenarioGenerator(config).generate())
 
-        slider = animate_scenario_2d(scenario).layout.sliders[0]
+        figure = animate_scenario_2d(scenario)
+        slider = figure.layout.sliders[0]
 
         self.assertTrue(slider.currentvalue.visible)
         self.assertEqual(slider.currentvalue.prefix, "")
@@ -257,6 +349,38 @@ class V1Tests(unittest.TestCase):
         self.assertEqual(slider.tickcolor, "rgba(0, 0, 0, 0)")
         self.assertIsNone(slider.x)
         self.assertIsNone(slider.len)
+        self.assertEqual(len(figure.data), 1)
+        self.assertEqual(figure.data[0].type, "scatter")
+        self.assertEqual(figure.data[0].mode, "markers+text")
+        self.assertEqual(len(figure.frames[0].data), 1)
+        self.assertEqual(figure.frames[0].data[0].type, "scatter")
+
+    def test_2d_image_animation_uses_single_png_trace_per_frame(self):
+        config = GeneratorConfig.model_validate(
+            config_dict("unused.json") | {"target_witness_count": 1}
+        )
+        scenario = scenario_run_to_json(ScenarioGenerator(config).generate())
+
+        figure = animate_scenario_2d_image(scenario)
+
+        self.assertEqual(len(figure.data), 1)
+        self.assertEqual(figure.data[0].type, "image")
+        self.assertTrue(figure.data[0].source.startswith("data:image/png;base64,"))
+        self.assertEqual([step.label for step in figure.layout.sliders[0].steps], ["0", "1"])
+        self.assertEqual(len(figure.frames[0].data), 1)
+
+    def test_2d_canvas_animation_returns_preloaded_html(self):
+        config = GeneratorConfig.model_validate(
+            config_dict("unused.json") | {"target_witness_count": 1}
+        )
+        scenario = scenario_run_to_json(ScenarioGenerator(config).generate())
+
+        html = animate_scenario_2d_canvas(scenario)
+        payload = html.data if hasattr(html, "data") else html
+
+        self.assertIn("<canvas", payload)
+        self.assertIn("data:image/png;base64,", payload)
+        self.assertIn('type="range"', payload)
 
     def test_validator_accepts_crossing_and_rejects_extension(self):
         sl = language()
