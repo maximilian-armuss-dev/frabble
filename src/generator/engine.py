@@ -7,6 +7,7 @@ import random
 
 from pathlib import Path
 
+from ..benchmark.scoring import BoardScoring
 from ..domain.board import Board
 from ..domain.models import (
     Coord,
@@ -22,7 +23,7 @@ from ..domain.models import (
 from ..formal.automata import enumerate_accepted_sequences
 from ..formal.grammar.serialization import load_grammar
 from ..formal.slot_csp import SlotCSP
-from ..formal.validation import validate_move
+from ..formal.validation import extends_existing_sequence_in_any_axis, validate_move_detailed
 from .candidates import top_anchors, top_templates
 from .config import GeneratorConfig, PROJECT_ROOT
 from .scenario_io import write_scenario_run
@@ -59,7 +60,7 @@ class ScenarioGenerator:
         if not grammar_path.is_absolute():
             grammar_path = PROJECT_ROOT / grammar_path
         self.language, _cfg, self.grammar_name = load_grammar(grammar_path)
-        self.solver = SlotCSP(self.language)
+        self.solver = SlotCSP(self.language, rng=self.rng)
 
     def generate(
         self,
@@ -98,6 +99,7 @@ class ScenarioGenerator:
         board: Board,
     ) -> tuple[Board, ScenarioTransition | None, tuple[LengthFailure, ...]]:
         failures: list[LengthFailure] = []
+        centroid = BoardScoring.centroid(board)
         remaining_lengths = list(
             range(
                 self.config.length_distribution.start,
@@ -109,8 +111,9 @@ class ScenarioGenerator:
             anchor_candidates = top_anchors(
                 board,
                 sampled_length,
-                self.config.top_anchor_count,
+                self.config.max_anchor_count,
                 self.config.scoring,
+                centroid,
             )
             if not anchor_candidates:
                 failures.append(
@@ -125,40 +128,71 @@ class ScenarioGenerator:
                 )
                 continue
 
-            template_candidates = top_templates(
-                board,
-                anchor_candidates,
-                sampled_length,
-                self.config.top_template_count,
-                self.config.scoring,
-            )
-            if not template_candidates:
+            attempts: tuple[SolverAttempt, ...] = ()
+            template_count = 0
+            expanded_anchor_count = 0
+            seen_slots: set[tuple[Coord, int, int]] = set()
+            result: TemplateSearchResult | None = None
+            for start in range(0, len(anchor_candidates), self.config.top_anchor_count):
+                remaining_budget = self.config.top_template_count - len(attempts)
+                if remaining_budget <= 0:
+                    break
+                anchor_batch = anchor_candidates[start : start + self.config.top_anchor_count]
+                expanded_anchor_count += len(anchor_batch)
+                template_candidates = top_templates(
+                    board,
+                    anchor_batch,
+                    sampled_length,
+                    remaining_budget,
+                    self.config.scoring,
+                    prune=lambda template: extends_existing_sequence_in_any_axis(
+                        board,
+                        template.covered_coords,
+                        template.axis,
+                        self.language,
+                    ),
+                    domains_for_template=lambda template: self._domains_for_template(
+                        board, template
+                    ),
+                    seen_slots=seen_slots,
+                    centroid=centroid,
+                )
+                if not template_candidates:
+                    continue
+                template_count += len(template_candidates)
+                result = self._try_templates(
+                    board,
+                    sampled_length,
+                    template_candidates,
+                    previous_attempts=attempts,
+                )
+                attempts = result.solver_attempts
+                if result.solved:
+                    if result.transition is None:
+                        raise GenerationError("Solved template search returned no transition.")
+                    return result.board, result.transition, tuple(failures)
+
+            if template_count == 0:
                 failures.append(
                     LengthFailure(
                         length=sampled_length,
                         reason="no_template_candidates",
-                        anchor_count=len(anchor_candidates),
+                        anchor_count=expanded_anchor_count,
                         template_count=0,
                         solver_attempt_count=0,
                         attempt_statuses=(),
                     )
                 )
                 continue
-
-            result = self._try_templates(board, sampled_length, template_candidates)
-            if result.solved:
-                if result.transition is None:
-                    raise GenerationError("Solved template search returned no transition.")
-                return result.board, result.transition, tuple(failures)
             failures.append(
                 LengthFailure(
                     length=sampled_length,
-                    reason=result.reason,
-                    anchor_count=len(anchor_candidates),
-                    template_count=len(template_candidates),
-                    solver_attempt_count=len(result.solver_attempts),
+                    reason=_template_failure_reason(list(attempts)),
+                    anchor_count=expanded_anchor_count,
+                    template_count=template_count,
+                    solver_attempt_count=len(attempts),
                     attempt_statuses=tuple(
-                        attempt.status for attempt in result.solver_attempts
+                        attempt.status for attempt in attempts
                     ),
                 )
             )
@@ -188,10 +222,16 @@ class ScenarioGenerator:
         board: Board,
         sampled_length: int,
         top_templates: tuple[TemplateCandidate, ...],
+        *,
+        previous_attempts: tuple[SolverAttempt, ...] = (),
     ) -> TemplateSearchResult:
-        attempts: list[SolverAttempt] = []
+        attempts: list[SolverAttempt] = list(previous_attempts)
         for candidate in top_templates:
-            domains = self._domains_for_template(board, candidate.template)
+            domains = (
+                [set(domain) for domain in candidate.domains]
+                if candidate.domains
+                else self._domains_for_template(board, candidate.template)
+            )
             sequence = self.solver.solve(domains)
             if sequence is None:
                 attempts.append(SolverAttempt(candidate.template, "no_solution", None))
@@ -203,12 +243,12 @@ class ScenarioGenerator:
                 sequence=sequence,
             )
             rack = self._rack_for_move(board, move)
-            result = validate_move(board, self.language, rack, move)
-            if not result.ok:
+            report = validate_move_detailed(board, self.language, rack, move)
+            if not report.overall:
                 attempts.append(SolverAttempt(candidate.template, "validator_failed", sequence))
-                if result.failure_type in {"word_extension", "invalid_main_word"}:
+                if report.failure_type in {"word_extension", "invalid_main_word"}:
                     continue
-                raise GenerationError(f"Generated move failed validation: {result}")
+                raise GenerationError(f"Generated move failed validation: {report.result}")
 
             next_board = board.place(move)
             attempts.append(SolverAttempt(candidate.template, "solved", sequence))
@@ -383,15 +423,16 @@ def _failure_suggestion(failures: tuple[LengthFailure, ...]) -> str:
         )
     if reasons == {"no_template_candidates"}:
         return (
-            "Suggestion: increase top_anchor_count or widen length_distribution; "
-            "all selected anchors were pruned before solving."
+            "Suggestion: increase max_anchor_count if configured, widen "
+            "length_distribution, or relax feasibility/scoring constraints; "
+            "all expanded anchors were pruned before solving."
         )
     if reasons <= {"no_solver_solution", "templates_exhausted", "validator_rejected_all"}:
         return (
-            "Suggestion: increase top_template_count/top_anchor_count, widen "
-            "length_distribution, or relax the language/scoring constraints."
+            "Suggestion: increase top_template_count or max_anchor_count if configured, "
+            "widen length_distribution, or relax the language/scoring constraints."
         )
     return (
         "Suggestion: inspect the per-length reasons above; likely config levers are "
-        "top_anchor_count, top_template_count, length_distribution, and scoring."
+        "top_template_count, max_anchor_count, length_distribution, and scoring."
     )

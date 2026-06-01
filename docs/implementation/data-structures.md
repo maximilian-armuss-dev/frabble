@@ -14,7 +14,7 @@ cells: dict[Coord, Symbol]
 Für V1 gilt:
 
 ```python
-dimensions in {2, 3}
+dimensions >= 2
 Coord = tuple[int, ...]
 ```
 
@@ -123,10 +123,12 @@ Scoring gehört nicht direkt in `Board`. Es wird als eigene Helper-Schicht model
 ```python
 class BoardScoring:
     def centroid(board: Board) -> tuple[float, ...]: ...
-    def distance_to_centroid(board: Board, coord: Coord) -> float: ...
+    def distance_to_centroid(coord: Coord, centroid: tuple[float, ...]) -> float: ...
     def free_cross_axis_span(board: Board, anchor: Coord, axis: int) -> int: ...
-    def mean_distance_to_centroid(board: Board, coords: tuple[Coord, ...]) -> float: ...
+    def mean_distance_to_centroid(coords: tuple[Coord, ...], centroid: tuple[float, ...]) -> float: ...
     def local_adjacent_density(board: Board, coords: tuple[Coord, ...]) -> int: ...
 ```
 
-`BoardScoring` liefert die Features für Anchor- und Template-Ranking. Der Generator kombiniert diese Features zu Scores.
+`BoardScoring` liefert die Features für Anchor- und Template-Ranking. Der Generator berechnet den Centroid einmal pro unverändertem Board-State und reicht ihn an die Distanzfeatures weiter, statt ihn für jeden Kandidaten neu über alle Boardzellen zu bestimmen.
+
+`TemplateCandidate` kann außerdem die bereits extrahierten, nicht-leeren Cross-Domains sowie `domain_slack` tragen. Dadurch wird Feasibility vor dem Ranking sichtbar und dieselbe Domain-Extraktion muss vor dem Slot-CSP nicht wiederholt werden.

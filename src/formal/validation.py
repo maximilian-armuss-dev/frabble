@@ -1,10 +1,49 @@
 from __future__ import annotations
 
 from collections import Counter
+from dataclasses import dataclass
 
 from ..domain.board import Board
 from ..domain.models import Coord, Move, Symbol, ValidationResult
 from .language import StrictlyLocalLanguage
+
+
+@dataclass(frozen=True)
+class MoveValidationReport:
+    result: ValidationResult
+    sequence_valid: bool
+    min_length_fulfilled: bool
+    spatial_valid: bool
+    overlap_valid: bool
+    no_word_extension: bool
+    cross_words_valid: bool
+    rack_symbols_used: int
+    rack_size: int
+
+    @property
+    def overall(self) -> bool:
+        return self.result.ok
+
+    @property
+    def failure_type(self) -> str | None:
+        return self.result.failure_type
+
+    @property
+    def message(self) -> str:
+        return self.result.message
+
+    @property
+    def rack_usage_ratio(self) -> float:
+        return self.rack_symbols_used / self.rack_size if self.rack_size else 0.0
+
+
+@dataclass(frozen=True)
+class _MoveScan:
+    needed: Counter[Symbol]
+    touched_existing: bool
+    placed_new_symbol: bool
+    spatial_result: ValidationResult
+    same_axis_overlap: bool
 
 
 def validate_move(
@@ -13,63 +52,189 @@ def validate_move(
     rack: tuple[str, ...],
     move: Move,
 ) -> ValidationResult:
-    basic_result = _validate_basic_shape(board, language, move)
-    if not basic_result.ok:
-        return basic_result
+    return validate_move_detailed(board, language, rack, move).result
 
+
+def validate_move_detailed(
+    board: Board,
+    language: StrictlyLocalLanguage,
+    rack: tuple[str, ...],
+    move: Move,
+) -> MoveValidationReport:
+    schema_result = _validate_schema(board, move)
+    if not schema_result.ok:
+        return _report(
+            schema_result,
+            language,
+            move,
+            rack_size=len(rack),
+            spatial_valid=False,
+            overlap_valid=False,
+            no_word_extension=False,
+            cross_words_valid=False,
+            rack_symbols_used=0,
+        )
+
+    sequence_result = _validate_sequence(language, move)
     coords = board.coords_for_slot(move.start, move.axis, len(move.sequence))
-    needed: Counter[str] = Counter()
+    scan = _scan_move(board, move, coords)
+    overlap_valid = not board.has_tiles() or scan.touched_existing
+    touches_neighbor = _touches_same_axis_neighbor(board, coords, move.axis)
+    extends_sequence = extends_existing_sequence_in_any_axis(
+        board, coords, move.axis, language
+    )
+    no_word_extension = (
+        not scan.same_axis_overlap and not touches_neighbor and not extends_sequence
+    )
+    cross_words_result = _created_sequences_result(
+        board,
+        language,
+        move,
+        coords,
+        scan.spatial_result.ok,
+    )
+    result = (
+        sequence_result
+        if not sequence_result.ok
+        else _first_failure(
+            rack,
+            scan,
+            overlap_valid,
+            touches_neighbor,
+            extends_sequence,
+            cross_words_result,
+        )
+    )
+    return _report(
+        result,
+        language,
+        move,
+        rack_size=len(rack),
+        spatial_valid=scan.spatial_result.ok,
+        overlap_valid=overlap_valid,
+        no_word_extension=no_word_extension,
+        cross_words_valid=cross_words_result.ok,
+        rack_symbols_used=sum(scan.needed.values()),
+    )
+
+
+def _report(
+    result: ValidationResult,
+    language: StrictlyLocalLanguage,
+    move: Move,
+    *,
+    rack_size: int,
+    spatial_valid: bool,
+    overlap_valid: bool,
+    no_word_extension: bool,
+    cross_words_valid: bool,
+    rack_symbols_used: int,
+) -> MoveValidationReport:
+    return MoveValidationReport(
+        result=result,
+        sequence_valid=language.accepts(move.sequence),
+        min_length_fulfilled=len(move.sequence) >= language.min_word_length,
+        spatial_valid=spatial_valid,
+        overlap_valid=overlap_valid,
+        no_word_extension=no_word_extension,
+        cross_words_valid=cross_words_valid,
+        rack_symbols_used=rack_symbols_used,
+        rack_size=rack_size,
+    )
+
+
+def _scan_move(
+    board: Board,
+    move: Move,
+    coords: tuple[Coord, ...],
+) -> _MoveScan:
+    needed: Counter[Symbol] = Counter()
     touched_existing = False
     placed_new_symbol = False
-
+    same_axis_overlap = False
+    spatial_result = ValidationResult(True, None, "valid")
     for coord, symbol in zip(coords, move.sequence, strict=True):
         current = board.get(coord)
         if current is None:
             needed[symbol] += 1
             placed_new_symbol = True
             continue
-        if current != symbol:
-            return ValidationResult(
-                False,
-                "spatial_conflict",
-                f"Board has {current} at {coord}, but move needs {symbol}.",
-            )
-        touched_existing = True
         if move.axis in board.axes_at(coord):
-            return ValidationResult(
-                False,
-                "word_extension",
-                "Move overlaps an existing word on the same axis.",
-            )
+            same_axis_overlap = True
+        if current != symbol:
+            if spatial_result.ok:
+                spatial_result = ValidationResult(
+                    False,
+                    "spatial_conflict",
+                    f"Board has {current} at {coord}, but move needs {symbol}.",
+                )
+            continue
+        touched_existing = True
+    return _MoveScan(
+        needed=needed,
+        touched_existing=touched_existing,
+        placed_new_symbol=placed_new_symbol,
+        spatial_result=spatial_result,
+        same_axis_overlap=same_axis_overlap,
+    )
 
-    if not placed_new_symbol:
+
+def _created_sequences_result(
+    board: Board,
+    language: StrictlyLocalLanguage,
+    move: Move,
+    coords: tuple[Coord, ...],
+    spatial_valid: bool,
+) -> ValidationResult:
+    if not spatial_valid:
+        return ValidationResult(False, "spatial_conflict", "Move has spatial conflicts.")
+    try:
+        next_board = board.place(move)
+    except ValueError as exc:
+        return ValidationResult(False, "spatial_conflict", str(exc))
+    return _validate_created_sequences(next_board, coords, move.axis, language)
+
+
+def _first_failure(
+    rack: tuple[str, ...],
+    scan: _MoveScan,
+    overlap_valid: bool,
+    touches_neighbor: bool,
+    extends_sequence: bool,
+    cross_words_result: ValidationResult,
+) -> ValidationResult:
+    if not scan.spatial_result.ok:
+        return scan.spatial_result
+    if scan.same_axis_overlap:
+        return ValidationResult(
+            False,
+            "word_extension",
+            "Move overlaps an existing word on the same axis.",
+        )
+    if not scan.placed_new_symbol:
         return ValidationResult(False, "structural", "Move places no new symbol.")
-    if board.has_tiles() and not touched_existing:
+    if not overlap_valid:
         return ValidationResult(
             False,
             "missing_overlap",
             "Move must overlap at least one existing symbol.",
         )
-    if _touches_same_axis_neighbor(board, coords, move.axis):
+    if touches_neighbor:
         return ValidationResult(
             False,
             "word_extension",
             "Move extends an existing word along the same axis.",
         )
-    if _extends_existing_axis_sequence(board, coords, move.axis, language):
+    if extends_sequence:
         return ValidationResult(
             False,
             "word_extension",
-            "Move extends an already valid sequence along the same axis.",
+            "Move extends an already valid sequence on a touched axis.",
         )
+    if not cross_words_result.ok:
+        return cross_words_result
 
-    next_board = board.place(move)
-    sequence_result = _validate_created_sequences(next_board, coords, move.axis, language)
-    if not sequence_result.ok:
-        return sequence_result
-
-    rack_counts = Counter(rack)
-    missing = needed - rack_counts
+    missing = scan.needed - Counter(rack)
     if missing:
         return ValidationResult(
             False,
@@ -79,9 +244,8 @@ def validate_move(
     return ValidationResult(True, None, "valid")
 
 
-def _validate_basic_shape(
+def _validate_schema(
     board: Board,
-    language: StrictlyLocalLanguage,
     move: Move,
 ) -> ValidationResult:
     if not move.sequence:
@@ -94,6 +258,13 @@ def _validate_basic_shape(
         )
     if move.axis < 0 or move.axis >= board.dimensions:
         return ValidationResult(False, "schema", "Axis is outside board dimensions.")
+    return ValidationResult(True, None, "valid")
+
+
+def _validate_sequence(
+    language: StrictlyLocalLanguage,
+    move: Move,
+) -> ValidationResult:
     if any(symbol not in language.alphabet for symbol in move.sequence):
         return ValidationResult(False, "sequence", "Sequence contains unknown symbols.")
     if not language.accepts(move.sequence):
@@ -115,46 +286,49 @@ def _touches_same_axis_neighbor(
     return axis in board.axes_at(before) or axis in board.axes_at(after)
 
 
-def _extends_existing_axis_sequence(
+def extends_existing_axis_sequence(
     board: Board,
     coords: tuple[Coord, ...],
     axis: int,
     language: StrictlyLocalLanguage,
 ) -> bool:
-    line_origin = coords[0]
-
-    def on_move_line(coord: Coord) -> bool:
-        return all(
-            value == line_origin[dim]
-            for dim, value in enumerate(coord)
-            if dim != axis
-        )
-
-    existing_by_position = {
-        coord[axis]: coord
-        for coord in board.cells
-        if on_move_line(coord)
-    }
-    if not existing_by_position:
-        return False
-
-    start = coords[0][axis]
-    end = coords[-1][axis]
-    while start - 1 in existing_by_position:
-        start -= 1
-    while end + 1 in existing_by_position:
-        end += 1
-
     run: list[Symbol] = []
-    for position in range(start, end + 1):
-        coord = existing_by_position.get(position)
-        if coord is None:
+    line_coords: list[Coord] = list(coords)
+    cursor = _advance(coords[0], axis, -1)
+    while board.get(cursor) is not None:
+        line_coords.insert(0, cursor)
+        cursor = _advance(cursor, axis, -1)
+    cursor = _advance(coords[-1], axis, 1)
+    while board.get(cursor) is not None:
+        line_coords.append(cursor)
+        cursor = _advance(cursor, axis, 1)
+
+    for coord in line_coords:
+        symbol = board.get(coord)
+        if symbol is None:
             if _is_existing_valid_sequence(run, language):
                 return True
             run = []
             continue
-        run.append(str(board.get(coord)))
+        run.append(symbol)
     return _is_existing_valid_sequence(run, language)
+
+
+def extends_existing_sequence_in_any_axis(
+    board: Board,
+    coords: tuple[Coord, ...],
+    move_axis: int,
+    language: StrictlyLocalLanguage,
+) -> bool:
+    if extends_existing_axis_sequence(board, coords, move_axis, language):
+        return True
+    return any(
+        board.get(coord) is None
+        and axis != move_axis
+        and extends_existing_axis_sequence(board, (coord,), axis, language)
+        for coord in coords
+        for axis in range(board.dimensions)
+    )
 
 
 def _is_existing_valid_sequence(

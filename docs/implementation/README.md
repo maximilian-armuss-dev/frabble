@@ -14,13 +14,13 @@ Dieser Ordner enthält die implementierungsnahe Spezifikation für den V1-Puzzle
 
 - Boardgenerierung ist unbounded.
 - Exportierte Szenarien erhalten später eine ROI beziehungsweise Bounding Box.
-- V1 unterstützt `dimensions = 2` und `dimensions = 3`.
+- V1 unterstützt sparse Boards mit `dimensions >= 2`.
 - V1 nutzt `k = 2`.
 - V1 nutzt eine einfache Strictly-Local-Sprache über forbidden snippets.
 - Wörter der Länge `1` und `2` sind ungültig.
 - V1 nutzt lokale Slot-CSPs, nicht ein globales Board-CSP.
 - V1 nutzt kein Joint Sampling von Wortlänge und konkreter Anchor-Koordinate.
-- V1 nutzt einen globalen Candidate-Ansatz pro gesampelter Wortlänge: Anchors werden billig pre-scoren, Top-M Anchors werden expandiert, Top-K Templates werden an den Slot-CSP gegeben.
+- V1 nutzt einen feasibility-aware Candidate-Ansatz pro gesampelter Wortlänge: Anchors werden billig pre-scoren und in nicht überlappenden Batches expandiert; nur Templates ohne deterministische Wortverlängerungen auf berührten Achsen und ohne leere Cross-Domains erreichen das Slot-CSP.
 - V1-Generierung läuft seeded und reproduzierbar: gleiche Config plus gleicher Seed erzeugt dieselben Szenarien.
 
 ## Verantwortlichkeiten

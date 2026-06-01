@@ -36,19 +36,21 @@ class ScoringConfig(BaseModel):
     template_centroid_weight: float = Field(ge=0)
     template_new_cell_bonus_weight: float = Field(ge=0)
     template_local_density_penalty_weight: float = Field(ge=0)
+    template_domain_slack_weight: float = Field(default=1.0, ge=0)
 
 
 class GeneratorConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     config_name: str
-    dimensions: int
+    dimensions: int = Field(ge=2)
     seed: int
     grammar_path: str
     initial_word_axis: int
     initial_word_length: int
     length_distribution: LengthDistribution
     top_anchor_count: int = Field(gt=0)
+    max_anchor_count: int | None = Field(default=None, gt=0)
     top_template_count: int = Field(gt=0)
     target_witness_count: int = Field(gt=0)
     scoring: ScoringConfig
@@ -58,8 +60,6 @@ class GeneratorConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_generator(self) -> "GeneratorConfig":
-        if self.dimensions not in {2, 3}:
-            raise ValueError("V1 supports dimensions = 2 or dimensions = 3.")
         if self.initial_word_axis < 0 or self.initial_word_axis >= self.dimensions:
             raise ValueError("initial_word_axis is outside configured dimensions.")
         return self

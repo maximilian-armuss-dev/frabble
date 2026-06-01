@@ -18,7 +18,7 @@ from .formal.automata import enumerate_accepted_sequences
 from .formal.language import StrictlyLocalLanguage
 from .formal.parsing import SubmittedMove, parse_move, parse_submitted_move
 from .formal.slot_csp import SlotCSP
-from .formal.validation import validate_move
+from .formal.validation import MoveValidationReport, validate_move, validate_move_detailed
 from .generator.config import ConfigError, GeneratorConfig, load_generator_config
 from .generator.engine import GenerationError, ScenarioGenerator
 from .generator.reconstruction import board_before_transition, reconstruct_boards
@@ -34,6 +34,7 @@ __all__ = [
     "GenerationError",
     "GeneratorConfig",
     "Move",
+    "MoveValidationReport",
     "ScenarioGenerator",
     "ScenarioRun",
     "ScenarioTransition",
@@ -55,4 +56,5 @@ __all__ = [
     "render_dfa_png",
     "scenario_run_from_json",
     "validate_move",
+    "validate_move_detailed",
 ]

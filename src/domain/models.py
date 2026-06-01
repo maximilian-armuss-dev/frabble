@@ -133,6 +133,8 @@ class TemplateCandidate:
     template: SlotTemplate
     score: float
     distance_to_centroid: float
+    domains: tuple[frozenset[Symbol], ...] = ()
+    domain_slack: int = 0
 
     def to_json(self) -> dict[str, object]:
         return {
@@ -147,6 +149,7 @@ class TemplateCandidate:
             },
             "score": self.score,
             "distance_to_centroid": self.distance_to_centroid,
+            "domain_slack": self.domain_slack,
         }
 
 
@@ -191,7 +194,8 @@ class ScenarioRun:
     seed: int
     grammar_name: str
     forbidden_snippets: tuple[tuple[Symbol, ...], ...]
-    initial_board: "Board" #TODO is this intended?
+    initial_board: "Board"
+    # TODO generally not the biggest fan of having a tuple list for the transitions here as this may loose the ordering ot the transitions in case something goes wrong at the serialization. Maybe lets add something like a move counter in the transitions so that we can the directly tell the order. 
     transitions: tuple[ScenarioTransition, ...]
 
 

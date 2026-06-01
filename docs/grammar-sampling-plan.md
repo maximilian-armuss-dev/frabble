@@ -294,20 +294,14 @@ Outputs: Perron eigenvalue, minimised-DFA state count (if minimisation is on), w
 
 ## 9. Integration with the Existing Pipeline
 
-`generate_scenario()` in `src/benchmark/generation.py` currently calls `build_demo_dfa()`. The new optional parameter:
+Scenario generation is driven by `src.cli:main`, which loads a `GeneratorConfig`
+and delegates to `src.generator.engine.ScenarioGenerator`. Grammar files are
+referenced through the config's `grammar_path`.
 
-```python
-def generate_scenario(
-    seed: int = 7,
-    rack_size: int = 4,
-    reference_max_length: int | None = None,
-    grammar_path: str | None = None,   # ← new
-) -> Scenario
-```
-
-When `grammar_path` is provided:
-1. Load `SLGrammar` from JSON
-2. Call `grammar.to_dfa(minimize=config.minimize_dfa)`
+Pipeline:
+1. Load `SLGrammar` from JSON via `load_grammar(grammar_path)`
+2. Use the resulting `StrictlyLocalLanguage` in `ScenarioGenerator`
+3. Validate generated moves through the shared formal validation interface
 3. Use that `DFA` in place of the demo DFA
 
 Everything downstream (word enumeration, scoring, legal move enumeration) is unchanged — the converted `DFA` is structurally identical to the demo DFA.

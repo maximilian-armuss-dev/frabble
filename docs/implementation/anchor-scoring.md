@@ -15,6 +15,7 @@ scoring:
   template_centroid_weight: 1.0
   template_new_cell_bonus_weight: 1.5
   template_local_density_penalty_weight: 1.0
+  template_domain_slack_weight: 1.0
 ```
 
 ## Candidate-Reihenfolge
@@ -22,17 +23,18 @@ scoring:
 Die Reihenfolge ist:
 
 1. Wortlänge sampeln.
-2. Alle belegten Koordinaten als mögliche Anchors billig scoren.
-3. Top-M Anchors behalten.
-4. Für Top-M Anchors Templates erzeugen.
-5. Templates prunen und scoren.
-6. Top-K Templates an das lokale Slot-CSP geben.
+2. Alle zulässigen Anchor-Achsen-Paare billig scoren.
+3. Anchors einmal stabil sortieren.
+4. Den nächsten, noch nicht geprüften Anchor-Batch expandieren.
+5. Templates mit deterministischen Wortverlängerungen auf berührten Achsen oder leeren Cross-Domains entfernen.
+6. Machbare Templates inklusive Domain-Slack scoren.
+7. Bis zum globalen CSP-Budget die besten Templates versuchen; bei Bedarf den nächsten Anchor-Batch öffnen.
 
 Damit beeinflusst die Wortlänge die Anchor-Bewertung, ohne dass ein komplexes Joint Sampling über Länge und Anchor-Koordinate nötig ist.
 
 ## Anchor-Score
 
-Eine konkrete Anchor-Koordinate wird nicht nur nach Nähe zum Zentrum bewertet. Der Score soll auch berücksichtigen, ob um den Anchor herum überhaupt Platz für die gesampelte Länge existiert.
+Ein konkretes Anchor-Achsen-Paar wird nicht nur nach Nähe zum Zentrum bewertet. Der Score soll auch berücksichtigen, ob entlang der Zielachse um den Anchor herum überhaupt Platz für die gesampelte Länge existiert.
 
 ```text
 anchor_score =
@@ -44,9 +46,9 @@ anchor_score =
 
 `free_cross_axis_span`: Anzahl freier oder geometrisch nutzbarer Slots entlang der Zielachse um den Anchor herum. `anchor_free_span_weight` höher bevorzugt Anchors mit mehr Platz und kann Sackgassen reduzieren; zu hoch kann kompakte Qualitätsmerkmale überstimmen.
 
-Für den Anchor-Score wird kein exakter Template-Count berechnet. `free_cross_axis_span` ist eine billige Approximation, die verhindert, dass vor dem eigentlichen Template-Ranking bereits alle Templates vollständig erzeugt und geprüft werden müssen.
+Für den Anchor-Score wird kein exakter Feasibility-Count berechnet. `free_cross_axis_span` ist eine billige Approximation, die die Reihenfolge für die spätere genaue Template-Prüfung bestimmt. Ob ein Anchor tatsächlich legbare Templates liefert, wird erst beim Expandieren seines Batches festgestellt.
 
-Die besten `top_anchor_count` Anchors werden expandiert. Der Wert ist ein Compute-Limit in der YAML.
+`top_anchor_count` bezeichnet die Batchgröße: Zuerst werden beispielsweise Anchors `1..40` expandiert, danach bei Bedarf ausschließlich `41..80`. Ein Anchor wird im selben Board-State und für dieselbe Wortlänge nicht erneut expandiert. `max_anchor_count` kann optional eine harte Obergrenze setzen; ohne Wert können weitere gerankte Anchors schrittweise betrachtet werden, solange das kumulative CSP-Budget noch nicht ausgeschöpft ist.
 
 ## Template-Score
 
@@ -57,6 +59,7 @@ template_score =
   - template_centroid_weight              * norm(distance_of_new_cells_to_centroid)
   + template_new_cell_bonus_weight        * norm(new_cell_count)
   - template_local_density_penalty_weight * norm(local_adjacent_density)
+  + template_domain_slack_weight          * norm(domain_slack)
 ```
 
 `distance_of_new_cells_to_centroid`: Mittlerer Abstand der neu belegten Zellen zum Schwerpunkt. `template_centroid_weight` höher füllt eher innen und zentral; niedriger gibt Randkandidaten mehr Chancen.
@@ -65,10 +68,12 @@ template_score =
 
 `local_adjacent_density`: Anzahl bereits belegter orthogonaler Nachbarzellen um die neu belegten Template-Zellen. Diagonalen zählen nicht, und Nachbarn innerhalb der neuen Template-Zellen zählen nicht. `template_local_density_penalty_weight` höher vermeidet dichte Innenbereiche; zu hoch kann legitime Kreuzungen in gewachsenen Regionen verdrängen.
 
+`domain_slack`: Summe der nach den Cross-Wort-Constraints noch erlaubten Symbole über alle neu zu belegenden Zellen. Eine leere Domain bedeutet, dass an mindestens einer Position kein Symbol alle erzeugten Kreuzwörter gültig machen kann; solche Templates werden vor dem Ranking entfernt. Ein höherer `template_domain_slack_weight` bevorzugt unter den verbleibenden Templates sprachlich flexiblere Platzierungen.
+
 Bei gleichem Score wird deterministisch das erste Template in der stabil sortierten Reihenfolge genommen. Es wird kein zusätzliches Template-Sampling verwendet.
 
-Die besten `top_template_count` Templates werden an das lokale Slot-CSP gegeben. Der Wert ist ein Compute-Limit in der YAML.
+`top_template_count` ist das kumulative CSP-Versuchsbudget pro Wortlänge und Board-State über alle geöffneten Anchor-Batches. Geometrisch ungültige Templates, deterministische Wortverlängerungen, Duplikate desselben Slots und Templates mit leerer Domain verbrauchen dieses Budget nicht.
 
 Die Heuristik bevorzugt weiterhin zentrale Expansion. Damit daraus kein deterministisches Quadrat entsteht, muss die Config eine echte Längenrange verwenden; V1 sampelt inklusiv von `start = 3` bis `end = 7`. Eine Range mit `start = end = 7` ist nur für Debugging sinnvoll.
 
-Praktische Tuning-Richtung: Wenn der Generator zu viel in dichten Mittelzonen probiert, `template_local_density_penalty_weight` erhöhen oder `template_centroid_weight` senken. Wenn Ein-Buchstaben-Anbauten zu häufig werden, `template_new_cell_bonus_weight` erhöhen.
+Praktische Tuning-Richtung: Wenn machbare, aber fragile Innen-Templates zu oft bevorzugt werden, `template_domain_slack_weight` erhöhen. Wenn die Form trotz machbarer Alternativen zu dicht wird, `template_local_density_penalty_weight` erhöhen oder `template_centroid_weight` senken. Wenn Ein-Buchstaben-Anbauten zu häufig werden, `template_new_cell_bonus_weight` erhöhen.

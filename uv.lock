@@ -1291,6 +1291,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "automata-lib" },
+    { name = "ipykernel" },
     { name = "litellm" },
     { name = "matplotlib" },
     { name = "nbformat" },
@@ -1298,6 +1299,7 @@ dependencies = [
     { name = "numpy" },
     { name = "openai" },
     { name = "ortools" },
+    { name = "pillow" },
     { name = "plotly" },
     { name = "pydantic" },
     { name = "python-dotenv" },
@@ -1305,14 +1307,10 @@ dependencies = [
     { name = "tqdm" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "ipykernel" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "automata-lib", specifier = ">=8.0.0" },
+    { name = "ipykernel", specifier = ">=7.2.0" },
     { name = "litellm", specifier = ">=1.83.11" },
     { name = "matplotlib", specifier = ">=3.9.0" },
     { name = "nbformat", specifier = ">=5.10.4" },
@@ -1320,15 +1318,13 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.0.0" },
     { name = "openai", specifier = ">=1.75.0" },
     { name = "ortools", specifier = ">=9.14.0" },
+    { name = "pillow", specifier = ">=12.0.0" },
     { name = "plotly", specifier = ">=5.24.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "tqdm", specifier = ">=4.67.0" },
 ]
-
-[package.metadata.requires-dev]
-dev = [{ name = "ipykernel", specifier = ">=7.2.0" }]
 
 [[package]]
 name = "markdown-it-py"
