@@ -1,7 +1,6 @@
-config_name: generator_3d
 dimensions: 3
 seed: 71
-grammar_path: outputs/grammars/generator_3d_grammar.json
+grammar: generator_3d_grammar
 initial_word_axis: 0
 initial_word_length: 5
 length_distribution:
@@ -19,5 +18,4 @@ scoring:
   template_local_density_penalty_weight: 1.0
   template_domain_slack_weight: 1.0
 additional_rack_noise: 1
-output_path: outputs/scenarios/generator_3d.json
 include_search_logs: true

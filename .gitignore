@@ -6,4 +6,5 @@ __pycache__/
 outputs/*.json
 outputs/scenarios/
 outputs/llm-runs/
+outputs/evaluation/
 */.DS_Store

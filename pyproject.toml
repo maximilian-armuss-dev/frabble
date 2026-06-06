@@ -28,6 +28,9 @@ run-scenario = "src.llm.run_cli:main"
 check-model = "src.tools.check_model:main"
 sample-grammar = "src.formal.grammar.cli:cmd_sample"
 analyze-grammar = "src.formal.grammar.cli:cmd_analyze"
+prepare = "src.evaluation.cli:cmd_prepare"
+evaluate = "src.evaluation.cli:cmd_evaluate"
+decompose = "src.evaluation.cli:cmd_decompose"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src", "visualization"]

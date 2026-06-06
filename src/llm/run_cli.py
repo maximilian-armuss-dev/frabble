@@ -9,6 +9,7 @@ from pathlib import Path
 from ..formal.grammar.serialization import load_grammar
 from ..formal.parsing import SubmittedMove, parse_submitted_move
 from ..generator.reconstruction import board_before_transition
+from ..generator.config import resolve_scenario_grammar_path
 from ..generator.scenario_io import load_scenario_run
 from .client import call_llm
 from .env import ENV
@@ -79,18 +80,6 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _resolve_grammar_path(grammar_path: str, scenario_path: Path) -> Path:
-    direct = Path(grammar_path)
-    if direct.exists():
-        return direct
-    relative_to_scenario = scenario_path.parent / grammar_path
-    if relative_to_scenario.exists():
-        return relative_to_scenario
-    raise FileNotFoundError(
-        f"Grammar file not found at '{direct}' or '{relative_to_scenario}'."
-    )
-
-
 def main() -> None:
     args = build_parser().parse_args()
 
@@ -115,9 +104,11 @@ def main() -> None:
         )
         raise SystemExit(1)
 
-    grammar_path_str = str(scenario_run.config.get("grammar_path", ""))
     try:
-        resolved = _resolve_grammar_path(grammar_path_str, scenario_path)
+        resolved = resolve_scenario_grammar_path(
+            scenario_run.config,
+            scenario_path=scenario_path,
+        )
         language, _, _ = load_grammar(resolved)
     except Exception as exc:
         print(f"Failed to load grammar: {exc}")

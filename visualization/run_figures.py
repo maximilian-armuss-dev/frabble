@@ -16,6 +16,7 @@ from src.formal.language import StrictlyLocalLanguage
 from src.formal.parsing import SubmittedMove, parse_submitted_move
 from src.formal.validation import validate_move_detailed
 from src.generator.reconstruction import board_before_transition
+from src.generator.config import resolve_scenario_grammar_path
 from src.generator.scenario_io import load_scenario_run
 from src.llm.client import call_llm_detailed
 from src.llm.env import ENV, MODEL_CONFIGS_PATH
@@ -732,16 +733,10 @@ def _move_from_object(data: object) -> Move | None:
 
 def _grammar_path(scenario_path: Path) -> Path:
     scenario_run = load_scenario_run(scenario_path)
-    grammar_path = Path(str(scenario_run.config.get("grammar_path", "")))
-    if grammar_path.is_absolute() and grammar_path.exists():
-        return grammar_path
-    root_path = PROJECT_ROOT / grammar_path
-    if root_path.exists():
-        return root_path
-    relative_to_scenario = scenario_path.parent / grammar_path
-    if relative_to_scenario.exists():
-        return relative_to_scenario
-    raise FileNotFoundError(f"Grammar file not found: {grammar_path}")
+    return resolve_scenario_grammar_path(
+        scenario_run.config,
+        scenario_path=scenario_path,
+    )
 
 
 def _resolve_path(raw_path: str, project_root: Path, fallback_dir: Path) -> Path:

@@ -1,0 +1,10 @@
+case_set: screening_v1
+tiers: 
+  - low
+models:
+  - gpt-5-mini
+language_representations:
+  - forbidden-snippets
+execution:
+  max_concurrency: 10
+  max_retries: 5
