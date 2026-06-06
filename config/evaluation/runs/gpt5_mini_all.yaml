@@ -6,5 +6,5 @@ models:
 language_representations:
   - forbidden-snippets
 execution:
-  max_concurrency: 10
+  max_concurrency: 100
   max_retries: 5
