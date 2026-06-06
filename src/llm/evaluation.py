@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 
 from ..domain.board import Board
@@ -17,7 +18,9 @@ class GranularEvaluation:
     spatial_valid: bool
     overlap_valid: bool
     no_word_extension: bool
-    cross_words_valid: bool
+    cross_words_valid: bool | None
+    rack_valid: bool | None
+    missing_rack_symbols: dict[str, int]
     rack_symbols_used: int
     rack_usage_ratio: float
     failure_type: str | None
@@ -33,6 +36,8 @@ class GranularEvaluation:
             "overlap_valid": self.overlap_valid,
             "no_word_extension": self.no_word_extension,
             "cross_words_valid": self.cross_words_valid,
+            "rack_valid": self.rack_valid,
+            "missing_rack_symbols": self.missing_rack_symbols,
             "rack_symbols_used": self.rack_symbols_used,
             "rack_usage_ratio": self.rack_usage_ratio,
             "failure_type": self.failure_type,
@@ -52,6 +57,12 @@ def evaluate_granular(
 
     move = submitted.to_move()
     report = validate_move_detailed(board, language, rack, move)
+    needed = Counter(
+        symbol
+        for coord, symbol in zip(move.coords(), move.sequence, strict=True)
+        if board.get(coord) is None
+    )
+    missing = needed - Counter(rack)
 
     return GranularEvaluation(
         overall=report.overall,
@@ -61,7 +72,9 @@ def evaluate_granular(
         spatial_valid=report.spatial_valid,
         overlap_valid=report.overlap_valid,
         no_word_extension=report.no_word_extension,
-        cross_words_valid=report.cross_words_valid,
+        cross_words_valid=report.cross_words_valid if report.spatial_valid else None,
+        rack_valid=not missing,
+        missing_rack_symbols=dict(missing),
         rack_symbols_used=report.rack_symbols_used,
         rack_usage_ratio=report.rack_usage_ratio,
         failure_type=report.failure_type,
@@ -78,7 +91,9 @@ def _parse_failed(parse_error: str | None) -> GranularEvaluation:
         spatial_valid=False,
         overlap_valid=False,
         no_word_extension=False,
-        cross_words_valid=False,
+        cross_words_valid=None,
+        rack_valid=None,
+        missing_rack_symbols={},
         rack_symbols_used=0,
         rack_usage_ratio=0.0,
         failure_type="parse",

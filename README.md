@@ -68,35 +68,25 @@ uv run generate --config generator_3d
 
 `--config generator_v1` loads `config/generation/generator_v1.yaml`, `--config generator_3d` loads the 3D variant. A generation config may set any `dimensions >= 2`, including higher-dimensional scenarios. Missing or incomplete config values cause a hard error; there are no silent code defaults.
 
-### 4. Visualize a generated 2D board
+### 4. Visualize generated boards and moves
 
-The notebook reads a generated scenario JSON, not a grammar JSON. The checked-in
-`generator_v1` config and the 2D notebook already agree on the scenario path:
+The scenario notebook animates a generated 2D scenario JSON:
 
 ```bash
 uv run generate --config generator_v1
 ```
 
-Then run `visualization/visualize_2d.ipynb`, which loads
-`outputs/scenarios/generator_v1.json`.
+Then run `visualization/inspect_scenario.ipynb`, which loads
+`outputs/scenarios/generator_v1.json` by default.
 
-Use `visualization/visualize_3d.ipynb` for scenarios generated with
-`dimensions: 3`. For higher-dimensional boards, choose two or three visible
-axes and fix every remaining coordinate to render a slice:
+Move inspection is always rendered as 2D axis-pair plots. In
+`visualization/inspect_llm_run.ipynb`, a move along axis `a` produces one plot
+for every pair `(a, b)` where `b != a`. For example, a 4D move along axis 0
+produces `(0, 1)`, `(0, 2)`, and `(0, 3)` automatically.
 
-```python
-from visualization.board_figures import board_from_scenario_json, plot_board_3d
-
-board = board_from_scenario_json("outputs/scenarios/my_7d.json")
-plot_board_3d(
-    board,
-    axes=(0, 1, 2),
-    slice_coords={3: 0, 4: 0, 5: 0, 6: 0},
-)
-```
-
-`plot_board_2d` and `animate_scenario_2d` use the same `slice_coords`
-argument, requiring one fixed coordinate for each axis not shown.
+Move tiles are light blue when newly placed, light green when they overlap an
+equal existing symbol, and light red when they conflict with an existing
+symbol.
 
 ### End-to-end run with a new 2D grammar
 

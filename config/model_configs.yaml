@@ -4,6 +4,7 @@ models:
     api_key_env: OPENAI_API_KEY
     temperature: 1
     reasoning_effort: low
+    max_completion_tokens: 8192
     timeout_seconds: 120
 
   - name: gpt-5
@@ -11,7 +12,8 @@ models:
     api_key_env: OPENAI_API_KEY
     temperature: 1
     reasoning_effort: high
-    timeout_seconds: 120
+    max_completion_tokens: 32384
+    timeout_seconds: 1200
 
   - name: anthropic_sonnet-4-5
     model: anthropic/claude-sonnet-4-5-20250929

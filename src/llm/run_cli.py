@@ -155,7 +155,7 @@ def main() -> None:
     reasoning = model_config.reasoning_effort or "default"
     print(
         f"Calling {args.model} for transition {n} of {scenario_path.name} "
-        f"(reasoning_effort={reasoning}, timeout={timeout}) ...",
+        f"(backend=litellm, reasoning_effort={reasoning}, timeout={timeout}) ...",
         flush=True,
     )
     started_at = perf_counter()
@@ -191,6 +191,8 @@ def main() -> None:
             "model": model_config.model,
             "reasoning_depth": model_config.reasoning_effort,
             "reasoning_effort": model_config.reasoning_effort,
+            "max_completion_tokens": model_config.max_completion_tokens,
+            "structured_output": True,
             "timeout_seconds": model_config.timeout_seconds,
         },
         "timestamp": timestamp.isoformat(),
