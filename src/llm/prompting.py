@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from ..domain.board import Board
 from ..domain.models import ScenarioTransition
 from ..formal.language import StrictlyLocalLanguage
-from ..formal.parsing import SubmittedMove
 from .representers import RepresenterConfig
 
 PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts"
@@ -31,12 +29,6 @@ def build_prompt(
     language: StrictlyLocalLanguage,
     representers: RepresenterConfig,
 ) -> tuple[str, str]:
-    response_example = {
-        "start": [0 for _ in range(board.dimensions)],
-        "axis": 0,
-        "sequence": list(language.alphabet[: language.min_word_length]),
-    }
-    output_schema = SubmittedMove.model_json_schema()
     system_prompt = load_prompt_template("system.txt").strip()
     user_prompt = load_prompt_template("user.txt").format(
         dimensions=board.dimensions,
@@ -44,7 +36,5 @@ def build_prompt(
         formal_language=representers.language.represent(language),
         board=representers.board.represent(board),
         rack=representers.rack.represent(transition.rack),
-        output_schema=json.dumps(output_schema, indent=2, ensure_ascii=False),
-        response_example=json.dumps(response_example, ensure_ascii=False),
     )
     return system_prompt, user_prompt

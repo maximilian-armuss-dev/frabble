@@ -23,6 +23,7 @@ class ModelConfig:
     api_key: str
     temperature: float
     reasoning_effort: str | None = None
+    max_completion_tokens: int | None = None
     base_url: str | None = None
     timeout_seconds: float | None = None
 
@@ -60,6 +61,9 @@ class Environment:
             temperature = max(float(temperature_str), 1e-6)
             # Optional values
             reasoning_effort = self._optional_config_value(raw_model, "reasoning_effort")
+            max_completion_tokens = self._optional_int_config_value(
+                raw_model, "max_completion_tokens"
+            )
             base_url_env = self._optional_config_value(raw_model, "base_url_env")
             base_url = self.env_vars.get(base_url_env, "") if base_url_env else None
             timeout_seconds = self._optional_float_config_value(
@@ -71,10 +75,22 @@ class Environment:
                 api_key=api_key,
                 temperature=temperature,
                 reasoning_effort=reasoning_effort,
+                max_completion_tokens=max_completion_tokens,
                 base_url=base_url,
                 timeout_seconds=timeout_seconds,
             )
         return configs
+
+    def _optional_int_config_value(
+        self, raw_model: dict[str, object], key: str
+    ) -> int | None:
+        value = raw_model.get(key)
+        if value is None:
+            return None
+        parsed = int(value)
+        if parsed <= 0:
+            raise RuntimeError(f"Model config value '{key}' must be positive.")
+        return parsed
 
     def _optional_float_config_value(
         self, raw_model: dict[str, object], key: str
@@ -87,7 +103,9 @@ class Environment:
             raise RuntimeError(f"Model config value '{key}' must be positive.")
         return parsed
 
-    def _optional_config_value(self, raw_model: dict[str, object], key: str) -> str | None:
+    def _optional_config_value(
+        self, raw_model: dict[str, object], key: str
+    ) -> str | None:
         value = raw_model.get(key)
         if value is None:
             return None
@@ -111,7 +129,7 @@ class Environment:
         if var_name not in self.env_vars or not self.env_vars[var_name]:
             raise RuntimeError(f"'{var_name}' not defined in .env.")
         return self.env_vars[var_name]
-    
+
     def get_registered_model_names(self) -> List[str]:
         names = [name for name in self.model_configs.keys()]
         return names

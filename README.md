@@ -68,35 +68,25 @@ uv run generate --config generator_3d
 
 `--config generator_v1` loads `config/generation/generator_v1.yaml`, `--config generator_3d` loads the 3D variant. A generation config may set any `dimensions >= 2`, including higher-dimensional scenarios. Missing or incomplete config values cause a hard error; there are no silent code defaults.
 
-### 4. Visualize a generated 2D board
+### 4. Visualize generated boards and moves
 
-The notebook reads a generated scenario JSON, not a grammar JSON. The checked-in
-`generator_v1` config and the 2D notebook already agree on the scenario path:
+The scenario notebook animates a generated 2D scenario JSON:
 
 ```bash
 uv run generate --config generator_v1
 ```
 
-Then run `visualization/visualize_2d.ipynb`, which loads
-`outputs/generator_v1.json`.
+Then run `visualization/inspect_scenario.ipynb`, which loads
+`outputs/scenarios/generator_v1.json` by default.
 
-Use `visualization/visualize_3d.ipynb` for scenarios generated with
-`dimensions: 3`. For higher-dimensional boards, choose two or three visible
-axes and fix every remaining coordinate to render a slice:
+Move inspection is always rendered as 2D axis-pair plots. In
+`visualization/inspect_llm_run.ipynb`, a move along axis `a` produces one plot
+for every pair `(a, b)` where `b != a`. For example, a 4D move along axis 0
+produces `(0, 1)`, `(0, 2)`, and `(0, 3)` automatically.
 
-```python
-from visualization.board_figures import board_from_scenario_json, plot_board_3d
-
-board = board_from_scenario_json("outputs/my_7d.json")
-plot_board_3d(
-    board,
-    axes=(0, 1, 2),
-    slice_coords={3: 0, 4: 0, 5: 0, 6: 0},
-)
-```
-
-`plot_board_2d` and `animate_scenario_2d` use the same `slice_coords`
-argument, requiring one fixed coordinate for each axis not shown.
+Move tiles are light blue when newly placed, light green when they overlap an
+equal existing symbol, and light red when they conflict with an existing
+symbol.
 
 ### End-to-end run with a new 2D grammar
 
@@ -107,7 +97,7 @@ a generation config such as `config/generation/my_2d.yaml` from
 ```yaml
 config_name: my_2d
 grammar_path: outputs/grammars/my_2d_grammar.json
-output_path: outputs/my_2d.json
+output_path: outputs/scenarios/my_2d.json
 ```
 
 Sample the grammar and generate its scenario:
@@ -118,8 +108,8 @@ uv run analyze-grammar outputs/grammars/my_2d_grammar.json --max-length 7
 uv run generate --config my_2d
 ```
 
-Finally, set `SCENARIO_PATH` in `visualization/visualize_2d.ipynb` to
-`ROOT / "outputs" / "my_2d.json"` and run the notebook.
+Finally, set `SCENARIO_NAME` in `visualization/inspect_scenario.ipynb` to
+`"my_2d"` and run the notebook.
 
 The current checked-in samples use `k = 3`. To run the older V1 convention
 described in `docs/implementation/README.md` (`k = 2` while still rejecting
@@ -130,10 +120,10 @@ words shorter than length 3), sample with `--k 2 --min-word-length 3`.
 Pick a generated scenario file and a transition index. The board is replayed up to that transition, and the model is asked to place a valid word using the rack from that step. Because the CSP solver found a solution at every step, a valid move is guaranteed to exist.
 
 ```bash
-uv run run-scenario --scenario outputs/generator_v1.json --transition 20 --model my_model
+uv run run-scenario --scenario outputs/scenarios/generator_v1.json --transition 20 --model my_model
 ```
 
-The model name must match a profile in `config/model_configs.yaml`. The run log (prompts, raw response, and evaluation) is written to `outputs/runs/`.
+The model name must match a profile in `config/model_configs.yaml`. The run log (prompts, raw response, and evaluation) is written to `outputs/llm-runs/`.
 
 Key flags:
 
@@ -141,7 +131,7 @@ Key flags:
 --scenario PATH              Scenario JSON file produced by the generate step
 --transition INT             Transition index N (0-indexed); board is populated with transitions 0..N-1
 --model TEXT                 Model name from config/model_configs.yaml (not required with --dry-run)
---output-dir PATH            Output directory for run logs (default: outputs/runs/)
+--output-dir PATH            Output directory for run logs (default: outputs/llm-runs/)
 --dry-run                    Build the prompt but skip the LLM call and do not write any output
 --show-prompt                Print the system and user prompts before calling the LLM
 --language-representer NAME  How to present the formal language (choices: forbidden-snippets [default], forbidden-snippets-production-rules, generic-production-rules)
@@ -154,8 +144,8 @@ The representer names logged under `representers` in every run log identify whic
 To verify that scenario loading and prompt generation work without making an API call:
 
 ```bash
-uv run run-scenario --scenario outputs/generator_v1.json --transition 20 --dry-run
-uv run run-scenario --scenario outputs/generator_v1.json --transition 20 --dry-run --show-prompt
+uv run run-scenario --scenario outputs/scenarios/generator_v1.json --transition 20 --dry-run
+uv run run-scenario --scenario outputs/scenarios/generator_v1.json --transition 20 --dry-run --show-prompt
 ```
 
 The log file contains a granular evaluation breakdown:

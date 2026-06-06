@@ -6,56 +6,61 @@ import io
 import json
 from functools import lru_cache
 from pathlib import Path
-from typing import Iterable, Literal, Mapping, Sequence
+from typing import Iterable, Mapping, Sequence
 
 from src.domain.board import Board
 from src.domain.models import Coord
 from src.generator.reconstruction import reconstruct_boards
 
 BASE_TILE = "#f7f8fa"
-BOARD_GAP = "#d1d1d1"
 TEXT_COLOR = "#15181d"
 TEXT_FONT_FAMILY = "DejaVu Sans Mono, Menlo, Consolas, monospace"
-HIGHLIGHT_TILE = "#ff00b8"
+NEW_MOVE_TILE = "#bfdbfe"
+MATCHING_MOVE_TILE = "#bbf7d0"
+CONFLICTING_MOVE_TILE = "#fecaca"
 PLOT_MARGIN = 4
 PLOT_PAD_2D = 0.53
 TILE_GAP = 2
 CELL_SIZE_2D = 58
 MIN_LETTER_SIZE_2D = 6
-MAX_LETTER_SIZE_2D = 24
-LETTER_TILE_RATIO_2D = 0.46
-LETTER_SCALE_FACTOR_2D = 1.75
 MIN_PLOT_SIZE_2D = 180
 MAX_PLOT_SIZE_2D = 520
 ANIMATION_CONTROLS_HEIGHT = 56
 TRANSPARENT_COLOR = "rgba(0, 0, 0, 0)"
-NODE_CUBE_SIZE_3D = 0.68
-NODE_OPACITY_3D = 1.0
-NODE_HEATMAP_3D = (
-    (0.0, "#0057d9"),
-    (0.45, "#42b6a4"),
-    (0.72, "#f2c94c"),
-    (1.0, "#e60023"),
-)
-NODE_FACE_TEXT_OFFSET_3D = NODE_CUBE_SIZE_3D / 2.0 + 0.012
-NODE_FACE_TEXT_SIZE_3D = NODE_CUBE_SIZE_3D * 0.55
-NODE_FACE_TEXT_FILL_RESOLUTION_3D = 18
-NODE_MARKER_TEXT_SIZE_3D = 12
-NODE_MARKER_SIZE_3D = 8
 NODE_MARKER_TEXT_SIZE_2D = 16
 NODE_MARKER_MAX_SIZE_2D = 48
 NODE_MARKER_MIN_SIZE_2D = 10
-CAMERA_EYE_3D = (1.55, -1.75, 1.25)
-CAMERA_ZOOM_3D = 2.6
 LETTER_RASTER_SIZE_2D = 0.54
 LETTER_RASTER_RESOLUTION_2D = 18
 IMAGE_CELL_PIXELS_2D = 42
 IMAGE_TILE_GAP_PIXELS_2D = 2
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def resolve_scenario_path(name_or_path: str | Path) -> Path:
+    """Resolve a scenario path or bare scenario name under outputs/scenarios/."""
+    path = Path(name_or_path)
+    candidates = [path]
+    if path.suffix != ".json":
+        candidates.append(path.with_suffix(".json"))
+    if not path.is_absolute() and path.parent == Path("."):
+        candidates.append(PROJECT_ROOT / "outputs" / "scenarios" / path)
+        if path.suffix != ".json":
+            candidates.append(
+                PROJECT_ROOT / "outputs" / "scenarios" / path.with_suffix(".json")
+            )
+        candidates.append(PROJECT_ROOT / "outputs" / path)
+        if path.suffix != ".json":
+            candidates.append(PROJECT_ROOT / "outputs" / path.with_suffix(".json"))
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError(f"Scenario JSON not found: {name_or_path}")
 
 
 def load_scenario_json(path: str | Path) -> dict[str, object]:
     """Load a generator scenario JSON file."""
-    with Path(path).open(encoding="utf-8") as file:
+    with resolve_scenario_path(path).open(encoding="utf-8") as file:
         return json.load(file)
 
 
@@ -76,194 +81,117 @@ def scenario_boards_and_placements(
     placements: list[frozenset[Coord]] = [frozenset()]
     for transition in scenario.get("transitions", []):
         placed = transition["placed"]  # type: ignore[index]
-        placements.append(frozenset(tuple(int(value) for value in coord) for coord, _ in placed))
+        placements.append(
+            frozenset(
+                tuple(int(value) for value in coord)
+                for coord, _symbol in placed
+            )
+        )
     return boards, tuple(placements)
 
 
 def plot_board_2d(
     board: Board,
     *,
-    highlight_coords: Iterable[Coord] = (),
+    tile_colors: Mapping[Coord, str] | None = None,
     title: str | None = None,
-    axes: tuple[int, int] = (0, 1),
-    slice_coords: Mapping[int, int] | None = None,
 ) -> object:
-    """Create an interactive Plotly 2D slice of a sparse board."""
+    """Create an interactive Plotly view of a two-dimensional board."""
+    if board.dimensions != 2:
+        raise ValueError("plot_board_2d requires a two-dimensional board.")
+    return _plot_board_plane_2d(
+        board,
+        axes=(0, 1),
+        plane_coords={},
+        tile_colors=tile_colors,
+        title=title,
+    )
+
+
+def plot_board_axis_pairs(
+    board: Board,
+    *,
+    move_axis: int,
+    plane_coord: Coord,
+    tile_colors: Mapping[Coord, str] | None = None,
+    title: str | None = None,
+) -> tuple[object, ...]:
+    """Plot every 2D plane pairing the move axis with another board axis."""
     if board.dimensions < 2:
-        raise ValueError("2D plotting requires at least two board dimensions.")
+        raise ValueError("Visualization requires at least two board dimensions.")
+    if move_axis < 0 or move_axis >= board.dimensions:
+        raise ValueError("move_axis must be a valid board dimension.")
+    if len(plane_coord) != board.dimensions:
+        raise ValueError("plane_coord dimensionality must match the board.")
+
+    figures = []
+    for other_axis in range(board.dimensions):
+        if other_axis == move_axis:
+            continue
+        axes = (move_axis, other_axis)
+        hidden_coords = {
+            axis: plane_coord[axis]
+            for axis in range(board.dimensions)
+            if axis not in axes
+        }
+        pair_title = f"axes {move_axis}, {other_axis}"
+        if title:
+            pair_title = f"{title} - {pair_title}"
+        figures.append(
+            _plot_board_plane_2d(
+                board,
+                axes=axes,
+                plane_coords=hidden_coords,
+                tile_colors=tile_colors,
+                title=pair_title,
+            )
+        )
+    return tuple(figures)
+
+
+def _plot_board_plane_2d(
+    board: Board,
+    *,
+    axes: tuple[int, int],
+    plane_coords: Mapping[int, int],
+    tile_colors: Mapping[Coord, str] | None,
+    title: str | None,
+) -> object:
     import plotly.graph_objects as go
 
-    resolved_slice = _resolve_slice_coords(board, axes, slice_coords)
-    extent_board = _slice_extent(board, resolved_slice)
+    _validate_plane(board, axes, plane_coords)
+    extent_board = _plane_extent(board, plane_coords)
     fig = go.Figure(
         data=_board_2d_traces(
             board,
-            highlight_coords=highlight_coords,
+            tile_colors=tile_colors or {},
             axes=axes,
-            slice_coords=resolved_slice,
+            plane_coords=plane_coords,
         )
     )
     _style_plotly_xy(fig, extent_board, axes, title)
     return fig
 
 
-def plot_board_3d(
-    board: Board,
-    *,
-    highlight_coords: Iterable[Coord] = (),
-    title: str | None = None,
-    axes: tuple[int, int, int] = (0, 1, 2),
-    slice_coords: Mapping[int, int] | None = None,
-    node_shape: Literal["cube", "marker"] = "cube",
-    node_opacity: float = NODE_OPACITY_3D,
-    label_mode: Literal["mesh", "billboard", "none"] = "mesh",
-    camera_zoom: float = CAMERA_ZOOM_3D,
-) -> object:
-    """Create an interactive Plotly 3D slice of a sparse board."""
-    if board.dimensions < 3:
-        raise ValueError("3D plotting requires at least three board dimensions.")
-    import plotly.graph_objects as go
-
-    resolved_slice = _resolve_slice_coords(board, axes, slice_coords)
-    fig = go.Figure(
-        data=_board_3d_traces(
-            board,
-            highlight_coords=highlight_coords,
-            axes=axes,
-            slice_coords=resolved_slice,
-            node_shape=node_shape,
-            node_opacity=node_opacity,
-            label_mode=label_mode,
-        )
-    )
-    _style_plotly_3d(
-        fig,
-        _slice_extent(board, resolved_slice),
-        axes,
-        title,
-        camera_zoom=camera_zoom,
-    )
-    return fig
-
-
-def animate_scenario_3d(
-    scenario: Mapping[str, object],
-    *,
-    title: str | None = None,
-    axes: tuple[int, int, int] = (0, 1, 2),
-    slice_coords: Mapping[int, int] | None = None,
-    node_shape: Literal["cube", "marker"] = "marker",
-    node_opacity: float = NODE_OPACITY_3D,
-    label_mode: Literal["mesh", "billboard", "none"] = "billboard",
-    camera_zoom: float = CAMERA_ZOOM_3D,
-) -> object:
-    """Create an interactive Plotly slider over one 3D scenario slice."""
-    import plotly.graph_objects as go
-
-    boards, placements = scenario_boards_and_placements(scenario)
-    resolved_slice = _resolve_slice_coords(boards[0], axes, slice_coords)
-    range_board = _slice_extent(_union_board_extent(boards), resolved_slice)
-    heat_origins = tuple(
-        coord for coord, _symbol in _visible_cells(boards[0], resolved_slice)
-    )
-    base_fig = go.Figure(
-        data=_board_3d_traces(
-            boards[0],
-            highlight_coords=placements[0],
-            axes=axes,
-            slice_coords=resolved_slice,
-            node_shape=node_shape,
-            node_opacity=node_opacity,
-            heat_origin_coords=heat_origins,
-            heat_bounds_board=range_board,
-            label_mode=label_mode,
-        )
-    )
-    _style_plotly_3d(
-        base_fig,
-        range_board,
-        axes,
-        title,
-        bottom_margin=36,
-        camera_zoom=camera_zoom,
-    )
-    frames = []
-    for index, (board, placed) in enumerate(zip(boards, placements, strict=True)):
-        frames.append(
-            go.Frame(
-                data=_board_3d_traces(
-                    board,
-                    highlight_coords=placed,
-                    axes=axes,
-                    slice_coords=resolved_slice,
-                    node_shape=node_shape,
-                    node_opacity=node_opacity,
-                    heat_origin_coords=heat_origins,
-                    heat_bounds_board=range_board,
-                    label_mode=label_mode,
-                ),
-                name=str(index),
-            )
-        )
-
-    base_fig.frames = frames
-    base_fig.update_layout(
-        sliders=[
-            {
-                "currentvalue": {
-                    "visible": True,
-                    "prefix": "",
-                    "xanchor": "left",
-                    "font": {"color": TEXT_COLOR},
-                },
-                "font": {"color": TRANSPARENT_COLOR},
-                "tickcolor": TRANSPARENT_COLOR,
-                "pad": {"t": 6},
-                "ticklen": 0,
-                "steps": [
-                    {
-                        "label": str(index),
-                        "method": "animate",
-                        "args": [
-                            [str(index)],
-                            {
-                                "mode": "immediate",
-                                "frame": {"duration": 0, "redraw": True},
-                            },
-                        ],
-                    }
-                    for index in range(len(boards))
-                ],
-            }
-        ],
-    )
-    return base_fig
-
-
 def animate_scenario_2d(
     scenario: Mapping[str, object],
     *,
     title: str | None = None,
-    axes: tuple[int, int] = (0, 1),
-    slice_coords: Mapping[int, int] | None = None,
 ) -> object:
-    """Create an interactive Plotly slider over one 2D scenario slice."""
+    """Create an interactive Plotly slider for a two-dimensional scenario."""
     import plotly.graph_objects as go
 
     boards, placements = scenario_boards_and_placements(scenario)
-    resolved_slice = _resolve_slice_coords(boards[0], axes, slice_coords)
-    range_board = _slice_extent(_union_board_extent(boards), resolved_slice)
-    heat_origins = tuple(
-        coord for coord, _symbol in _visible_cells(boards[0], resolved_slice)
-    )
+    _require_2d_board(boards[0])
+    axes = (0, 1)
+    range_board = _union_board_extent(boards)
     base_fig = go.Figure(
         data=_board_2d_traces(
             boards[0],
-            highlight_coords=placements[0],
+            tile_colors=_placement_colors(placements[0]),
             axes=axes,
-            slice_coords=resolved_slice,
-            heat_origin_coords=heat_origins,
-            heat_bounds_board=range_board,
+            plane_coords={},
+            range_board=range_board,
         )
     )
     _style_plotly_xy(base_fig, range_board, axes, title)
@@ -273,11 +201,10 @@ def animate_scenario_2d(
             go.Frame(
                 data=_board_2d_traces(
                     board,
-                    highlight_coords=placed,
+                    tile_colors=_placement_colors(placed),
                     axes=axes,
-                    slice_coords=resolved_slice,
-                    heat_origin_coords=heat_origins,
-                    heat_bounds_board=range_board,
+                    plane_coords={},
+                    range_board=range_board,
                 ),
                 name=str(index),
             )
@@ -323,24 +250,21 @@ def animate_scenario_2d_image(
     scenario: Mapping[str, object],
     *,
     title: str | None = None,
-    axes: tuple[int, int] = (0, 1),
-    slice_coords: Mapping[int, int] | None = None,
     cell_pixels: int = IMAGE_CELL_PIXELS_2D,
 ) -> object:
     """Create a fast Plotly slider that swaps pre-rendered 2D PNG frames."""
     import plotly.graph_objects as go
 
     boards, placements = scenario_boards_and_placements(scenario)
-    resolved_slice = _resolve_slice_coords(boards[0], axes, slice_coords)
-    range_board = _slice_extent(_union_board_extent(boards), resolved_slice)
-    heat_origins = tuple(coord for coord, _symbol in _visible_cells(boards[0], resolved_slice))
+    _require_2d_board(boards[0])
+    axes = (0, 1)
+    range_board = _union_board_extent(boards)
     base_source = _board_png_source_2d(
         boards[0],
-        highlight_coords=placements[0],
+        tile_colors=_placement_colors(placements[0]),
         axes=axes,
-        slice_coords=resolved_slice,
+        plane_coords={},
         range_board=range_board,
-        heat_origin_coords=heat_origins,
         cell_pixels=cell_pixels,
     )
     base_fig = go.Figure(data=[go.Image(source=base_source, hoverinfo="skip")])
@@ -352,11 +276,10 @@ def animate_scenario_2d_image(
                     go.Image(
                         source=_board_png_source_2d(
                             board,
-                            highlight_coords=placed,
+                            tile_colors=_placement_colors(placed),
                             axes=axes,
-                            slice_coords=resolved_slice,
+                            plane_coords={},
                             range_board=range_board,
-                            heat_origin_coords=heat_origins,
                             cell_pixels=cell_pixels,
                         ),
                         hoverinfo="skip",
@@ -414,23 +337,20 @@ def animate_scenario_2d_canvas(
     scenario: Mapping[str, object],
     *,
     title: str | None = None,
-    axes: tuple[int, int] = (0, 1),
-    slice_coords: Mapping[int, int] | None = None,
     cell_pixels: int = IMAGE_CELL_PIXELS_2D,
 ) -> object:
     """Create a preloaded canvas slider for smooth large 2D animations."""
     boards, placements = scenario_boards_and_placements(scenario)
-    resolved_slice = _resolve_slice_coords(boards[0], axes, slice_coords)
-    range_board = _slice_extent(_union_board_extent(boards), resolved_slice)
-    heat_origins = tuple(coord for coord, _symbol in _visible_cells(boards[0], resolved_slice))
+    _require_2d_board(boards[0])
+    axes = (0, 1)
+    range_board = _union_board_extent(boards)
     frames = [
         _board_png_source_2d(
             board,
-            highlight_coords=placed,
+            tile_colors=_placement_colors(placed),
             axes=axes,
-            slice_coords=resolved_slice,
+            plane_coords={},
             range_board=range_board,
-            heat_origin_coords=heat_origins,
             cell_pixels=cell_pixels,
         )
         for board, placed in zip(boards, placements, strict=True)
@@ -489,20 +409,18 @@ def animate_scenario_2d_canvas(
 def _board_2d_traces(
     board: Board,
     *,
-    highlight_coords: Iterable[Coord],
+    tile_colors: Mapping[Coord, str],
     axes: tuple[int, int],
-    slice_coords: Mapping[int, int],
-    heat_origin_coords: Sequence[Coord] = (),
-    heat_bounds_board: Board | None = None,
+    plane_coords: Mapping[int, int],
+    range_board: Board | None = None,
 ) -> list[object]:
     return [
         _board_marker_trace_2d(
             board,
-            highlight_coords=highlight_coords,
+            tile_colors=tile_colors,
             axes=axes,
-            slice_coords=slice_coords,
-            heat_origin_coords=heat_origin_coords,
-            heat_bounds_board=heat_bounds_board,
+            plane_coords=plane_coords,
+            range_board=range_board,
         )
     ]
 
@@ -510,25 +428,15 @@ def _board_2d_traces(
 def _board_marker_trace_2d(
     board: Board,
     *,
-    highlight_coords: Iterable[Coord],
+    tile_colors: Mapping[Coord, str],
     axes: tuple[int, int],
-    slice_coords: Mapping[int, int],
-    heat_origin_coords: Sequence[Coord] = (),
-    heat_bounds_board: Board | None = None,
+    plane_coords: Mapping[int, int],
+    range_board: Board | None = None,
 ) -> object:
     import plotly.graph_objects as go
 
-    rows = _projected_rows(board, axes, slice_coords)
-    highlight = set(highlight_coords)
-    bounds_board = heat_bounds_board or board
-    heat_values = _generation_heat_values_2d(
-        [(int(row["x"]), int(row["y"])) for row in rows],
-        origins=[
-            (coord[axes[0]], coord[axes[1]]) for coord in heat_origin_coords
-        ],
-        bounds_board=bounds_board,
-        axes=axes,
-    )
+    rows = _projected_rows(board, axes, plane_coords)
+    bounds_board = range_board or board
     marker_size = _marker_size_2d(bounds_board, axes)
     text_size = _clamp(
         round(marker_size * 0.42),
@@ -541,7 +449,7 @@ def _board_marker_trace_2d(
         mode="markers+text",
         marker={
             "size": marker_size,
-            "color": _node_colors_2d(rows, heat_values, highlight),
+            "color": _node_colors_2d(rows, tile_colors),
             "symbol": "square",
             "line": {"color": TRANSPARENT_COLOR, "width": 0},
         },
@@ -567,198 +475,32 @@ def _board_marker_trace_2d(
     )
 
 
-def _board_heatmap_trace(
-    board: Board,
-    *,
-    highlight_coords: Iterable[Coord],
-    axes: tuple[int, int],
-    slice_coords: Mapping[int, int],
-    heat_origin_coords: Sequence[Coord] = (),
-    heat_bounds_board: Board | None = None,
-) -> object:
-    import plotly.graph_objects as go
-
-    highlight = set(highlight_coords)
-    visible_cells = _visible_cells(board, slice_coords)
-    x_values, y_values = _axis_values(visible_cells, axes)
-    projected_cells: dict[tuple[int, int], tuple[Coord, str]] = {}
-    for coord, symbol in visible_cells:
-        projected_coord = (coord[axes[0]], coord[axes[1]])
-        projected_cells[projected_coord] = (coord, symbol)
-    heat_values = _generation_heat_values_2d(
-        [(coord[axes[0]], coord[axes[1]]) for coord, _symbol in visible_cells],
-        origins=[(coord[axes[0]], coord[axes[1]]) for coord in heat_origin_coords],
-        bounds_board=heat_bounds_board or board,
-        axes=axes,
-    )
-    heat_by_coord = {
-        (coord[axes[0]], coord[axes[1]]): value
-        for (coord, _symbol), value in zip(visible_cells, heat_values, strict=True)
-    }
-    z: list[list[float | None]] = []
-    text: list[list[str]] = []
-    customdata: list[list[list[object] | None]] = []
-    for y in y_values:
-        z_row: list[float | None] = []
-        text_row: list[str] = []
-        custom_row: list[list[object] | None] = []
-        for x in x_values:
-            cell = projected_cells.get((x, y))
-            if cell is None:
-                z_row.append(None)
-                text_row.append("")
-                custom_row.append(None)
-                continue
-            coord, symbol = cell
-            z_row.append(2.0 if coord in highlight else heat_by_coord[(x, y)])
-            text_row.append(symbol)
-            custom_row.append(
-                [
-                    list(coord),
-                    ",".join(str(axis) for axis in sorted(board.axes_at(coord))),
-                ]
-            )
-        z.append(z_row)
-        text.append(text_row)
-        customdata.append(custom_row)
-
-    return go.Heatmap(
-        x=x_values,
-        y=y_values,
-        z=z,
-        text=text,
-        customdata=customdata,
-        colorscale=[
-            [0.0, NODE_HEATMAP_3D[0][1]],
-            [0.225, NODE_HEATMAP_3D[1][1]],
-            [0.36, NODE_HEATMAP_3D[2][1]],
-            [0.499, NODE_HEATMAP_3D[3][1]],
-            [0.5, HIGHLIGHT_TILE],
-            [1.0, HIGHLIGHT_TILE],
-        ],
-        zmin=0,
-        zmax=2,
-        xgap=TILE_GAP,
-        ygap=TILE_GAP,
-        showscale=False,
-        hoverongaps=False,
-        hovertemplate=(
-            "coord=%{customdata[0]}<br>symbol=%{text}"
-            "<br>axes=%{customdata[1]}<extra></extra>"
-        ),
-    )
-
-
-def _letter_raster_trace_2d(
-    board: Board,
-    *,
-    axes: tuple[int, int],
-    slice_coords: Mapping[int, int],
-) -> object:
-    import plotly.graph_objects as go
-
-    x: list[float | None] = []
-    y: list[float | None] = []
-    for coord, symbol in _visible_cells(board, slice_coords):
-        cell_x, cell_y = _letter_raster_points_2d(coord, symbol, axes)
-        x.extend(cell_x)
-        y.extend(cell_y)
-
-    return go.Scatter(
-        x=x,
-        y=y,
-        mode="lines",
-        fill="toself",
-        fillcolor=TEXT_COLOR,
-        line={"color": TEXT_COLOR, "width": 0},
-        hoverinfo="skip",
-        showlegend=False,
-    )
-
-
-def _letter_raster_trace_for_cell_2d(
-    coord: Coord,
-    symbol: str,
-    *,
-    axes: tuple[int, int],
-    visible: bool,
-) -> object:
-    import plotly.graph_objects as go
-
-    x, y = _letter_raster_points_2d(coord, symbol, axes)
-    return go.Scatter(
-        x=x,
-        y=y,
-        mode="lines",
-        fill="toself",
-        fillcolor=TEXT_COLOR,
-        line={"color": TEXT_COLOR, "width": 0},
-        hoverinfo="skip",
-        showlegend=False,
-        visible=visible,
-    )
-
-
-def _letter_raster_points_2d(
-    coord: Coord,
-    symbol: str,
-    axes: tuple[int, int],
-) -> tuple[list[float | None], list[float | None]]:
-    x: list[float | None] = []
-    y: list[float | None] = []
-    center_x = float(coord[axes[0]])
-    center_y = float(coord[axes[1]])
-    for quad in _letter_fill_quads(
-        str(symbol),
-        LETTER_RASTER_SIZE_2D,
-        LETTER_RASTER_RESOLUTION_2D,
-    ):
-        for px, py in (*quad, quad[0]):
-            x.append(center_x + px)
-            y.append(center_y + py)
-        x.append(None)
-        y.append(None)
-    return x, y
-
-
 def _board_png_source_2d(
     board: Board,
     *,
-    highlight_coords: Iterable[Coord],
+    tile_colors: Mapping[Coord, str],
     axes: tuple[int, int],
-    slice_coords: Mapping[int, int],
+    plane_coords: Mapping[int, int],
     range_board: Board,
-    heat_origin_coords: Sequence[Coord],
     cell_pixels: int,
 ) -> str:
     import numpy as np
     from PIL import Image
 
-    visible_cells = _visible_cells(board, slice_coords)
+    visible_cells = _plane_cells(board, plane_coords)
     x_values, y_values = _axis_values(range_board, axes)
     width = len(x_values) * cell_pixels
     height = len(y_values) * cell_pixels
     image = np.zeros((height, width, 4), dtype=np.uint8)
     x_index = {value: index for index, value in enumerate(x_values)}
     y_index = {value: index for index, value in enumerate(reversed(y_values))}
-    highlight = set(highlight_coords)
-    heat_values = _generation_heat_values_2d(
-        [(coord[axes[0]], coord[axes[1]]) for coord, _symbol in visible_cells],
-        origins=[(coord[axes[0]], coord[axes[1]]) for coord in heat_origin_coords],
-        bounds_board=range_board,
-        axes=axes,
-    )
     gap = min(IMAGE_TILE_GAP_PIXELS_2D, max(cell_pixels // 6, 1))
-    for (coord, symbol), heat_value in zip(visible_cells, heat_values, strict=True):
+    for coord, symbol in visible_cells:
         left = x_index[coord[axes[0]]] * cell_pixels + gap
         top = y_index[coord[axes[1]]] * cell_pixels + gap
         right = (x_index[coord[axes[0]]] + 1) * cell_pixels - gap
         bottom = (y_index[coord[axes[1]]] + 1) * cell_pixels - gap
-        color = (
-            _color_to_rgb(HIGHLIGHT_TILE)
-            if coord in highlight
-            else _heatmap_rgb_2d(heat_value)
-        )
+        color = _color_to_rgb(tile_colors.get(coord, BASE_TILE))
         image[top:bottom, left:right, :3] = color
         image[top:bottom, left:right, 3] = 255
         mask = _letter_bitmap_mask_2d(str(symbol), cell_pixels)
@@ -800,238 +542,6 @@ def _image_plot_size_2d(
 ) -> tuple[int, int]:
     x_values, y_values = _axis_values(board, axes)
     return len(x_values) * cell_pixels, len(y_values) * cell_pixels
-
-
-def _board_3d_traces(
-    board: Board,
-    *,
-    highlight_coords: Iterable[Coord],
-    axes: tuple[int, int, int],
-    slice_coords: Mapping[int, int],
-    node_shape: Literal["cube", "marker"],
-    node_opacity: float,
-    heat_origin_coords: Sequence[Coord] = (),
-    heat_bounds_board: Board | None = None,
-    label_mode: Literal["mesh", "billboard", "none"] = "mesh",
-) -> list[object]:
-    import plotly.graph_objects as go
-
-    rows = _projected_rows(board, axes, slice_coords)
-    highlight = set(highlight_coords)
-    node_opacity = _clamp_float(node_opacity, 0.0, 1.0)
-    heat_values = _generation_heat_values_3d(
-        rows,
-        origins=heat_origin_coords,
-        bounds_board=heat_bounds_board or board,
-        axes=axes,
-    )
-    node_colors = _node_colors_3d(rows, heat_values, highlight)
-    if node_shape == "cube":
-        traces = [_cube_mesh_trace_3d(rows, node_colors, node_opacity)]
-        if label_mode == "mesh":
-            traces.append(_node_face_letter_mesh_trace_3d(rows))
-        elif label_mode == "billboard":
-            traces.append(_node_billboard_text_trace_3d(rows))
-        elif label_mode != "none":
-            raise ValueError("label_mode must be 'mesh', 'billboard', or 'none'.")
-        traces.append(_node_hover_trace_3d(rows))
-        return traces
-    if node_shape == "marker":
-        return [
-            go.Scatter3d(
-                x=[row["x"] for row in rows],
-                y=[row["y"] for row in rows],
-                z=[row["z"] for row in rows],
-                mode="markers+text",
-                marker={
-                    "size": NODE_MARKER_SIZE_3D,
-                    "color": node_colors,
-                    "opacity": node_opacity,
-                    "symbol": "square",
-                },
-                text=[row["symbol"] for row in rows],
-                textfont={
-                    "color": TEXT_COLOR,
-                    "size": NODE_MARKER_TEXT_SIZE_3D,
-                    "family": TEXT_FONT_FAMILY,
-                },
-                textposition="middle center",
-                customdata=[list(row["coord"]) for row in rows],
-                hovertemplate="coord=%{customdata}<br>symbol=%{text}<extra></extra>",
-                showlegend=False,
-            )
-        ]
-    raise ValueError("node_shape must be either 'cube' or 'marker'.")
-
-
-def _cube_mesh_trace_3d(
-    rows: Sequence[dict[str, object]],
-    colors: Sequence[str],
-    opacity: float,
-) -> object:
-    import plotly.graph_objects as go
-
-    x: list[float] = []
-    y: list[float] = []
-    z: list[float] = []
-    i: list[int] = []
-    j: list[int] = []
-    k: list[int] = []
-    facecolor: list[str] = []
-    half = NODE_CUBE_SIZE_3D / 2.0
-
-    vertex_offsets = (
-        (-half, -half, -half),
-        (half, -half, -half),
-        (half, half, -half),
-        (-half, half, -half),
-        (-half, -half, half),
-        (half, -half, half),
-        (half, half, half),
-        (-half, half, half),
-    )
-    triangles = (
-        (0, 1, 2),
-        (0, 2, 3),
-        (4, 6, 5),
-        (4, 7, 6),
-        (0, 4, 5),
-        (0, 5, 1),
-        (1, 5, 6),
-        (1, 6, 2),
-        (2, 6, 7),
-        (2, 7, 3),
-        (3, 7, 4),
-        (3, 4, 0),
-    )
-
-    for row, color in zip(rows, colors, strict=True):
-        base = len(x)
-        cx = float(row["x"])
-        cy = float(row["y"])
-        cz = float(row["z"])
-        for dx, dy, dz in vertex_offsets:
-            x.append(cx + dx)
-            y.append(cy + dy)
-            z.append(cz + dz)
-        for a, b, c in triangles:
-            i.append(base + a)
-            j.append(base + b)
-            k.append(base + c)
-            facecolor.append(color)
-
-    return go.Mesh3d(
-        x=x,
-        y=y,
-        z=z,
-        i=i,
-        j=j,
-        k=k,
-        facecolor=facecolor,
-        opacity=opacity,
-        flatshading=True,
-        lighting={
-            "ambient": 0.72,
-            "diffuse": 0.55,
-            "specular": 0.08,
-            "roughness": 0.85,
-        },
-        hoverinfo="skip",
-        showscale=False,
-        showlegend=False,
-    )
-
-
-def _node_face_letter_mesh_trace_3d(rows: Sequence[dict[str, object]]) -> object:
-    import plotly.graph_objects as go
-
-    x: list[float] = []
-    y: list[float] = []
-    z: list[float] = []
-    i: list[int] = []
-    j: list[int] = []
-    k: list[int] = []
-    face_bases = (
-        ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)),
-        ((-1.0, 0.0, 0.0), (0.0, -1.0, 0.0), (0.0, 0.0, 1.0)),
-        ((0.0, 1.0, 0.0), (-1.0, 0.0, 0.0), (0.0, 0.0, 1.0)),
-        ((0.0, -1.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, 1.0)),
-        ((0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)),
-        ((0.0, 0.0, -1.0), (1.0, 0.0, 0.0), (0.0, -1.0, 0.0)),
-    )
-    for row in rows:
-        center = (float(row["x"]), float(row["y"]), float(row["z"]))
-        quads = _letter_fill_quads(
-            str(row["symbol"]),
-            NODE_FACE_TEXT_SIZE_3D,
-            NODE_FACE_TEXT_FILL_RESOLUTION_3D,
-        )
-        for normal, u_axis, v_axis in face_bases:
-            face_center = _add_3d(center, _scale_3d(normal, NODE_FACE_TEXT_OFFSET_3D))
-            for quad in quads:
-                base = len(x)
-                for px, py in quad:
-                    point = _add_3d(
-                        face_center,
-                        _add_3d(_scale_3d(u_axis, px), _scale_3d(v_axis, py)),
-                    )
-                    x.append(point[0])
-                    y.append(point[1])
-                    z.append(point[2])
-                i.extend((base, base, base + 2, base + 3))
-                j.extend((base + 1, base + 2, base + 1, base + 2))
-                k.extend((base + 2, base + 3, base, base))
-
-    return go.Mesh3d(
-        x=x,
-        y=y,
-        z=z,
-        i=i,
-        j=j,
-        k=k,
-        color=TEXT_COLOR,
-        opacity=1.0,
-        flatshading=True,
-        hoverinfo="skip",
-        showscale=False,
-        showlegend=False,
-    )
-
-
-def _node_billboard_text_trace_3d(rows: Sequence[dict[str, object]]) -> object:
-    import plotly.graph_objects as go
-
-    return go.Scatter3d(
-        x=[row["x"] for row in rows],
-        y=[row["y"] for row in rows],
-        z=[row["z"] for row in rows],
-        mode="text",
-        text=[row["symbol"] for row in rows],
-        textfont={
-            "color": TEXT_COLOR,
-            "size": NODE_MARKER_TEXT_SIZE_3D,
-            "family": TEXT_FONT_FAMILY,
-        },
-        textposition="middle center",
-        hoverinfo="skip",
-        showlegend=False,
-    )
-
-
-def _node_hover_trace_3d(rows: Sequence[dict[str, object]]) -> object:
-    import plotly.graph_objects as go
-
-    return go.Scatter3d(
-        x=[row["x"] for row in rows],
-        y=[row["y"] for row in rows],
-        z=[row["z"] for row in rows],
-        mode="markers",
-        marker={"size": 12, "color": TRANSPARENT_COLOR, "opacity": 0.0},
-        text=[row["symbol"] for row in rows],
-        customdata=[list(row["coord"]) for row in rows],
-        hovertemplate="coord=%{customdata}<br>symbol=%{text}<extra></extra>",
-        showlegend=False,
-    )
 
 
 @lru_cache(maxsize=256)
@@ -1096,206 +606,15 @@ def _letter_reference_height() -> float:
     )
 
 
-def _add_3d(
-    first: tuple[float, float, float],
-    second: tuple[float, float, float],
-) -> tuple[float, float, float]:
-    return (
-        first[0] + second[0],
-        first[1] + second[1],
-        first[2] + second[2],
-    )
-
-
-def _scale_3d(
-    vector: tuple[float, float, float],
-    scale: float,
-) -> tuple[float, float, float]:
-    return (vector[0] * scale, vector[1] * scale, vector[2] * scale)
-
-
-def _node_colors_3d(
-    rows: Sequence[dict[str, object]],
-    heat_values: Sequence[float],
-    highlight: set[Coord],
-) -> list[str]:
-    return [
-        HIGHLIGHT_TILE if row["coord"] in highlight else _heatmap_color_3d(value)
-        for row, value in zip(rows, heat_values, strict=True)
-    ]
-
-
 def _node_colors_2d(
     rows: Sequence[dict[str, object]],
-    heat_values: Sequence[float],
-    highlight: set[Coord],
+    tile_colors: Mapping[Coord, str],
 ) -> list[str]:
-    return [
-        HIGHLIGHT_TILE if row["coord"] in highlight else _heatmap_color_3d(value)
-        for row, value in zip(rows, heat_values, strict=True)
-    ]
+    return [tile_colors.get(row["coord"], BASE_TILE) for row in rows]
 
 
-def _generation_heat_values_2d(
-    coords: Sequence[tuple[int, int]],
-    *,
-    origins: Sequence[tuple[int, int]],
-    bounds_board: Board,
-    axes: tuple[int, int],
-) -> list[float]:
-    if not origins:
-        return _center_heat_values_2d(coords)
-    bounds = _bounds(bounds_board, axes, pad=0.0)
-    return [
-        _edge_weighted_heat(
-            tuple(float(value) for value in coord),
-            [tuple(float(value) for value in origin) for origin in origins],
-            ((bounds[0], bounds[1]), (bounds[2], bounds[3])),
-        )
-        for coord in coords
-    ]
-
-
-def _generation_heat_values_3d(
-    rows: Sequence[dict[str, object]],
-    *,
-    origins: Sequence[Coord],
-    bounds_board: Board,
-    axes: tuple[int, int, int],
-) -> list[float]:
-    if not origins:
-        return _center_heat_values_3d(rows)
-    bounds = _bounds_3d(bounds_board, axes, pad=0.0)
-    projected_origins = [
-        (float(coord[axes[0]]), float(coord[axes[1]]), float(coord[axes[2]]))
-        for coord in origins
-    ]
-    return [
-        _edge_weighted_heat(
-            (float(row["x"]), float(row["y"]), float(row["z"])),
-            projected_origins,
-            ((bounds[0], bounds[1]), (bounds[2], bounds[3]), (bounds[4], bounds[5])),
-        )
-        for row in rows
-    ]
-
-
-def _edge_weighted_heat(
-    point: tuple[float, ...],
-    origins: Sequence[tuple[float, ...]],
-    bounds: Sequence[tuple[float, float]],
-) -> float:
-    origin = min(
-        origins,
-        key=lambda candidate: sum(
-            (point[index] - candidate[index]) ** 2 for index in range(len(point))
-        ),
-    )
-    vector = tuple(point[index] - origin[index] for index in range(len(point)))
-    distance = sum(component**2 for component in vector) ** 0.5
-    if distance == 0:
-        return 1.0
-    direction = tuple(component / distance for component in vector)
-    edge_distance = min(
-        (
-            ((upper - origin[index]) / direction[index])
-            if direction[index] > 0
-            else ((lower - origin[index]) / direction[index])
-        )
-        for index, (lower, upper) in enumerate(bounds)
-        if direction[index] != 0
-    )
-    if edge_distance <= 0:
-        return 0.0
-    return _clamp_float(1.0 - distance / edge_distance, 0.0, 1.0)
-
-
-def _center_heat_values_2d(coords: Sequence[tuple[int, int]]) -> list[float]:
-    if not coords:
-        return []
-    xs = [float(coord[0]) for coord in coords]
-    ys = [float(coord[1]) for coord in coords]
-    center = ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0)
-    distances = [
-        ((float(x) - center[0]) ** 2 + (float(y) - center[1]) ** 2) ** 0.5
-        for x, y in coords
-    ]
-    max_distance = max(distances)
-    if max_distance == 0:
-        return [1.0 for _ in coords]
-    return [1.0 - distance / max_distance for distance in distances]
-
-
-def _heatmap_rgb_2d(value: float) -> tuple[int, int, int]:
-    value = _clamp_float(value, 0.0, 1.0)
-    for index, (stop, color) in enumerate(NODE_HEATMAP_3D):
-        if value <= stop:
-            if index == 0:
-                return _color_to_rgb(color)
-            prev_stop, prev_color = NODE_HEATMAP_3D[index - 1]
-            local = (value - prev_stop) / (stop - prev_stop)
-            return _interpolate_rgb(
-                _color_to_rgb(prev_color),
-                _color_to_rgb(color),
-                local,
-            )
-    return _color_to_rgb(NODE_HEATMAP_3D[-1][1])
-
-
-def _center_heat_values_3d(rows: Sequence[dict[str, object]]) -> list[float]:
-    if not rows:
-        return []
-    xs = [float(row["x"]) for row in rows]
-    ys = [float(row["y"]) for row in rows]
-    zs = [float(row["z"]) for row in rows]
-    center = (
-        (min(xs) + max(xs)) / 2.0,
-        (min(ys) + max(ys)) / 2.0,
-        (min(zs) + max(zs)) / 2.0,
-    )
-    distances = [
-        (
-            (float(row["x"]) - center[0]) ** 2
-            + (float(row["y"]) - center[1]) ** 2
-            + (float(row["z"]) - center[2]) ** 2
-        )
-        ** 0.5
-        for row in rows
-    ]
-    max_distance = max(distances)
-    if max_distance == 0:
-        return [1.0 for _ in rows]
-    return [1.0 - distance / max_distance for distance in distances]
-
-
-def _heatmap_color_3d(value: float) -> str:
-    value = _clamp_float(value, 0.0, 1.0)
-    for index, (stop, color) in enumerate(NODE_HEATMAP_3D):
-        if value <= stop:
-            if index == 0 or abs(value - stop) < 1e-9:
-                return color
-            prev_stop, prev_color = NODE_HEATMAP_3D[index - 1]
-            local = (value - prev_stop) / (stop - prev_stop)
-            return _interpolate_hex_color(prev_color, color, local)
-    return NODE_HEATMAP_3D[-1][1]
-
-
-def _interpolate_hex_color(start: str, end: str, value: float) -> str:
-    start_rgb = _hex_to_rgb(start)
-    end_rgb = _hex_to_rgb(end)
-    rgb = _interpolate_rgb(start_rgb, end_rgb, value)
-    return f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
-
-
-def _interpolate_rgb(
-    start_rgb: tuple[int, int, int],
-    end_rgb: tuple[int, int, int],
-    value: float,
-) -> tuple[int, int, int]:
-    return tuple(
-        round(start_part + (end_part - start_part) * value)
-        for start_part, end_part in zip(start_rgb, end_rgb, strict=True)
-    )
+def _placement_colors(coords: Iterable[Coord]) -> dict[Coord, str]:
+    return {coord: NEW_MOVE_TILE for coord in coords}
 
 
 def _color_to_rgb(color: str) -> tuple[int, int, int]:
@@ -1342,68 +661,59 @@ def _union_board_extent(boards: Sequence[Board]) -> Board:
 
 def _projected_rows(
     board: Board,
-    axes: Sequence[int],
-    slice_coords: Mapping[int, int],
+    axes: tuple[int, int],
+    plane_coords: Mapping[int, int],
 ) -> list[dict[str, object]]:
     rows = []
-    for coord, symbol in _visible_cells(board, slice_coords):
-        row = {
-            "coord": coord,
-            "symbol": symbol,
-            "axes_at": board.axes_at(coord),
-            "x": coord[axes[0]],
-            "y": coord[axes[1]],
-        }
-        if len(axes) == 3:
-            row["z"] = coord[axes[2]]
-        rows.append(row)
+    for coord, symbol in _plane_cells(board, plane_coords):
+        rows.append(
+            {
+                "coord": coord,
+                "symbol": symbol,
+                "axes_at": board.axes_at(coord),
+                "x": coord[axes[0]],
+                "y": coord[axes[1]],
+            }
+        )
     return rows
 
 
-def _resolve_slice_coords(
+def _validate_plane(
     board: Board,
-    axes: Sequence[int],
-    slice_coords: Mapping[int, int] | None,
-) -> dict[int, int]:
-    if len(set(axes)) != len(axes) or any(
-        axis < 0 or axis >= board.dimensions for axis in axes
-    ):
-        raise ValueError("Visible axes must be distinct valid board dimensions.")
+    axes: tuple[int, int],
+    plane_coords: Mapping[int, int],
+) -> None:
+    if axes[0] == axes[1] or any(axis < 0 or axis >= board.dimensions for axis in axes):
+        raise ValueError("Plane axes must be distinct valid board dimensions.")
     hidden_axes = set(range(board.dimensions)) - set(axes)
-    resolved = dict(slice_coords or {})
-    unknown_axes = set(resolved) - hidden_axes
-    if unknown_axes:
-        raise ValueError(
-            f"slice_coords may contain only hidden axes; got {sorted(unknown_axes)}."
-        )
-    missing_axes = hidden_axes - set(resolved)
-    if missing_axes:
-        raise ValueError(
-            "Visualization requires slice_coords for every hidden axis; "
-            f"missing {sorted(missing_axes)}."
-        )
-    if any(not isinstance(value, int) for value in resolved.values()):
-        raise ValueError("slice_coords values must be integer coordinates.")
-    return resolved
+    if set(plane_coords) != hidden_axes:
+        raise ValueError("Plane coordinates must define every non-visible axis.")
+    if any(not isinstance(value, int) for value in plane_coords.values()):
+        raise ValueError("Plane coordinates must be integers.")
 
 
-def _visible_cells(
+def _plane_cells(
     board: Board,
-    slice_coords: Mapping[int, int],
+    plane_coords: Mapping[int, int],
 ) -> tuple[tuple[Coord, str], ...]:
     return tuple(
         (coord, symbol)
         for coord, symbol in board.occupied_sorted()
-        if all(coord[axis] == value for axis, value in slice_coords.items())
+        if all(coord[axis] == value for axis, value in plane_coords.items())
     )
 
 
-def _slice_extent(board: Board, slice_coords: Mapping[int, int]) -> Board:
+def _plane_extent(board: Board, plane_coords: Mapping[int, int]) -> Board:
     return Board(
         dimensions=board.dimensions,
-        cells=dict(_visible_cells(board, slice_coords)),
+        cells=dict(_plane_cells(board, plane_coords)),
         segments=(),
     )
+
+
+def _require_2d_board(board: Board) -> None:
+    if board.dimensions != 2:
+        raise ValueError("Scenario animation requires a two-dimensional board.")
 
 
 def _bounds(
@@ -1419,55 +729,11 @@ def _bounds(
     return min(xs) - pad, max(xs) + pad, min(ys) - pad, max(ys) + pad
 
 
-def _bounds_3d(
-    board: Board,
-    axes: tuple[int, int, int],
-    *,
-    pad: float = 1.0,
-) -> tuple[float, float, float, float, float, float]:
-    if not board.cells:
-        return -1.0, 1.0, -1.0, 1.0, -1.0, 1.0
-    xs = [coord[axes[0]] for coord in board.cells]
-    ys = [coord[axes[1]] for coord in board.cells]
-    zs = [coord[axes[2]] for coord in board.cells]
-    return (
-        min(xs) - pad,
-        max(xs) + pad,
-        min(ys) - pad,
-        max(ys) + pad,
-        min(zs) - pad,
-        max(zs) + pad,
-    )
-
-
-def _aspectratio_3d(
-    bounds: tuple[float, float, float, float, float, float],
-) -> dict[str, float]:
-    xmin, xmax, ymin, ymax, zmin, zmax = bounds
-    return {
-        "x": max(xmax - xmin, 1.0),
-        "y": max(ymax - ymin, 1.0),
-        "z": max(zmax - zmin, 1.0),
-    }
-
-
 def _plot_size_2d(board: Board, axes: tuple[int, int]) -> tuple[int, int]:
     x_values, y_values = _axis_values(board, axes)
     width = _clamp(len(x_values) * CELL_SIZE_2D, MIN_PLOT_SIZE_2D, MAX_PLOT_SIZE_2D)
     height = _clamp(len(y_values) * CELL_SIZE_2D, MIN_PLOT_SIZE_2D, MAX_PLOT_SIZE_2D)
     return width, height
-
-
-def _letter_size_2d(board: Board, axes: tuple[int, int]) -> int:
-    x_values, y_values = _axis_values(board, axes)
-    width, height = _plot_size_2d(board, axes)
-    tile_size = min(width / len(x_values), height / len(y_values))
-    usable_tile_size = max(tile_size - TILE_GAP, 1)
-    return _clamp(
-        round(usable_tile_size * LETTER_TILE_RATIO_2D * LETTER_SCALE_FACTOR_2D),
-        MIN_LETTER_SIZE_2D,
-        MAX_LETTER_SIZE_2D,
-    )
 
 
 def _marker_size_2d(board: Board, axes: tuple[int, int]) -> int:
@@ -1482,10 +748,6 @@ def _marker_size_2d(board: Board, axes: tuple[int, int]) -> int:
 
 
 def _clamp(value: int, lower: int, upper: int) -> int:
-    return max(lower, min(upper, value))
-
-
-def _clamp_float(value: float, lower: float, upper: float) -> float:
     return max(lower, min(upper, value))
 
 
@@ -1514,66 +776,17 @@ def _style_plotly_xy(
             "zeroline": False,
             "showticklabels": False,
         },
-        margin={"l": PLOT_MARGIN, "r": PLOT_MARGIN, "t": PLOT_MARGIN, "b": PLOT_MARGIN},
+        margin={
+            "l": PLOT_MARGIN,
+            "r": PLOT_MARGIN,
+            "t": 36 if title else PLOT_MARGIN,
+            "b": PLOT_MARGIN,
+        },
         width=width,
-        height=height,
+        height=height + (32 if title else 0),
         paper_bgcolor="white",
         plot_bgcolor=TRANSPARENT_COLOR,
         showlegend=False,
         dragmode="pan",
-    )
-
-
-def _style_plotly_3d(
-    fig: object,
-    board: Board,
-    axes: tuple[int, int, int],
-    title: str | None,
-    *,
-    bottom_margin: int = PLOT_MARGIN,
-    camera_zoom: float = CAMERA_ZOOM_3D,
-) -> None:
-    bounds = _bounds_3d(board, axes)
-    xmin, xmax, ymin, ymax, zmin, zmax = bounds
-    fig.update_layout(
-        scene={
-            "xaxis": {
-                "range": [xmin, xmax],
-                "visible": False,
-                "showbackground": False,
-                "showgrid": False,
-                "zeroline": False,
-            },
-            "yaxis": {
-                "range": [ymin, ymax],
-                "visible": False,
-                "showbackground": False,
-                "showgrid": False,
-                "zeroline": False,
-            },
-            "zaxis": {
-                "range": [zmin, zmax],
-                "visible": False,
-                "showbackground": False,
-                "showgrid": False,
-                "zeroline": False,
-            },
-            "aspectmode": "manual",
-            "aspectratio": _aspectratio_3d(bounds),
-            "camera": {"eye": _camera_eye_3d(camera_zoom)},
-        },
-        margin={"l": PLOT_MARGIN, "r": PLOT_MARGIN, "t": PLOT_MARGIN, "b": bottom_margin},
-        paper_bgcolor="white",
-        plot_bgcolor="white",
-        showlegend=False,
         title=title,
     )
-
-
-def _camera_eye_3d(camera_zoom: float) -> dict[str, float]:
-    zoom = _clamp_float(camera_zoom, 0.2, 10.0)
-    return {
-        "x": CAMERA_EYE_3D[0] * zoom,
-        "y": CAMERA_EYE_3D[1] * zoom,
-        "z": CAMERA_EYE_3D[2] * zoom,
-    }

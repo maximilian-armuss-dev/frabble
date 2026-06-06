@@ -10,7 +10,7 @@ length_distribution:
 top_anchor_count: 40
 max_anchor_count: null
 top_template_count: 200
-target_witness_count: 30
+target_witness_count: 200
 scoring:
   anchor_centroid_weight: 1.0
   anchor_free_span_weight: 1.0
@@ -19,5 +19,5 @@ scoring:
   template_local_density_penalty_weight: 1.0
   template_domain_slack_weight: 1.0
 additional_rack_noise: 1
-output_path: outputs/generator_3d.json
+output_path: outputs/scenarios/generator_3d.json
 include_search_logs: true

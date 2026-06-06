@@ -3,6 +3,7 @@ import random
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from pydantic import ValidationError
@@ -28,16 +29,33 @@ from src.generator.reconstruction import reconstruct_boards
 from src.generator.scenario_codec import scenario_run_to_json
 from src.generator.scenario_io import load_scenario_run
 from src.llm.evaluation import evaluate_granular
+from src.llm.client import LLMCallResult, call_llm_detailed
+from src.llm.env import ENV
 from src.llm.prompting import build_prompt
 from src.llm.representers import RepresenterConfig
 from src.tools.check_model import clip_preview
 from visualization.board_figures import (
+    CONFLICTING_MOVE_TILE,
+    MATCHING_MOVE_TILE,
+    NEW_MOVE_TILE,
     animate_scenario_2d,
     animate_scenario_2d_canvas,
     animate_scenario_2d_image,
-    animate_scenario_3d,
     plot_board_2d,
-    plot_board_3d,
+    plot_board_axis_pairs,
+)
+from visualization.run_figures import (
+    TimedLLMResponse,
+    _board_with_move_overlay,
+    _move_conflict_coords,
+    _move_tile_colors,
+    call_prepared_llm_transition,
+    display_llm_prompt,
+    display_llm_response,
+    display_llm_run_summary,
+    finalize_llm_transition,
+    llm_call_diagnostics,
+    prepare_llm_transition,
 )
 
 
@@ -101,6 +119,192 @@ def config_dict(output_path: str, *, dimensions: int = 2) -> dict[str, object]:
 
 
 class V1Tests(unittest.TestCase):
+    def test_litellm_client_requests_and_validates_structured_output(self):
+        config = ENV.get_model_config("gpt-5-mini")
+        message = SimpleNamespace(
+            content='{"start":[0,0],"axis":0,"sequence":["A","B","C"]}'
+        )
+        choice = SimpleNamespace(message=message, finish_reason="stop")
+        response = SimpleNamespace(
+            choices=[choice],
+            _response_headers={},
+            _hidden_params={},
+            get=lambda key, default=None: {
+                "id": "response-id",
+                "model": "gpt-5-mini-2025-08-07",
+                "usage": {},
+            }.get(key, default),
+        )
+
+        with patch("src.llm.client.completion", return_value=response) as mocked:
+            result = call_llm_detailed("system", "user", "gpt-5-mini")
+
+        kwargs = mocked.call_args.kwargs
+        self.assertIs(kwargs["response_format"], SubmittedMove)
+        self.assertEqual(
+            SubmittedMove.model_validate_json(result.content).sequence,
+            ("A", "B", "C"),
+        )
+        self.assertEqual(result.metadata["backend"], "litellm")
+
+    def test_move_overlay_exposes_symbol_conflicts(self):
+        board = Board.empty(2).place(
+            Move(start=(-1, 0), axis=0, sequence=("A", "I", "D"))
+        )
+        move = Move(start=(0, -1), axis=1, sequence=("U", "U", "I"))
+
+        overlay = _board_with_move_overlay(board, move)
+        colors = _move_tile_colors(board, move)
+
+        self.assertEqual(overlay.get((0, 0)), "I/U")
+        self.assertEqual(_move_conflict_coords(board, move), ((0, 0),))
+        self.assertEqual(colors[(0, -1)], NEW_MOVE_TILE)
+        self.assertEqual(colors[(0, 0)], CONFLICTING_MOVE_TILE)
+        self.assertEqual(colors[(0, 1)], NEW_MOVE_TILE)
+
+        matching_move = Move(start=(0, -1), axis=1, sequence=("U", "I", "I"))
+        self.assertEqual(
+            _move_tile_colors(board, matching_move)[(0, 0)],
+            MATCHING_MOVE_TILE,
+        )
+
+    def test_response_display_explains_reasoning_only_length_limit(self):
+        response = TimedLLMResponse(
+            raw_response="",
+            elapsed_seconds=12.0,
+            usage={
+                "completion_tokens": 4096,
+                "completion_tokens_details": {"reasoning_tokens": 4096},
+            },
+            metadata={
+                "backend": "litellm",
+                "finish_reason": "length",
+                "incomplete": True,
+            },
+        )
+
+        rendered = display_llm_response(response).data
+
+        self.assertIn("No visible model output", rendered)
+        self.assertIn("consumed by reasoning tokens", rendered)
+        self.assertIn("color:#1f2937", rendered)
+        self.assertIn("completion tokens", rendered)
+        self.assertNotIn("model response", rendered)
+        self.assertNotIn("COMPLETE", rendered)
+
+    def test_response_display_renders_configuration_and_metrics(self):
+        response = TimedLLMResponse(
+            raw_response='{"start":[-2,5],"axis":0,"sequence":["U","I","A"]}',
+            elapsed_seconds=3.0,
+            usage={
+                "prompt_tokens": 100,
+                "completion_tokens": 30,
+                "completion_tokens_details": {"reasoning_tokens": 10},
+            },
+            metadata={
+                "configured_model": "gpt-5-mini",
+                "backend": "litellm",
+                "reasoning_effort": "minimal",
+                "provider_processing_ms": "2500",
+            },
+        )
+
+        rendered = display_llm_response(response).data
+
+        self.assertIn(">model<", rendered)
+        self.assertIn(">backend<", rendered)
+        self.assertIn(">reasoning<", rendered)
+        self.assertIn(">LLM time<", rendered)
+        self.assertIn("gpt-5-mini", rendered)
+        self.assertIn("minimal", rendered)
+        self.assertIn("prompt tokens", rendered)
+        self.assertIn("reasoning tokens", rendered)
+        self.assertIn("completion tokens", rendered)
+        self.assertNotIn(">start<", rendered)
+        first_row = rendered.split("<li", 1)[1].split("</li>", 1)[0]
+        self.assertNotIn("border-top:1px", first_row)
+
+    def test_llm_transition_phases_isolate_the_timed_client_call(self):
+        with patch("visualization.run_figures.call_llm_detailed") as mocked_call:
+            prepared = prepare_llm_transition(
+                scenario_name="generator_v1",
+                transition_index=0,
+                model_name="gpt-5-mini",
+            )
+            mocked_call.assert_not_called()
+            mocked_call.return_value = LLMCallResult(
+                content=json.dumps(prepared.ground_truth_move.to_json()),
+                usage={
+                    "prompt_tokens": 100,
+                    "completion_tokens": 25,
+                    "completion_tokens_details": {
+                        "reasoning_tokens": 10,
+                        "text_tokens": 15,
+                    },
+                },
+                metadata={
+                    "model": "gpt-5-mini-2025-08-07",
+                    "provider_processing_ms": "1200",
+                },
+            )
+
+            response = call_prepared_llm_transition(prepared)
+
+            mocked_call.assert_called_once_with(
+                prepared.system_prompt,
+                prepared.user_prompt,
+                prepared.model_name,
+            )
+            self.assertGreaterEqual(response.elapsed_seconds, 0.0)
+            self.assertEqual(
+                llm_call_diagnostics(response)["reasoning_tokens"],
+                10,
+            )
+            diagnostics = llm_call_diagnostics(response)
+            self.assertEqual(diagnostics["configured_model"], "gpt-5-mini")
+            self.assertEqual(diagnostics["backend"], "litellm")
+            self.assertEqual(
+                diagnostics["reasoning_effort"],
+                ENV.get_model_config("gpt-5-mini").reasoning_effort,
+            )
+
+            with tempfile.TemporaryDirectory() as temp_dir:
+                context = finalize_llm_transition(
+                    prepared,
+                    response,
+                    output_dir=temp_dir,
+                )
+
+            mocked_call.assert_called_once()
+            self.assertEqual(
+                context.run_log["llm_elapsed_seconds"],
+                response.elapsed_seconds,
+            )
+            self.assertEqual(context.run_log["llm_usage"], response.usage)
+            self.assertNotIn("backend", context.run_log["model_config"])
+            displayed_summary = display_llm_run_summary(context).data
+            self.assertIn("failure classes", displayed_summary)
+            self.assertIn("grid-template-columns:minmax(0,1fr)", displayed_summary)
+            self.assertIn("model response", displayed_summary)
+            self.assertIn(">start<", displayed_summary)
+            self.assertIn(">axis<", displayed_summary)
+            self.assertIn(">sequence<", displayed_summary)
+            self.assertIn(">rack<", displayed_summary)
+            self.assertIn("#dcfce7", displayed_summary)
+            self.assertIn("text-align:left", displayed_summary)
+            self.assertIn("text-align:right", displayed_summary)
+            self.assertIn("min-width:22px", displayed_summary)
+            self.assertNotIn("<strong>none</strong>", displayed_summary)
+            self.assertNotIn(">transition 0<", displayed_summary)
+            displayed_prompt = display_llm_prompt(prepared).data
+            self.assertIn("prompts/system.txt", displayed_prompt)
+            self.assertIn("omitted from notebook display", displayed_prompt)
+            self.assertNotIn(
+                prepared.user_prompt.split("Board configuration:\n", 1)[1]
+                .split("\n\nRack:\n", 1)[0],
+                displayed_prompt,
+            )
+
     def test_strictly_local_language_rejects_short_and_forbidden_sequences(self):
         sl = language()
 
@@ -216,24 +420,15 @@ class V1Tests(unittest.TestCase):
 
         self.assertTrue(result.ok)
 
-    def test_2d_visualization_requires_and_applies_hidden_axis_slice(self):
+    def test_2d_visualization_rejects_higher_dimensional_boards(self):
         board = Board.empty(3).place(
             Move(start=(0, 0, 0), axis=2, sequence=("A", "B", "C"))
         )
 
-        with self.assertRaisesRegex(ValueError, "slice_coords"):
+        with self.assertRaisesRegex(ValueError, "two-dimensional"):
             plot_board_2d(board)
-        figure = plot_board_2d(board, slice_coords={2: 1})
-        visible_symbols = tuple(figure.data[0].text)
 
-        self.assertIn("B", visible_symbols)
-        self.assertNotIn("A", visible_symbols)
-        self.assertNotIn("C", visible_symbols)
-        self.assertEqual(figure.data[0].type, "scatter")
-        self.assertEqual(figure.data[0].mode, "markers+text")
-        self.assertEqual(figure.data[0].marker.symbol, "square")
-
-    def test_2d_visualization_uses_marker_letters_and_heatmap(self):
+    def test_2d_visualization_uses_marker_letters_and_base_tile_colors(self):
         board = Board.empty(2).place(
             Move(start=(-1, 0), axis=0, sequence=("A", "B", "C"))
         )
@@ -243,8 +438,7 @@ class V1Tests(unittest.TestCase):
         self.assertEqual(figure.data[0].type, "scatter")
         self.assertEqual(figure.data[0].mode, "markers+text")
         self.assertEqual(tuple(figure.data[0].text), ("A", "B", "C"))
-        self.assertEqual(figure.data[0].marker.color[0], "#0057d9")
-        self.assertEqual(figure.data[0].marker.color[1], "#e60023")
+        self.assertEqual(tuple(figure.data[0].marker.color), ("#f7f8fa",) * 3)
         self.assertEqual(figure.data[0].marker.line.color, "rgba(0, 0, 0, 0)")
         self.assertEqual(figure.data[0].marker.line.width, 0)
         self.assertEqual(figure.layout.plot_bgcolor, "rgba(0, 0, 0, 0)")
@@ -252,87 +446,33 @@ class V1Tests(unittest.TestCase):
             figure.data[0].textfont.family,
             "DejaVu Sans Mono, Menlo, Consolas, monospace",
         )
-        highlighted = plot_board_2d(board, highlight_coords={(0, 0)})
-
-        self.assertEqual(highlighted.data[0].marker.color[1], "#ff00b8")
-
-    def test_3d_visualization_selects_slice_from_higher_dimensional_board(self):
-        board = Board.empty(5)
-        for move in (
-            Move(start=(-1, 0, 0, 4, -2), axis=0, sequence=("A", "B", "C")),
-            Move(start=(-1, 0, 0, 5, -2), axis=0, sequence=("D", "E", "F")),
-        ):
-            board = board.place(move)
-
-        with self.assertRaisesRegex(ValueError, r"missing \[3, 4\]"):
-            plot_board_3d(board)
-        figure = plot_board_3d(board, slice_coords={3: 4, 4: -2})
-
-        self.assertEqual(tuple(figure.data[2].text), ("A", "B", "C"))
-
-    def test_3d_visualization_uses_opaque_cube_nodes_with_face_letters_and_heatmap(self):
-        board = Board.empty(3).place(
-            Move(start=(-1, 0, 0), axis=0, sequence=("A", "B", "C"))
+        highlighted = plot_board_2d(
+            board,
+            tile_colors={(0, 0): NEW_MOVE_TILE},
         )
 
-        figure = plot_board_3d(board)
+        self.assertEqual(highlighted.data[0].marker.color[1], NEW_MOVE_TILE)
 
-        self.assertEqual(figure.data[0].type, "mesh3d")
-        self.assertEqual(figure.data[0].opacity, 1.0)
-        self.assertEqual(figure.data[1].type, "mesh3d")
-        self.assertEqual(figure.data[1].color, "#15181d")
-        self.assertEqual(figure.data[2].type, "scatter3d")
-        self.assertEqual(tuple(figure.data[2].text), ("A", "B", "C"))
-        self.assertEqual(len(figure.data[0].facecolor), 36)
-        self.assertGreater(len(set(figure.data[0].facecolor)), 1)
-        self.assertEqual(figure.layout.scene.aspectmode, "manual")
-        self.assertGreater(figure.layout.scene.camera.eye.x, 3.5)
-        self.assertLess(figure.layout.scene.camera.eye.y, -4.0)
-        zoomed_in = plot_board_3d(board, camera_zoom=1.0)
+    def test_nd_visualization_plots_every_pair_with_the_move_axis(self):
+        board = Board.empty(4).place(
+            Move(start=(-1, 0, 0, 0), axis=0, sequence=("A", "B", "C"))
+        )
 
-        self.assertLess(zoomed_in.layout.scene.camera.eye.x, figure.layout.scene.camera.eye.x)
-        self.assertEqual(tuple(figure.layout.sliders), ())
-        highlighted = plot_board_3d(board, highlight_coords={(0, 0, 0)})
+        figures = plot_board_axis_pairs(
+            board,
+            move_axis=0,
+            plane_coord=(0, 0, 0, 0),
+            title="move",
+        )
 
-        self.assertIn("#ff00b8", highlighted.data[0].facecolor)
-
-    def test_3d_animation_shows_generation_steps_with_slider(self):
-        scenario = {
-            "schema_version": 1,
-            "config_name": "unit",
-            "config": {},
-            "seed": 11,
-            "grammar_name": "unit",
-            "forbidden_snippets": [],
-            "initial_board": {
-                "dimensions": 3,
-                "occupied": [
-                    [[-1, 0, 0], "A"],
-                    [[0, 0, 0], "B"],
-                    [[1, 0, 0], "C"],
-                ],
-                "segments": [
-                    {"start": [-1, 0, 0], "axis": 0, "sequence": ["A", "B", "C"]}
-                ],
-            },
-            "transitions": [
-                {
-                    "rack": ["A", "C"],
-                    "move": [[0, -1, 0], 1, ["A", "B", "C"]],
-                    "placed": [
-                        [[0, -1, 0], "A"],
-                        [[0, 1, 0], "C"],
-                    ],
-                }
-            ],
-        }
-
-        figure = animate_scenario_3d(scenario)
-
-        self.assertEqual([step.label for step in figure.layout.sliders[0].steps], ["0", "1"])
-        self.assertEqual([frame.name for frame in figure.frames], ["0", "1"])
-        self.assertEqual(figure.data[0].type, "scatter3d")
-        self.assertEqual(figure.frames[1].data[0].type, "scatter3d")
+        self.assertEqual(len(figures), 3)
+        self.assertEqual(
+            [figure.layout.title.text for figure in figures],
+            ["move - axes 0, 1", "move - axes 0, 2", "move - axes 0, 3"],
+        )
+        for figure in figures:
+            self.assertEqual(figure.data[0].type, "scatter")
+            self.assertEqual(tuple(figure.data[0].text), ("A", "B", "C"))
 
     def test_2d_animation_shows_only_current_step_number_beside_slider(self):
         config = GeneratorConfig.model_validate(
@@ -488,6 +628,36 @@ class V1Tests(unittest.TestCase):
         self.assertFalse(evaluation.overall)
         self.assertEqual(evaluation.failure_type, "word_extension")
         self.assertFalse(evaluation.no_word_extension)
+
+    def test_granular_evaluation_marks_cross_words_unchecked_after_conflict(self):
+        sl = StrictlyLocalLanguage(
+            language_id="diagnostic",
+            alphabet=("A", "D", "I", "U"),
+            k=2,
+            forbidden_snippets=(),
+            min_word_length=3,
+        )
+        board = Board.empty(2).place(
+            Move(start=(-1, 0), axis=0, sequence=("A", "I", "D"))
+        )
+
+        evaluation = evaluate_granular(
+            board,
+            sl,
+            ("D", "I", "U", "U", "U"),
+            SubmittedMove(
+                start=(0, -2),
+                axis=1,
+                sequence=("U", "U", "U", "I", "D", "I"),
+            ),
+        )
+
+        self.assertEqual(evaluation.failure_type, "spatial_conflict")
+        self.assertFalse(evaluation.spatial_valid)
+        self.assertFalse(evaluation.overlap_valid)
+        self.assertIsNone(evaluation.cross_words_valid)
+        self.assertFalse(evaluation.rack_valid)
+        self.assertEqual(evaluation.missing_rack_symbols, {"I": 1})
 
     def test_templates_prune_deterministic_implicit_word_extensions_before_solving(self):
         sl = language()
@@ -796,7 +966,7 @@ class V1Tests(unittest.TestCase):
             [board.occupied_sorted() for board in loaded_boards],
         )
 
-    def test_prompt_uses_sequence_schema_and_board_configuration(self):
+    def test_prompt_describes_rules_without_embedding_output_schema(self):
         config = GeneratorConfig.model_validate(config_dict("unused.json"))
         scenario_run = ScenarioGenerator(config).generate()
         sl = language()
@@ -808,8 +978,10 @@ class V1Tests(unittest.TestCase):
             RepresenterConfig(),
         )
 
-        self.assertIn('"sequence"', user_prompt)
+        self.assertIn("every maximal contiguous line", user_prompt)
         self.assertIn('"occupied"', user_prompt)
+        self.assertNotIn("JSON Schema", user_prompt)
+        self.assertNotIn('"properties"', user_prompt)
         self.assertNotIn("Token scores", user_prompt)
 
     def test_cli_parser_requires_config_only(self):

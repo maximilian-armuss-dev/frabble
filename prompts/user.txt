@@ -1,13 +1,19 @@
-Your task is to place exactly one contiguous word on the board, scoring as many points as possible.
-Each symbol placed scores points, so you should place the longest valid word you can.
+Place exactly one contiguous sequence. Maximize the number of newly placed rack symbols.
 
-Coordinates are zero-based vectors. In this {dimensions}D board, coordinates have {dimensions} entries.
-{axis_description}
-The start vector identifies the coordinate of the first symbol in your sequence.
-The move must overlap at least one existing board symbol and use only the rack symbols for newly placed cells.
-The full submitted word must be accepted by the formal language.
-The move must not extend an existing valid sequence along the move axis. This also applies to sequences that are only implicitly formed by symbols from crossing words.
-You may reuse crossing symbols on the move axis only when those existing symbols do not already form a valid contiguous sequence before your move.
+## Move geometry
+- Coordinates are zero-based vectors with {dimensions} entries.
+- `start` is the first coordinate. `axis` advances one coordinate component per symbol.
+- {axis_description}
+
+## Validity rules
+- The submitted sequence must be accepted by the formal language.
+- Existing cells may be reused only with their existing symbol.
+- Reuse at least one existing cell and place at least one new symbol.
+- Only newly placed symbols consume the rack, including multiplicities.
+- Do not reuse a cell whose existing word already runs along the chosen axis.
+- The cell immediately before and after the submitted sequence on its axis must not continue an existing word.
+- A newly placed cell must not extend an already-valid word on any perpendicular axis.
+- After placement, every maximal contiguous line of length greater than one that touches the move, on every axis, must be accepted by the formal language.
 
 Formal language:
 {formal_language}
@@ -17,9 +23,3 @@ Board configuration:
 
 Rack:
 {rack}
-
-Your response must validate against this JSON Schema:
-{output_schema}
-
-Return exactly one JSON object and nothing else. Example shape:
-{response_example}

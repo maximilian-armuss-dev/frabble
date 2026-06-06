@@ -4,5 +4,6 @@
 .env
 __pycache__/
 outputs/*.json
-outputs/runs/
+outputs/scenarios/
+outputs/llm-runs/
 */.DS_Store
