@@ -13,8 +13,14 @@ models:
     max_completion_tokens: 32384
     timeout_seconds: 900
 
-  - name: anthropic_sonnet-4-5
-    model: anthropic/claude-sonnet-4-5-20250929
+  - name: anthropic_sonnet-4-6
+    model: anthropic/claude-sonnet-4-6
+    api_key_env: ANTHROPIC_API_KEY
+    temperature: 1
+    timeout_seconds: 900
+  
+  - name: anthropic_claude-opus-4-8
+    model: anthropic/claude-opus-4-8
     api_key_env: ANTHROPIC_API_KEY
     temperature: 1
     timeout_seconds: 900
