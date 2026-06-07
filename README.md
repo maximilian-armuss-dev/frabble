@@ -108,36 +108,10 @@ set `k: 2` and `min_word_length: 3` in the grammar YAML.
 
 ### 5. Run a scenario against an LLM
 
-Pick a generated scenario file and a transition index. The board is replayed up to that transition, and the model is asked to place a valid word using the rack from that step. Because the CSP solver found a solution at every step, a valid move is guaranteed to exist.
-
-```bash
-uv run run-scenario --scenario outputs/scenarios/generator_v1.json --transition 20 --model my_model
-```
-
-The model name must match a profile in `config/model_configs.yaml`. The run log (prompts, raw response, and evaluation) is written to `outputs/llm-runs/`.
-
-Key flags:
-
-```
---scenario PATH              Scenario JSON file produced by the generate step
---transition INT             Transition index N (0-indexed); board is populated with transitions 0..N-1
---model TEXT                 Model name from config/model_configs.yaml (not required with --dry-run)
---output-dir PATH            Output directory for run logs (default: outputs/llm-runs/)
---dry-run                    Build the prompt but skip the LLM call and do not write any output
---show-prompt                Print the system and user prompts before calling the LLM
---language-representer NAME  How to present the formal language (choices: forbidden-snippets [default], forbidden-snippets-production-rules, generic-production-rules)
---board-representer NAME     How to present the board (choices: coordinates-json [default])
---rack-representer NAME      How to present the rack (choices: symbol-json [default])
-```
-
-The representer names logged under `representers` in every run log identify which formatting was used. Passing an invalid name is rejected at startup with the list of valid choices.
-
-To verify that scenario loading and prompt generation work without making an API call:
-
-```bash
-uv run run-scenario --scenario outputs/scenarios/generator_v1.json --transition 20 --dry-run
-uv run run-scenario --scenario outputs/scenarios/generator_v1.json --transition 20 --dry-run --show-prompt
-```
+Use `visualization/inspect_llm_run.ipynb` for individual scenario runs. Its
+configuration cell selects the scenario, transition, model profile, and
+`REASONING_EFFORT`. Prompt inspection happens before the explicit model-call
+cell. Completed logs are written to `outputs/llm-runs/`.
 
 The log file contains a granular evaluation breakdown:
 
@@ -162,21 +136,20 @@ Case-set configs define reproducible complexity tiers and sampling:
 uv run prepare --config screening_v1
 ```
 
-Run configs select prepared tiers, model profiles, and language
-representations:
+Run configs select model profiles with their respective prepared tiers,
+language representations, and the reasoning effort used for all calls:
 
 ```bash
 uv run evaluate --config gpt5_mini_all
 uv run decompose --config gpt5_mini_all
 ```
 
-`evaluate` uses an asynchronous global request window. The checked-in default
-allows ten simultaneous provider calls, retries transient failures with
-rate-limit-aware backoff, persists every completed attempt immediately, and
-resumes incomplete runs. `decompose` currently materializes failed-case
-requests through a stub adapter without making another LLM call. Prepare also
-writes portable JSON Schemas for the shared case and decomposition interfaces
-under the case-set output directory.
+`evaluate` uses an asynchronous global request window, retries transient
+failures with rate-limit-aware backoff, persists every completed attempt
+immediately, and resumes incomplete runs. `decompose` currently materializes
+failed-case requests through a stub adapter without making another LLM call.
+Prepare also writes portable JSON Schemas for the shared case and
+decomposition interfaces under the case-set output directory.
 
 The complete design is documented under [`docs/evaluation/`](docs/evaluation/README.md).
 
@@ -198,7 +171,7 @@ uv run python -m unittest discover -s tests -q
 - `configuration.py`: Shared filename-based YAML loading; domain-specific
   config schemas remain in their owning packages.
 - `benchmark/`: Board scoring helpers.
-- `llm/`: Prompt construction, model configuration from `.env` and `config/model_configs.yaml`, LiteLLM client, granular move evaluator (`evaluation.py`), and the `run-scenario` CLI entry point (`run_cli.py`).
+- `llm/`: Prompt construction, provider configuration from `.env` and `config/model_configs.yaml`, LiteLLM client, and granular move evaluation.
 - `tools/check_model.py`: Small CLI for validating individual or all model profiles.
 - `prompts/`: System and user prompt templates.
 - `config/grammars/`: Complete standalone grammar sampling configs.

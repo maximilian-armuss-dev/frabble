@@ -9,7 +9,7 @@ from ..generator.config import PROJECT_ROOT
 from ..llm.client import acall_llm_detailed
 from .artifacts import content_sha256, read_json, utc_now, write_json_atomic
 from .config import RunConfig
-from .job_execution import ModelCooldowns, execute_with_retries
+from .job_execution import AsyncLLMCaller, ModelCooldowns, execute_with_retries
 from .jobs import EvaluationJob, build_evaluation_jobs
 from .run_artifacts import attempt_is_final, finalize_run, select_or_create_run
 from .sampling import derive_seed
@@ -38,6 +38,7 @@ async def evaluate_run(config: RunConfig) -> dict[str, Any]:
                 semaphore=semaphore,
                 cooldowns=cooldowns,
                 max_retries=config.execution.max_retries,
+                call_llm=acall_llm_detailed,
                 run_dir=run_dir,
                 manifest=manifest,
                 manifest_lock=manifest_lock,
@@ -56,6 +57,7 @@ async def _run_and_persist(
     semaphore: asyncio.Semaphore,
     cooldowns: ModelCooldowns,
     max_retries: int,
+    call_llm: AsyncLLMCaller,
     run_dir: Path,
     manifest: dict[str, Any],
     manifest_lock: asyncio.Lock,
@@ -65,7 +67,7 @@ async def _run_and_persist(
         semaphore=semaphore,
         max_retries=max_retries,
         cooldowns=cooldowns,
-        call_llm=acall_llm_detailed,
+        call_llm=call_llm,
     )
     write_json_atomic(run_dir / "attempts" / f"{job.job_id}.json", result)
     async with manifest_lock:

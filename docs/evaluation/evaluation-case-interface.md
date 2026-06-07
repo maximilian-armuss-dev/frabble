@@ -2,9 +2,9 @@
 
 ## EvaluationCase
 
-`EvaluationCase` ist die gemeinsame Eingabe fuer Full-Puzzle-Evaluation und
-Decomposition. Es ist ein versionierter Snapshot und enthaelt keine
-aufzuloesenden YAML-Vererbungen.
+`EvaluationCase` ist die gemeinsame Eingabe für Full-Puzzle-Evaluation und
+Decomposition. Es ist ein versionierter Snapshot und enthält keine
+aufzulösenden YAML-Vererbungen.
 
 Konzeptionelle Struktur:
 
@@ -43,23 +43,23 @@ Konzeptionelle Struktur:
 ```
 
 Board und Rack beschreiben exakt die Eingabe vor dem Ground-Truth-Move. Die
-Grammar ist vollstaendig eingebettet, damit eine spaetere Aenderung oder
-Loeschung der Grammar-Datei den Case nicht veraendert.
+Grammar ist vollständig eingebettet, damit eine spätere Änderung oder
+Löschung der Grammar-Datei den Case nicht verändert.
 
 ## Full-Puzzle-Runner
 
 Der Full-Puzzle-Runner kombiniert den Case mit:
 
 - einem Modellprofil,
-- einer Sprachrepraesentation,
-- den festen Board- und Rack-Repraesentationen.
+- einer Sprachrepräsentation,
+- den festen Board- und Rack-Repräsentationen.
 
 Er erzeugt Prompt, Providerantwort, geparsten Move und granulare Evaluation.
-Der Case selbst wird nicht veraendert.
+Der Case selbst wird nicht verändert.
 
 ## DecompositionRequest
 
-Ein `DecompositionRequest` enthaelt:
+Ein `DecompositionRequest` enthält:
 
 ```json
 {
@@ -71,13 +71,13 @@ Ein `DecompositionRequest` enthaelt:
 }
 ```
 
-Damit kann die Decomposition sowohl in-process ueber ein Python-Protokoll als
-auch out-of-process ueber JSON integriert werden. Die Schnittstelle kennt
+Damit kann die Decomposition sowohl in-process über ein Python-Protokoll als
+auch out-of-process über JSON integriert werden. Die Schnittstelle kennt
 keine YAML-Pfade und muss Szenarien nicht rekonstruieren.
 
 ## Python-Protokoll
 
-Der Adapter stellt sinngemaess folgende Schnittstelle bereit:
+Der Adapter stellt sinngemäß folgende Schnittstelle bereit:
 
 ```python
 class DecompositionAdapter(Protocol):
@@ -87,16 +87,16 @@ class DecompositionAdapter(Protocol):
     ) -> DecompositionResult: ...
 ```
 
-Der initiale Stub liefert den Status `not_implemented`. Spaetere Adapter
-duerfen eigene Prompts oder mehrere Teilaufgaben erzeugen, erhalten aber immer
-denselben Case-Snapshot wie die urspruengliche Evaluation.
+Der initiale Stub liefert den Status `not_implemented`. Spätere Adapter
+dürfen eigene Prompts oder mehrere Teilaufgaben erzeugen, erhalten aber immer
+denselben Case-Snapshot wie die ursprüngliche Evaluation.
 
 Prepare schreibt die aus den Pydantic-Modellen abgeleiteten JSON Schemas nach
-`outputs/evaluation/<case-set>/schemas/`. Externe Implementierungen koennen
+`outputs/evaluation/<case-set>/schemas/`. Externe Implementierungen können
 damit `EvaluationCase`, `DecompositionRequest` und `DecompositionResult`
 validieren, ohne dieses Python-Package zu importieren.
 
-Intern wird der Snapshot in `case_snapshot.py` aufgebaut. Das Modul erhaelt
-bereits aufgeloeste Grammar- und Scenario-Kontexte und kennt weder
+Intern wird der Snapshot in `case_snapshot.py` aufgebaut. Das Modul erhält
+bereits aufgelöste Grammar- und Scenario-Kontexte und kennt weder
 Case-Set-YAMLs noch Providerzugriffe. Dadurch bleibt diese Schnittstelle eine
 explizite Grenze zwischen Preparation, Evaluation und Decomposition.

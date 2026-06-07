@@ -24,7 +24,6 @@ dependencies = [
 
 [project.scripts]
 generate = "src.cli:main"
-run-scenario = "src.llm.run_cli:main"
 check-model = "src.tools.check_model:main"
 sample-grammar = "src.formal.grammar.cli:cmd_sample"
 analyze-grammar = "src.formal.grammar.cli:cmd_analyze"

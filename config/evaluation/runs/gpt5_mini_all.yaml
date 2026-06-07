@@ -1,8 +1,7 @@
 case_set: screening_v1
-tiers: 
-  - low
 models:
-  - gpt-5-mini
+  gpt-5-mini: [low] # Here, "low" refers to the complexity tier, not reasoning eff!
+reasoning_effort: high
 language_representations:
   - forbidden-snippets
 execution:

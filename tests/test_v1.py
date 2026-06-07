@@ -120,7 +120,6 @@ def config_dict(output_path: str, *, dimensions: int = 2) -> dict[str, object]:
 
 class V1Tests(unittest.TestCase):
     def test_litellm_client_requests_and_validates_structured_output(self):
-        config = ENV.get_model_config("gpt-5-mini")
         message = SimpleNamespace(
             content='{"start":[0,0],"axis":0,"sequence":["A","B","C"]}'
         )
@@ -137,10 +136,16 @@ class V1Tests(unittest.TestCase):
         )
 
         with patch("src.llm.client.completion", return_value=response) as mocked:
-            result = call_llm_detailed("system", "user", "gpt-5-mini")
+            result = call_llm_detailed(
+                "system",
+                "user",
+                "gpt-5-mini",
+                reasoning_effort="high",
+            )
 
         kwargs = mocked.call_args.kwargs
         self.assertIs(kwargs["response_format"], SubmittedMove)
+        self.assertEqual(kwargs["reasoning_effort"], "high")
         self.assertEqual(
             SubmittedMove.model_validate_json(result.content).sequence,
             ("A", "B", "C"),
@@ -230,6 +235,7 @@ class V1Tests(unittest.TestCase):
                 scenario_name="generator_v1",
                 transition_index=0,
                 model_name="gpt-5-mini",
+                reasoning_effort="minimal",
             )
             mocked_call.assert_not_called()
             mocked_call.return_value = LLMCallResult(
@@ -254,6 +260,7 @@ class V1Tests(unittest.TestCase):
                 prepared.system_prompt,
                 prepared.user_prompt,
                 prepared.model_name,
+                reasoning_effort="minimal",
             )
             self.assertGreaterEqual(response.elapsed_seconds, 0.0)
             self.assertEqual(
@@ -265,7 +272,7 @@ class V1Tests(unittest.TestCase):
             self.assertEqual(diagnostics["backend"], "litellm")
             self.assertEqual(
                 diagnostics["reasoning_effort"],
-                ENV.get_model_config("gpt-5-mini").reasoning_effort,
+                "minimal",
             )
 
             with tempfile.TemporaryDirectory() as temp_dir:
@@ -281,6 +288,10 @@ class V1Tests(unittest.TestCase):
                 response.elapsed_seconds,
             )
             self.assertEqual(context.run_log["llm_usage"], response.usage)
+            self.assertEqual(
+                context.run_log["model_config"]["reasoning_effort"],
+                "minimal",
+            )
             self.assertNotIn("backend", context.run_log["model_config"])
             displayed_summary = display_llm_run_summary(context).data
             self.assertIn("failure classes", displayed_summary)

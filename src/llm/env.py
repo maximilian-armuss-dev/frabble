@@ -22,7 +22,6 @@ class ModelConfig:
     model: str
     api_key: str
     temperature: float
-    reasoning_effort: str | None = None
     max_completion_tokens: int | None = None
     base_url: str | None = None
     timeout_seconds: float | None = None
@@ -60,7 +59,6 @@ class Environment:
                 temperature_str = self.get_env("TEMPERATURE_DEFAULT")
             temperature = max(float(temperature_str), 1e-6)
             # Optional values
-            reasoning_effort = self._optional_config_value(raw_model, "reasoning_effort")
             max_completion_tokens = self._optional_int_config_value(
                 raw_model, "max_completion_tokens"
             )
@@ -74,7 +72,6 @@ class Environment:
                 model=model,
                 api_key=api_key,
                 temperature=temperature,
-                reasoning_effort=reasoning_effort,
                 max_completion_tokens=max_completion_tokens,
                 base_url=base_url,
                 timeout_seconds=timeout_seconds,

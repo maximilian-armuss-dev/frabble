@@ -20,11 +20,14 @@ def call_llm(
     system_prompt: str,
     user_prompt: str,
     model_name: str,
+    *,
+    reasoning_effort: str | None = None,
 ) -> str:
     return call_llm_detailed(
         system_prompt,
         user_prompt,
         model_name,
+        reasoning_effort=reasoning_effort,
     ).content
 
 
@@ -32,9 +35,18 @@ def call_llm_detailed(
     system_prompt: str,
     user_prompt: str,
     model_name: str,
+    *,
+    reasoning_effort: str | None = None,
 ) -> LLMCallResult:
     config = ENV.get_model_config(model_name)
-    response = completion(**_completion_kwargs(config, system_prompt, user_prompt))
+    response = completion(
+        **_completion_kwargs(
+            config,
+            system_prompt,
+            user_prompt,
+            reasoning_effort=reasoning_effort,
+        )
+    )
     return _parse_completion_response(response)
 
 
@@ -42,10 +54,17 @@ async def acall_llm_detailed(
     system_prompt: str,
     user_prompt: str,
     model_name: str,
+    *,
+    reasoning_effort: str | None = None,
 ) -> LLMCallResult:
     config = ENV.get_model_config(model_name)
     response = await acompletion(
-        **_completion_kwargs(config, system_prompt, user_prompt)
+        **_completion_kwargs(
+            config,
+            system_prompt,
+            user_prompt,
+            reasoning_effort=reasoning_effort,
+        )
     )
     return _parse_completion_response(response)
 
@@ -101,6 +120,8 @@ def _completion_kwargs(
     config: ModelConfig,
     system_prompt: str,
     user_prompt: str,
+    *,
+    reasoning_effort: str | None,
 ) -> dict[str, object]:
     kwargs: dict[str, object] = {
         "model": config.model,
@@ -109,7 +130,7 @@ def _completion_kwargs(
             {"role": "user", "content": user_prompt},
         ],
         "temperature": config.temperature,
-        "reasoning_effort": config.reasoning_effort,
+        "reasoning_effort": reasoning_effort,
         "max_completion_tokens": config.max_completion_tokens,
         "response_format": SubmittedMove,
         "api_key": config.api_key,

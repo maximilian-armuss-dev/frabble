@@ -122,12 +122,12 @@ class RunConfig(BaseModel):
 
     config_name: str
     case_set: str
-    tiers: list[str] | str
-    models: list[str] | str
+    models: dict[str, list[str]]
     language_representations: list[str] | str
+    reasoning_effort: str
     execution: ExecutionConfig = Field(default_factory=ExecutionConfig)
 
-    @field_validator("tiers", "models", "language_representations")
+    @field_validator("language_representations")
     @classmethod
     def validate_selection(cls, value: list[str] | str) -> list[str] | str:
         if isinstance(value, str):
@@ -140,6 +140,34 @@ class RunConfig(BaseModel):
             raise ValueError("Selection lists must not contain duplicates.")
         return value
 
+    @field_validator("models")
+    @classmethod
+    def validate_models(
+        cls,
+        value: dict[str, list[str]],
+    ) -> dict[str, list[str]]:
+        if not value:
+            raise ValueError("models must not be empty.")
+        normalized_models: dict[str, list[str]] = {}
+        for model_name, tiers in value.items():
+            if not model_name.strip():
+                raise ValueError("Model names must not be empty.")
+            if not tiers:
+                raise ValueError(
+                    f"Model {model_name!r} must select at least one tier."
+                )
+            normalized = [tier.strip() for tier in tiers]
+            if any(not tier for tier in normalized):
+                raise ValueError(
+                    f"Model {model_name!r} contains an empty tier."
+                )
+            if len(normalized) != len(set(normalized)):
+                raise ValueError(
+                    f"Model {model_name!r} contains duplicate tiers."
+                )
+            normalized_models[model_name.strip()] = normalized
+        return normalized_models
+
     @field_validator("language_representations")
     @classmethod
     def validate_language_representations(
@@ -151,6 +179,14 @@ class RunConfig(BaseModel):
         if unknown:
             raise ValueError(f"Unknown language representations: {unknown}")
         return value
+
+    @field_validator("reasoning_effort")
+    @classmethod
+    def validate_reasoning_effort(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("reasoning_effort must not be empty.")
+        return normalized
 
 
 def load_case_set_config(config_name: str) -> CaseSetConfig:

@@ -7,7 +7,7 @@ Grammar-, Generator- und Evaluation-Modulen.
 
 Eine Config-ID ist immer ein Name ohne Parent-Pfad und ohne `.yaml`-Suffix.
 `config_name` wird aus dem Dateistamm abgeleitet und ist in allen
-menschengepflegten YAML-Dateien ungueltig.
+menschengepflegten YAML-Dateien ungültig.
 
 ## Standalone Grammar-Configs
 
@@ -37,11 +37,11 @@ show_stats: true
 ```
 
 Standardoutput ist `outputs/grammars/<grammar-id>.json`. Ein optionales
-`output_path` erlaubt fuer Standalone-Experimente einen abweichenden Pfad.
+`output_path` erlaubt für Standalone-Experimente einen abweichenden Pfad.
 
 ## Standalone Generation-Configs
 
-Generation-Configs bleiben vollstaendige, einzeln ausfuehrbare
+Generation-Configs bleiben vollständige, einzeln ausführbare
 Generatorbeschreibungen:
 
 ```bash
@@ -72,10 +72,10 @@ additional_rack_noise: 1
 include_search_logs: true
 ```
 
-`config_name` entfaellt. `grammar` ist eine ID ohne Parent-Pfad oder Suffix und
-wird nach `outputs/grammars/<grammar>.json` aufgeloest. Fuer externe Dateien
+`config_name` entfällt. `grammar` ist eine ID ohne Parent-Pfad oder Suffix und
+wird nach `outputs/grammars/<grammar>.json` aufgelöst. Für externe Dateien
 kann alternativ `grammar_path` gesetzt werden. Beide Felder gleichzeitig sind
-ungueltig.
+ungültig.
 
 Standardoutput ist `outputs/scenarios/<generation-id>.json`. `output_path`
 bleibt ein optionaler Override. Alle Suchbudgets, Heuristiken und
@@ -128,8 +128,8 @@ tiers:
     k: 4
 ```
 
-`generation_config` und `grammar_config` referenzieren vollstaendige
-Standalone-Configs. Das Case Set ueberschreibt nur IDs, Seeds, Outputs und die
+`generation_config` und `grammar_config` referenzieren vollständige
+Standalone-Configs. Das Case Set überschreibt nur IDs, Seeds, Outputs und die
 experimentell skalierten Achsen.
 
 Ein Achsenwert ist entweder ein fester Scalar oder ein Intervall mit `min` und
@@ -137,13 +137,13 @@ Ein Achsenwert ist entweder ein fester Scalar oder ein Intervall mit `min` und
 
 - Mittelwert: Intervallmitte.
 - Standardabweichung: Intervallbreite geteilt durch sechs.
-- Ziehungen ausserhalb des Intervalls werden wiederholt.
-- Integerfelder werden gerundet und abschliessend begrenzt.
+- Ziehungen außerhalb des Intervalls werden wiederholt.
+- Integerfelder werden gerundet und abschließend begrenzt.
 
 Grammarparameter werden pro Grammar-Sample gezogen. Boardparameter werden pro
 Board-Sample gezogen.
 
-`sampling_rounds` erzeugt vollstaendig neue Parameter, Grammars und Boards. Bei
+`sampling_rounds` erzeugt vollständig neue Parameter, Grammars und Boards. Bei
 vier Tiers, einer Runde, drei Grammar-Samples und zehn Boards entstehen
 `4 * 1 * 3 * 10 = 120` Cases.
 
@@ -154,32 +154,34 @@ Run-Configs liegen unter `config/evaluation/runs/`:
 ```yaml
 case_set: screening_v1
 
-tiers:
-  - low
-  - high
-
 models:
-  - gpt-5-mini
+  gpt-5-mini: [low, medium]
+  gpt-5: [high]
 
 language_representations:
   - forbidden-snippets
   - generic-production-rules
+
+reasoning_effort: low
 
 execution:
   max_concurrency: 10
   max_retries: 5
 ```
 
-`tiers`, `models` und `language_representations` akzeptieren eine Liste oder
-den Wert `all`. Modellnamen referenzieren `config/model_configs.yaml`.
-Unterschiedliche Reasoning-Einstellungen desselben Providers werden als
-getrennte Modellprofile registriert.
+`models` bildet jeden Modellprofilnamen aus `config/model_configs.yaml` auf
+die Complexity-Tiers ab, die dieses Modell bearbeiten soll. `[all]` wählt
+alle vorbereiteten Tiers für genau dieses Modell.
+`language_representations` akzeptiert eine Liste oder den Wert `all`.
+`reasoning_effort` gilt für alle Modellaufrufe des Runs, wird explizit an
+LiteLLM übergeben und ist Teil des Run-Config-Hashes. Modellprofile enthalten
+deshalb keine Reasoning-Einstellung.
 
-Board- und Rack-Repraesentationen erscheinen nicht in der Run-Config, solange
-jeweils nur eine Implementierung existiert. Jede Kombination aus Case,
-Modellprofil und Sprachrepraesentation ist ein eigener Job.
+Board- und Rack-Repräsentationen erscheinen nicht in der Run-Config, solange
+jeweils nur eine Implementierung existiert. Jede zugelassene Kombination aus
+Case-Tier, Modellprofil und Sprachrepräsentation ist ein eigener Job.
 
-Es gibt absichtlich keinen `repetitions`-Key fuer erneutes Sampling. Neue
+Es gibt absichtlich keinen `repetitions`-Key für erneutes Sampling. Neue
 Instanzen werden durch `sampling_rounds` im Case Set erzeugt. Wiederholte
-Modellaufrufe auf exakt demselben Case koennen spaeter als separate
-Ausfuehrungsdimension eingefuehrt werden.
+Modellaufrufe auf exakt demselben Case können später als separate
+Ausführungsdimension eingeführt werden.

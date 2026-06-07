@@ -6,6 +6,12 @@ from typing import Any
 
 from .artifacts import read_json, utc_now, write_json_atomic
 from .config import RunConfig
+from .result_aggregation import (
+    build_aggregate,
+    compact_summary,
+    write_results_csv,
+)
+from .result_index import build_result_index
 
 
 def select_or_create_run(
@@ -76,30 +82,18 @@ def finalize_run(
     )
     write_json_atomic(run_dir / "run-manifest.json", manifest)
 
-    summary = summarize_attempts(attempts)
+    aggregate = build_aggregate(attempts)
+    summary = compact_summary(aggregate)
     write_json_atomic(run_dir / "summary.json", summary)
+    write_json_atomic(run_dir / "aggregate.json", aggregate)
+    write_results_csv(run_dir / "results.csv", aggregate)
+    if manifest["status"] == "complete":
+        build_result_index(run_dir.parent.parent)
     return summary
 
 
 def summarize_attempts(attempts: list[dict[str, Any]]) -> dict[str, Any]:
-    completed = [item for item in attempts if item.get("status") == "complete"]
-    passed = [item for item in completed if _attempt_passed(item)]
-    by_tier: dict[str, dict[str, int]] = {}
-    for attempt in completed:
-        tier = str(attempt.get("tier"))
-        bucket = by_tier.setdefault(tier, {"total": 0, "passed": 0})
-        bucket["total"] += 1
-        bucket["passed"] += int(_attempt_passed(attempt))
-
-    return {
-        "schema_version": 1,
-        "total_attempts": len(attempts),
-        "completed": len(completed),
-        "passed": len(passed),
-        "failed": len(completed) - len(passed),
-        "transport_errors": len(attempts) - len(completed),
-        "by_tier": by_tier,
-    }
+    return compact_summary(build_aggregate(attempts))
 
 
 def _matching_runs(
@@ -153,7 +147,3 @@ def _create_run(
     }
     write_json_atomic(run_dir / "run-manifest.json", manifest)
     return run_dir, manifest
-
-
-def _attempt_passed(attempt: dict[str, Any]) -> bool:
-    return bool(dict(attempt.get("evaluation", {})).get("overall"))

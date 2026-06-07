@@ -19,7 +19,7 @@ from .artifacts import read_json, utc_now
 from .jobs import EvaluationJob
 from .models import EvaluationCase
 
-AsyncLLMCaller = Callable[[str, str, str], Awaitable[LLMCallResult]]
+AsyncLLMCaller = Callable[..., Awaitable[LLMCallResult]]
 
 
 class ModelCooldowns:
@@ -112,7 +112,12 @@ async def execute_job(
     )
 
     started_at = perf_counter()
-    result = await call_llm(system_prompt, user_prompt, job.model_name)
+    result = await call_llm(
+        system_prompt,
+        user_prompt,
+        job.model_name,
+        reasoning_effort=job.reasoning_effort,
+    )
     elapsed = perf_counter() - started_at
     submitted, parse_error = _parse_response(result.content)
     evaluation = evaluate_granular(
@@ -129,10 +134,14 @@ async def execute_job(
         "case_id": evaluation_case.case_id,
         "case_file": str(job.case_path),
         "tier": evaluation_case.tier,
+        "sampling_round": evaluation_case.sampling_round,
+        "grammar_sample_index": evaluation_case.grammar_sample_index,
+        "board_sample_index": evaluation_case.board_sample_index,
         "model": job.model_name,
+        "reasoning_effort": job.reasoning_effort,
         "model_config": {
             "model": model_config.model,
-            "reasoning_effort": model_config.reasoning_effort,
+            "reasoning_effort": job.reasoning_effort,
             "max_completion_tokens": model_config.max_completion_tokens,
             "timeout_seconds": model_config.timeout_seconds,
         },
@@ -163,6 +172,7 @@ def transport_error_result(
         "job_id": job.job_id,
         "case_file": str(job.case_path),
         "model": job.model_name,
+        "reasoning_effort": job.reasoning_effort,
         "language_representation": job.language_representation,
         "status": "transport_error",
         "retryable": retryable,
