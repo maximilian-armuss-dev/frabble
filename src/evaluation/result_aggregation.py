@@ -52,7 +52,7 @@ def build_aggregate(attempts: list[dict[str, Any]]) -> dict[str, Any]:
         for key, items in _group_by(enriched, GROUP_FIELDS)
     ]
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "dimensions": list(GROUP_FIELDS),
         "overall": _aggregate_group(enriched, dimensions={}),
         "groups": groups,
@@ -169,8 +169,17 @@ def _aggregate_group(
         "failed_constraints": failed_constraints,
         "constraint_pass_rates": constraint_pass_rates,
         "timing": {
+            "request_elapsed_seconds": _numeric_summary(
+                _request_elapsed_seconds(item) for item in attempts
+            ),
             "llm_elapsed_seconds": _numeric_summary(
                 item.get("llm_elapsed_seconds") for item in completed
+            ),
+            "llm_elapsed_seconds_total": _numeric_summary(
+                item.get("llm_elapsed_seconds_total") for item in completed
+            ),
+            "retry_wait_seconds_total": _numeric_summary(
+                item.get("retry_wait_seconds_total") for item in completed
             ),
             "provider_processing_ms": _numeric_summary(
                 item.get("provider_metadata", {}).get("provider_processing_ms")
@@ -192,6 +201,16 @@ def _aggregate_group(
             ),
             "total_tokens": _numeric_summary(
                 item.get("usage", {}).get("total_tokens") for item in completed
+            ),
+        },
+        "quality": {
+            "rack_symbols_used": _numeric_summary(
+                item.get("evaluation", {}).get("rack_symbols_used")
+                for item in completed
+            ),
+            "rack_usage_ratio": _numeric_summary(
+                item.get("evaluation", {}).get("rack_usage_ratio")
+                for item in completed
             ),
         },
         "grammars": grammar_groups,
@@ -239,6 +258,16 @@ def _aggregate_grammar(
         },
         "timing": {},
         "usage": {},
+        "quality": {
+            "rack_symbols_used": _numeric_summary(
+                item.get("evaluation", {}).get("rack_symbols_used")
+                for item in attempts
+            ),
+            "rack_usage_ratio": _numeric_summary(
+                item.get("evaluation", {}).get("rack_usage_ratio")
+                for item in attempts
+            ),
+        },
     }
 
 
@@ -263,7 +292,7 @@ def _metric_rows(
         yield _row(base, "primary_failure", name, int(count), failed)
     for name, count in aggregate["failed_constraints"].items():
         yield _row(base, "failed_constraint", name, int(count), completed)
-    for family in ("timing", "usage"):
+    for family in ("timing", "usage", "quality"):
         for name, summary in aggregate.get(family, {}).items():
             for statistic in ("mean", "median", "min", "max", "sum"):
                 value = summary.get(statistic)
@@ -333,6 +362,11 @@ def _numeric_summary(values: Iterable[Any]) -> dict[str, int | float | None]:
         "min": min(numeric),
         "max": max(numeric),
     }
+
+
+def _request_elapsed_seconds(attempt: Mapping[str, Any]) -> Any:
+    total = attempt.get("llm_elapsed_seconds_total")
+    return total if total is not None else attempt.get("llm_elapsed_seconds")
 
 
 def _group_by(

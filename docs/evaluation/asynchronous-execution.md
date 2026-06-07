@@ -41,6 +41,11 @@ Retryreihenfolge:
 Bad-Request-, Schema- und Content-Policy-Fehler werden nicht automatisch
 wiederholt.
 
+Provider-SDK-Retries sind explizit deaktiviert. Nur `job_execution.py`
+wiederholt Requests, damit Anzahl, Laufzeit und Fehler jedes Versuchs
+beobachtbar bleiben. Setzt eine Run-Config `max_retries: 0`, wird ein Timeout
+als Transportfehler gespeichert und der Request nicht erneut gesendet.
+
 Ein modellbezogener Rate-Limit-Fehler setzt einen Cooldown für dieses
 Modellprofil. Andere Modellprofile dürfen weiterlaufen. Wartende Retries
 halten keinen globalen Concurrency-Slot besetzt.
@@ -54,17 +59,19 @@ implementiert werden.
 Jedes finale Attempt-Artefakt speichert:
 
 - einen UTC-Zeitstempel,
-- die gemessene LLM-Laufzeit,
+- die Laufzeit des finalen LLM-Aufrufs und aller Request-Versuche,
 - Retry-Nummer,
+- fehlgeschlagene Versuche und Retry-Wartezeiten,
 - den für den Run konfigurierten Reasoning-Effort,
 - Provider- und Modellmetadaten,
+- Hashes der tatsächlich gesendeten Prompts,
 - Usage,
 - Rate-Limit-Metadaten, soweit verfügbar,
 - Rohantwort oder Fehlerklassifikation,
 - Parsing- und Evaluationsergebnis.
 
-Einzelne Provider-Retries werden über `retry_count` zusammengefasst und
-derzeit nicht als separate Dateien materialisiert.
+Einzelne Request-Versuche werden im finalen Attempt-Artefakt zusammengefasst
+und nicht als separate Dateien materialisiert.
 
 Nach einem erfolgreichen Provideraufruf wird derselbe Job nicht erneut
 gesendet, auch wenn die Modellantwort fachlich ungültig war.

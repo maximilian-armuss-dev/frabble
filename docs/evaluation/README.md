@@ -53,7 +53,11 @@ Tier, Modell und Sprachrepräsentation sowie Ergebnisse pro Grammar-Sample.
 `results.csv` stellt dieselben Metriken im Long-Format für externe Analysen
 bereit. `visualization/inspect_evaluation.ipynb` visualisiert Passraten,
 primäre Fehlerklassen, die Robustheit zwischen Grammar-Samples sowie
-durchschnittliche Token-Nutzung und LLM-Laufzeit.
+durchschnittliche Token-Nutzung und LLM-Laufzeit. Die Passrate misst die
+formale Gültigkeit eines Zuges; `rack_usage_ratio` wird separat als
+Lösungsqualität aggregiert. Die Latenzansicht trennt lokale Wall-Clock-Zeit
+von der Provider-Verarbeitungszeit. Die durchschnittliche Request-Laufzeit
+schließt finale Transportfehler und Timeouts ein.
 
 `results-index.json` ist der persistente, run-übergreifende Datenpool eines
 Case-Sets. Er wird nach vollständigen Runs und bei Bedarf beim Laden des
@@ -61,6 +65,7 @@ Notebooks aktualisiert. Für jede Kombination aus Case, Modell,
 Sprachrepräsentation und Reasoning-Effort bleibt der Attempt aus dem neuesten
 abgeschlossenen Run erhalten. Mit `RUN_ID = None` verwendet das Notebook diesen
 Pool; eine konkrete Run-ID lädt weiterhin nur den angegebenen Einzelrun.
+Das Notebook zeigt die ID und Abschlusszeit des neuesten Runs im Pool an.
 
 Überlappende
 Constraint-Fehler bleiben als Diagnosewerte in `aggregate.json` erhalten.

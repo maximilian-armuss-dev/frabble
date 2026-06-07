@@ -100,9 +100,30 @@ def plot_pass_rate_heatmaps(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
             ]
             for model in models
         ]
+        rack_usage = [
+            [
+                _group_summary_stat(
+                    groups,
+                    model,
+                    tier,
+                    family="quality",
+                    metric="rack_usage_ratio",
+                    statistic="mean",
+                )
+                for tier in tiers
+            ]
+            for model in models
+        ]
         labels = [
-            ["" if value is None else f"{value:.1%}" for value in row]
-            for row in values
+            [
+                _pass_rate_label(value, rack_ratio)
+                for value, rack_ratio in zip(
+                    value_row,
+                    rack_row,
+                    strict=True,
+                )
+            ]
+            for value_row, rack_row in zip(values, rack_usage, strict=True)
         ]
         figure = go.Figure(
             go.Heatmap(
@@ -114,8 +135,12 @@ def plot_pass_rate_heatmaps(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
                 colorscale="RdYlGn",
                 text=labels,
                 texttemplate="%{text}",
+                customdata=rack_usage,
                 colorbar={"title": "pass rate"},
-                hovertemplate="model=%{y}<br>tier=%{x}<br>pass=%{z:.1%}<extra></extra>",
+                hovertemplate=(
+                    "model=%{y}<br>tier=%{x}<br>pass=%{z:.1%}"
+                    "<br>mean rack usage=%{customdata:.1%}<extra></extra>"
+                ),
             )
         )
         _style_figure(
@@ -353,7 +378,7 @@ def plot_latency_tables(
                         model,
                         tier,
                         family="timing",
-                        metric="llm_elapsed_seconds",
+                        metric="request_elapsed_seconds",
                     )
                 )
                 for model in models
@@ -451,11 +476,41 @@ def _group_summary_mean(
     family: str,
     metric: str,
 ) -> float | None:
+    return _group_summary_stat(
+        groups,
+        model,
+        tier,
+        family=family,
+        metric=metric,
+        statistic="mean",
+    )
+
+
+def _group_summary_stat(
+    groups: list[Mapping[str, Any]],
+    model: str,
+    tier: str,
+    *,
+    family: str,
+    metric: str,
+    statistic: str,
+) -> float | None:
     for group in groups:
         if group["model"] == model and group["tier"] == tier:
-            value = group.get(family, {}).get(metric, {}).get("mean")
+            value = group.get(family, {}).get(metric, {}).get(statistic)
             return float(value) if value is not None else None
     return None
+
+
+def _pass_rate_label(
+    pass_rate: float | None,
+    rack_usage_ratio: float | None,
+) -> str:
+    if pass_rate is None:
+        return ""
+    if rack_usage_ratio is None:
+        return f"{pass_rate:.1%}"
+    return f"{pass_rate:.1%}<br>{rack_usage_ratio:.1%} rack"
 
 
 def _grammar_id(grammar: Mapping[str, Any]) -> str:

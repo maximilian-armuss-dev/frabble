@@ -7,6 +7,7 @@ from .artifacts import read_json, utc_now, write_json_atomic
 from .result_aggregation import build_aggregate
 
 INDEX_FILENAME = "results-index.json"
+INDEX_SCHEMA_VERSION = 3
 
 
 def load_or_build_result_index(case_root: str | Path) -> dict[str, Any]:
@@ -20,7 +21,10 @@ def load_or_build_result_index(case_root: str | Path) -> dict[str, Any]:
     index_path = root / INDEX_FILENAME
     if index_path.exists():
         index = read_json(index_path)
-        if index.get("source_runs") == source_runs:
+        if (
+            index.get("schema_version") == INDEX_SCHEMA_VERSION
+            and index.get("source_runs") == source_runs
+        ):
             return index
     return build_result_index(root, source_runs=source_runs)
 
@@ -47,10 +51,13 @@ def build_result_index(
             loaded_attempts += 1
 
     attempts = list(latest_attempts.values())
+    latest_run = runs[-1]
     index = {
-        "schema_version": 1,
+        "schema_version": INDEX_SCHEMA_VERSION,
         "case_set": root.name,
         "updated_at": utc_now(),
+        "latest_completed_run_id": latest_run["run_id"],
+        "latest_completed_at": latest_run["completed_at"],
         "source_runs": runs,
         "source_attempts": loaded_attempts,
         "indexed_attempts": len(attempts),

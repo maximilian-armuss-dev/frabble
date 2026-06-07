@@ -104,6 +104,17 @@ class ResultAggregationTests(unittest.TestCase):
         self.assertEqual(overall["failed_constraints"]["rack_valid"], 1)
         self.assertEqual(overall["constraint_pass_rates"]["parse_ok"], 0.5)
         self.assertEqual(
+            overall["timing"]["request_elapsed_seconds"],
+            {
+                "count": 2,
+                "sum": 4.0,
+                "mean": 2.0,
+                "median": 2.0,
+                "min": 1.0,
+                "max": 3.0,
+            },
+        )
+        self.assertEqual(
             overall["timing"]["llm_elapsed_seconds"],
             {
                 "count": 2,
@@ -120,6 +131,7 @@ class ResultAggregationTests(unittest.TestCase):
         )
         self.assertEqual(overall["usage"]["prompt_tokens"]["mean"], 20.0)
         self.assertEqual(overall["usage"]["reasoning_tokens"]["sum"], 12.0)
+        self.assertEqual(overall["quality"]["rack_usage_ratio"]["mean"], 0.5)
         self.assertEqual(overall["grammars"][0]["total_attempts"], 2)
 
     def test_numeric_summaries_ignore_missing_and_non_numeric_values(self):
@@ -352,6 +364,38 @@ class ResultAggregationTests(unittest.TestCase):
 
 
 class ResultIndexTests(unittest.TestCase):
+    def test_newer_transport_error_overwrites_older_success(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            case_root = Path(temp_dir) / "case-set"
+            older = _attempt(case_id="case-a")
+            newer = _transport_attempt(case_id="case-a")
+            newer["llm_elapsed_seconds_total"] = 600.0
+            _write_run(
+                case_root / "runs" / "older",
+                status="complete",
+                completed_at="2026-06-01T10:00:00+00:00",
+                attempts=[older],
+            )
+            _write_run(
+                case_root / "runs" / "newer",
+                status="complete",
+                completed_at="2026-06-02T10:00:00+00:00",
+                attempts=[newer],
+            )
+
+            index = load_or_build_result_index(case_root)
+
+        self.assertEqual(index["latest_completed_run_id"], "newer")
+        self.assertEqual(index["indexed_attempts"], 1)
+        self.assertEqual(index["aggregate"]["overall"]["completed"], 0)
+        self.assertEqual(index["aggregate"]["overall"]["transport_errors"], 1)
+        self.assertEqual(
+            index["aggregate"]["overall"]["timing"][
+                "request_elapsed_seconds"
+            ]["mean"],
+            600.0,
+        )
+
     def test_index_separates_efforts_representations_and_ignores_incomplete_runs(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             case_root = Path(temp_dir) / "case-set"
@@ -418,6 +462,7 @@ class ResultIndexTests(unittest.TestCase):
         self.assertEqual(index["indexed_attempts"], 3)
         self.assertEqual(index["overwritten_attempts"], 1)
         self.assertEqual(len(index["source_runs"]), 2)
+        self.assertEqual(index["latest_completed_run_id"], "newer")
         groups = index["aggregate"]["groups"]
         self.assertEqual(
             {
@@ -480,6 +525,8 @@ def _attempt(
     reasoning_tokens: Any = 5,
     total_tokens: Any = 18,
     false_constraints: tuple[str, ...] = (),
+    rack_symbols_used: Any = 2,
+    rack_usage_ratio: Any = 0.5,
     sampling_round: int = 0,
     grammar: int = 0,
     board: int = 0,
@@ -520,6 +567,8 @@ def _attempt(
         "evaluation": {
             "overall": overall,
             "failure_type": failure_type,
+            "rack_symbols_used": rack_symbols_used,
+            "rack_usage_ratio": rack_usage_ratio,
             **constraints,
         },
     }

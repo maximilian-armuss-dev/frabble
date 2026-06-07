@@ -133,6 +133,9 @@ def _completion_kwargs(
         "reasoning_effort": reasoning_effort,
         "max_completion_tokens": config.max_completion_tokens,
         "response_format": SubmittedMove,
+        # Retries are owned by the evaluation runner so they can be counted,
+        # timed, and persisted. OpenAI's SDK otherwise retries twice by default.
+        "max_retries": 0,
         "api_key": config.api_key,
         "base_url": config.base_url,
         "timeout": config.timeout_seconds,

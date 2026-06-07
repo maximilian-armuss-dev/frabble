@@ -8,18 +8,24 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import litellm
 from pydantic import BaseModel
 
 from src.configuration import NamedYamlConfigSource
 from src.evaluation.artifacts import read_json, write_json_atomic
 from src.evaluation.config import CaseSetConfig, RunConfig
 from src.evaluation.decomposition import decompose_run
-from src.evaluation.job_execution import parse_duration, retry_delay
+from src.evaluation.job_execution import (
+    ModelCooldowns,
+    execute_with_retries,
+    parse_duration,
+    retry_delay,
+)
 from src.evaluation.jobs import build_evaluation_jobs
 from src.evaluation.prepare import prepare_case_set
 from src.evaluation.result_aggregation import build_aggregate
 from src.evaluation.runner import _pending_jobs, evaluate_run
-from src.evaluation.run_artifacts import summarize_attempts
+from src.evaluation.run_artifacts import finalize_run, summarize_attempts
 from src.evaluation.sampling import derive_seed, sample_axis
 from src.formal.grammar.config import load_grammar_config
 from src.generator.config import (
@@ -158,6 +164,7 @@ class EvaluationConfigTests(unittest.TestCase):
             list(latency_figure.data[0].cells.values[1]),
             ["-", "-", "-", "12.50 s"],
         )
+        self.assertEqual(len(plot_latency_tables(aggregate)), 1)
 
     def test_pooled_result_index_keeps_distinct_cells_and_uses_latest_attempt(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -219,6 +226,7 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(index["source_attempts"], 3)
         self.assertEqual(index["indexed_attempts"], 2)
         self.assertEqual(index["overwritten_attempts"], 1)
+        self.assertEqual(index["latest_completed_run_id"], "newer")
         self.assertEqual(aggregate["overall"]["passed"], 2)
         self.assertEqual(
             {group["model"] for group in aggregate["groups"]},
@@ -412,6 +420,31 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(summary["by_model"]["gpt-5-mini"]["total"], 2)
         self.assertEqual(len(summary["by_group"]), 2)
 
+    def test_exhausted_transport_error_finishes_run(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            run_dir = Path(temp_dir) / "case-set" / "runs" / "run"
+            write_json_atomic(
+                run_dir / "attempts" / "timeout.json",
+                {
+                    "status": "transport_error",
+                    "retryable": True,
+                    "retry_count": 0,
+                    "llm_elapsed_seconds_total": 600.0,
+                },
+            )
+            manifest = {
+                "run_id": "run",
+                "config_hash": "hash",
+                "status": "in_progress",
+                "config": {"execution": {"max_retries": 0}},
+            }
+
+            finalize_run(run_dir, manifest)
+
+        self.assertEqual(manifest["status"], "complete")
+        self.assertEqual(manifest["error_jobs"], 1)
+        self.assertIsNotNone(manifest["completed_at"])
+
     def test_named_yaml_source_derives_name_and_rejects_explicit_config_name(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -492,6 +525,7 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
         active = 0
         peak = 0
         observed_reasoning_efforts: list[str | None] = []
+        observed_prompts: list[str] = []
         progress_updates: list[tuple[int, int]] = []
 
         async def fake_call(
@@ -503,6 +537,7 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
         ) -> LLMCallResult:
             nonlocal active, peak
             observed_reasoning_efforts.append(reasoning_effort)
+            observed_prompts.append(_user)
             active += 1
             peak = max(peak, active)
             await asyncio.sleep(0.02)
@@ -546,12 +581,22 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(attempts), 3)
         self.assertEqual(result["summary"]["completed"], 3)
         self.assertEqual(observed_reasoning_efforts, ["low", "low", "low"])
+        self.assertEqual(len(set(observed_prompts)), 3)
         self.assertEqual(
             progress_updates,
             [(0, 3), (1, 3), (2, 3), (3, 3)],
         )
         self.assertTrue(
             all(item["reasoning_effort"] == "low" for item in attempt_data)
+        )
+        self.assertTrue(
+            all(item["request_attempt_count"] == 1 for item in attempt_data)
+        )
+        self.assertTrue(
+            all(item["failed_attempts"] == [] for item in attempt_data)
+        )
+        self.assertTrue(
+            all("prompt_sha256" in item for item in attempt_data)
         )
         self.assertEqual(len(aggregate["groups"]), 1)
         self.assertTrue(
@@ -565,6 +610,42 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
         self.assertGreaterEqual(peak, 2)
         self.assertLessEqual(peak, 2)
         self.assertEqual(decomposition["processed"], 3)
+
+    async def test_retry_diagnostics_include_failed_call_time(self):
+        calls = 0
+
+        async def fake_execute(*_args, **_kwargs):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                error = litellm.Timeout(
+                    "timed out",
+                    model="gpt-5",
+                    llm_provider="openai",
+                )
+                error._benchmark_llm_elapsed_seconds = 1200.0
+                raise error
+            return {"llm_elapsed_seconds": 250.0}
+
+        with (
+            patch(
+                "src.evaluation.job_execution._execute_after_cooldown",
+                side_effect=fake_execute,
+            ),
+            patch("src.evaluation.job_execution.retry_delay", return_value=0.0),
+        ):
+            result = await execute_with_retries(
+                SimpleNamespace(model_name="gpt-5"),
+                semaphore=asyncio.Semaphore(1),
+                max_retries=1,
+                cooldowns=ModelCooldowns(),
+                call_llm=SimpleNamespace(),
+            )
+
+        self.assertEqual(result["request_attempt_count"], 2)
+        self.assertEqual(result["llm_elapsed_seconds_total"], 1450.0)
+        self.assertEqual(result["retry_wait_seconds_total"], 0.0)
+        self.assertEqual(result["failed_attempts"][0]["elapsed_seconds"], 1200.0)
 
     async def test_pending_jobs_excludes_already_final_attempts(self):
         jobs = [
@@ -657,7 +738,15 @@ def _plot_aggregate() -> dict[str, object]:
                     "reasoning_tokens": {"mean": 60},
                 },
                 "timing": {
-                    "llm_elapsed_seconds": {"mean": 12.5},
+                    "request_elapsed_seconds": {"mean": 12.5},
+                    "llm_elapsed_seconds": {
+                        "mean": 12.5,
+                        "median": 10.0,
+                    },
+                    "provider_processing_ms": {"median": 9000.0},
+                },
+                "quality": {
+                    "rack_usage_ratio": {"mean": 0.75},
                 },
                 "grammars": [
                     {
@@ -691,6 +780,7 @@ def _multi_group_plot_aggregate() -> dict[str, object]:
                 "tier": tier,
                 "pass_rate": pass_rate,
                 "timing": {
+                    "request_elapsed_seconds": {"mean": runtime},
                     "llm_elapsed_seconds": {"mean": runtime},
                 },
             }

@@ -8,3 +8,4 @@ outputs/scenarios/
 outputs/llm-runs/
 outputs/evaluation/
 */.DS_Store
+.DS_Store

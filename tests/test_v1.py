@@ -146,6 +146,7 @@ class V1Tests(unittest.TestCase):
         kwargs = mocked.call_args.kwargs
         self.assertIs(kwargs["response_format"], SubmittedMove)
         self.assertEqual(kwargs["reasoning_effort"], "high")
+        self.assertEqual(kwargs["max_retries"], 0)
         self.assertEqual(
             SubmittedMove.model_validate_json(result.content).sequence,
             ("A", "B", "C"),

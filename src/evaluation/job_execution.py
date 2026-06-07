@@ -15,7 +15,7 @@ from ..llm.env import ENV
 from ..llm.evaluation import evaluate_granular
 from ..llm.prompting import build_prompt
 from ..llm.representers import LANGUAGE_REPRESENTERS, RepresenterConfig
-from .artifacts import read_json, utc_now
+from .artifacts import content_sha256, read_json, utc_now
 from .jobs import EvaluationJob
 from .models import EvaluationCase
 
@@ -53,23 +53,65 @@ async def execute_with_retries(
     cooldowns: ModelCooldowns,
     call_llm: AsyncLLMCaller,
 ) -> dict[str, Any]:
+    failed_attempts: list[dict[str, Any]] = []
+    failed_call_seconds = 0.0
+    retry_wait_seconds = 0.0
     for retry_index in range(max_retries + 1):
+        attempt_started_at = perf_counter()
         try:
-            return await _execute_after_cooldown(
+            result = await _execute_after_cooldown(
                 job,
                 retry_index=retry_index,
                 semaphore=semaphore,
                 cooldowns=cooldowns,
                 call_llm=call_llm,
             )
+            result["request_attempt_count"] = retry_index + 1
+            result["llm_elapsed_seconds_total"] = (
+                failed_call_seconds
+                + float(result.get("llm_elapsed_seconds", 0.0))
+            )
+            result["retry_wait_seconds_total"] = retry_wait_seconds
+            result["failed_attempts"] = failed_attempts
+            return result
         except Exception as exc:
+            attempt_elapsed = float(
+                getattr(
+                    exc,
+                    "_benchmark_llm_elapsed_seconds",
+                    perf_counter() - attempt_started_at,
+                )
+            )
+            failed_call_seconds += attempt_elapsed
             retryable = is_retryable(exc)
+            failed_attempts.append(
+                {
+                    "attempt_index": retry_index,
+                    "elapsed_seconds": attempt_elapsed,
+                    "error_type": type(exc).__name__,
+                    "error": str(exc),
+                    "retryable": retryable,
+                }
+            )
             if not retryable or retry_index >= max_retries:
-                return transport_error_result(job, exc, retry_index, retryable)
+                result = transport_error_result(
+                    job,
+                    exc,
+                    retry_index,
+                    retryable=False,
+                )
+                result["error_retryable"] = retryable
+                result["request_attempt_count"] = retry_index + 1
+                result["llm_elapsed_seconds_total"] = failed_call_seconds
+                result["retry_wait_seconds_total"] = retry_wait_seconds
+                result["failed_attempts"] = failed_attempts
+                return result
 
             delay = retry_delay(exc, retry_index)
             if isinstance(exc, litellm.RateLimitError):
                 await cooldowns.extend(job.model_name, delay)
+            failed_attempts[-1]["retry_delay_seconds"] = delay
+            retry_wait_seconds += delay
             await asyncio.sleep(delay)
 
     raise AssertionError("Retry loop exited unexpectedly.")
@@ -112,12 +154,20 @@ async def execute_job(
     )
 
     started_at = perf_counter()
-    result = await call_llm(
-        system_prompt,
-        user_prompt,
-        job.model_name,
-        reasoning_effort=job.reasoning_effort,
-    )
+    try:
+        result = await call_llm(
+            system_prompt,
+            user_prompt,
+            job.model_name,
+            reasoning_effort=job.reasoning_effort,
+        )
+    except Exception as exc:
+        setattr(
+            exc,
+            "_benchmark_llm_elapsed_seconds",
+            perf_counter() - started_at,
+        )
+        raise
     elapsed = perf_counter() - started_at
     submitted, parse_error = _parse_response(result.content)
     evaluation = evaluate_granular(
@@ -144,6 +194,7 @@ async def execute_job(
             "reasoning_effort": job.reasoning_effort,
             "max_completion_tokens": model_config.max_completion_tokens,
             "timeout_seconds": model_config.timeout_seconds,
+            "provider_max_retries": 0,
         },
         "language_representation": job.language_representation,
         "status": "complete",
@@ -152,6 +203,16 @@ async def execute_job(
         "llm_elapsed_seconds": elapsed,
         "usage": dict(result.usage),
         "provider_metadata": dict(result.metadata),
+        "prompt_sha256": {
+            "system": content_sha256(system_prompt),
+            "user": content_sha256(user_prompt),
+            "combined": content_sha256(
+                {
+                    "system": system_prompt,
+                    "user": user_prompt,
+                }
+            ),
+        },
         "system_prompt": system_prompt,
         "user_prompt": user_prompt,
         "raw_response": result.content,

@@ -67,9 +67,15 @@ def finalize_run(
     manifest: dict[str, Any],
 ) -> dict[str, Any]:
     attempts = load_attempts(run_dir)
+    configured_max_retries = int(
+        manifest.get("config", {})
+        .get("execution", {})
+        .get("max_retries", 0)
+    )
     has_retryable_errors = any(
         attempt.get("status") == "transport_error"
         and bool(attempt.get("retryable"))
+        and int(attempt.get("retry_count", 0)) < configured_max_retries
         for attempt in attempts
     )
     manifest["status"] = "incomplete" if has_retryable_errors else "complete"
