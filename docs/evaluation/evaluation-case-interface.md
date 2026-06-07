@@ -1,12 +1,10 @@
-# Evaluation-Case-Schnittstelle
+# Evaluation Case Interface
 
 ## EvaluationCase
 
-`EvaluationCase` ist die gemeinsame Eingabe für Full-Puzzle-Evaluation und
-Decomposition. Es ist ein versionierter Snapshot und enthält keine
-aufzulösenden YAML-Vererbungen.
+`EvaluationCase` is the shared input for full-puzzle evaluation and decomposition. It is a versioned snapshot with no unresolved YAML inheritance.
 
-Konzeptionelle Struktur:
+Conceptual structure:
 
 ```json
 {
@@ -42,24 +40,21 @@ Konzeptionelle Struktur:
 }
 ```
 
-Board und Rack beschreiben exakt die Eingabe vor dem Ground-Truth-Move. Die
-Grammar ist vollständig eingebettet, damit eine spätere Änderung oder
-Löschung der Grammar-Datei den Case nicht verändert.
+The board and rack describe the exact input before the ground-truth move. The grammar is embedded completely so that later modification or deletion of the grammar file cannot change the case.
 
-## Full-Puzzle-Runner
+## Full-Puzzle Runner
 
-Der Full-Puzzle-Runner kombiniert den Case mit:
+The full-puzzle runner combines the case with:
 
-- einem Modellprofil,
-- einer Sprachrepräsentation,
-- den festen Board- und Rack-Repräsentationen.
+- a model profile,
+- a language representation,
+- the fixed board and rack representations.
 
-Er erzeugt Prompt, Providerantwort, geparsten Move und granulare Evaluation.
-Der Case selbst wird nicht verändert.
+It produces the prompt, provider response, parsed move, and granular evaluation. The case itself remains unchanged.
 
 ## DecompositionRequest
 
-Ein `DecompositionRequest` enthält:
+A `DecompositionRequest` contains:
 
 ```json
 {
@@ -71,13 +66,11 @@ Ein `DecompositionRequest` enthält:
 }
 ```
 
-Damit kann die Decomposition sowohl in-process über ein Python-Protokoll als
-auch out-of-process über JSON integriert werden. Die Schnittstelle kennt
-keine YAML-Pfade und muss Szenarien nicht rekonstruieren.
+This allows decomposition to be integrated either in-process through a Python protocol or out-of-process through JSON. The interface knows no YAML paths and does not need to reconstruct scenarios.
 
-## Python-Protokoll
+## Python Protocol
 
-Der Adapter stellt sinngemäß folgende Schnittstelle bereit:
+The adapter exposes an interface equivalent to:
 
 ```python
 class DecompositionAdapter(Protocol):
@@ -87,16 +80,8 @@ class DecompositionAdapter(Protocol):
     ) -> DecompositionResult: ...
 ```
 
-Der initiale Stub liefert den Status `not_implemented`. Spätere Adapter
-dürfen eigene Prompts oder mehrere Teilaufgaben erzeugen, erhalten aber immer
-denselben Case-Snapshot wie die ursprüngliche Evaluation.
+The initial stub returns `not_implemented`. Future adapters may create their own prompts or multiple subtasks, but always receive the same case snapshot as the original evaluation.
 
-Prepare schreibt die aus den Pydantic-Modellen abgeleiteten JSON Schemas nach
-`outputs/evaluation/<case-set>/schemas/`. Externe Implementierungen können
-damit `EvaluationCase`, `DecompositionRequest` und `DecompositionResult`
-validieren, ohne dieses Python-Package zu importieren.
+Prepare writes JSON Schemas derived from the Pydantic models to `outputs/evaluation/<case-set>/schemas/`. External implementations can validate `EvaluationCase`, `DecompositionRequest`, and `DecompositionResult` without importing this Python package.
 
-Intern wird der Snapshot in `case_snapshot.py` aufgebaut. Das Modul erhält
-bereits aufgelöste Grammar- und Scenario-Kontexte und kennt weder
-Case-Set-YAMLs noch Providerzugriffe. Dadurch bleibt diese Schnittstelle eine
-explizite Grenze zwischen Preparation, Evaluation und Decomposition.
+Internally, `case_snapshot.py` constructs the snapshot from already resolved grammar and scenario contexts. It knows neither case-set YAMLs nor provider access, preserving an explicit boundary between preparation, evaluation, and decomposition.

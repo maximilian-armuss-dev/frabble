@@ -1,32 +1,32 @@
-# V1-Implementierung
+# V1 Implementation
 
-Dieser Ordner enthält die implementierungsnahe Spezifikation für den V1-Puzzle-Generator. Die Dateien hier sind als direkte Grundlage für Code gedacht. Allgemeine Motivation, Paper-Zielbild und spätere Erweiterungen bleiben außerhalb dieses Ordners.
+This directory contains the implementation-oriented specification for the V1 puzzle generator. These files are intended as a direct basis for code. General motivation, the paper's target design, and later extensions remain outside this directory.
 
-## Dateien
+## Files
 
-- [data-structures.md](data-structures.md): Datenmodelle und Indizes.
-- [generator-algorithm.md](generator-algorithm.md): Ablauf der Puzzle-Generierung.
-- [slot-csp.md](slot-csp.md): lokales CSP für einzelne Wortslots.
-- [anchor-scoring.md](anchor-scoring.md): Anchor- und Template-Heuristiken.
-- [backoff-and-budget.md](backoff-and-budget.md): Backoff-Modell und Abbruchlogik.
+- [data-structures.md](data-structures.md): Data models and indices.
+- [generator-algorithm.md](generator-algorithm.md): Puzzle-generation flow.
+- [slot-csp.md](slot-csp.md): Local CSP for individual word slots.
+- [anchor-scoring.md](anchor-scoring.md): Anchor and template heuristics.
+- [backoff-and-budget.md](backoff-and-budget.md): Backoff model and termination logic.
 
-## V1-Festlegungen
+## V1 Decisions
 
-- Boardgenerierung ist unbounded.
-- Exportierte Szenarien erhalten später eine ROI beziehungsweise Bounding Box.
-- V1 unterstützt sparse Boards mit `dimensions >= 2`.
-- V1 nutzt `k = 2`.
-- V1 nutzt eine einfache Strictly-Local-Sprache über forbidden snippets.
-- Wörter der Länge `1` und `2` sind ungültig.
-- V1 nutzt lokale Slot-CSPs, nicht ein globales Board-CSP.
-- V1 nutzt kein Joint Sampling von Wortlänge und konkreter Anchor-Koordinate.
-- V1 nutzt einen feasibility-aware Candidate-Ansatz pro gesampelter Wortlänge: Anchors werden billig pre-scoren und in nicht überlappenden Batches expandiert; nur Templates ohne deterministische Wortverlängerungen auf berührten Achsen und ohne leere Cross-Domains erreichen das Slot-CSP.
-- V1-Generierung läuft seeded und reproduzierbar: gleiche Config plus gleicher Seed erzeugt dieselben Szenarien.
+- Board generation is unbounded.
+- Exported scenarios may later receive a region of interest or bounding box.
+- V1 supports sparse boards with `dimensions >= 2`.
+- V1 uses `k = 2`.
+- V1 uses a simple Strictly Local language defined by forbidden snippets.
+- Words of length `1` and `2` are invalid.
+- V1 uses local slot CSPs rather than one global board CSP.
+- V1 does not jointly sample word length and a concrete anchor coordinate.
+- For each sampled length, V1 uses feasibility-aware candidates: anchors are cheaply pre-scored and expanded in non-overlapping batches. Only templates without deterministic word extensions on touched axes and without empty cross-domains reach the slot CSP.
+- Generation is seeded and reproducible: the same config and seed produce the same scenarios.
 
-## Verantwortlichkeiten
+## Responsibilities
 
-- `Board`: Zustand und geometrische Analyse.
-- `BoardScoring`: abgeleitete Heuristik-Features für Anchor- und Template-Ranking.
-- `ScenarioGenerator`: Orchestrierung von Länge, Candidate Pool, Scoring, Slot-CSP und Witness-Speicherung.
-- `SlotCSP`: lokales Lösen einzelner Wortslots.
-- `Validator`: Assertion und spätere Bewertung von LLM-Outputs.
+- `Board`: State and geometric analysis.
+- `BoardScoring`: Derived heuristic features for anchor and template ranking.
+- `ScenarioGenerator`: Orchestration of length, candidate pool, scoring, slot CSP, and witness storage.
+- `SlotCSP`: Local solving of individual word slots.
+- `Validator`: Assertions and later evaluation of LLM outputs.

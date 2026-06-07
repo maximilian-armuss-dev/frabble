@@ -1,22 +1,16 @@
-# Interne Architektur
+# Internal Architecture
 
-Die Evaluation-Pipeline ist nach fachlicher Verantwortung getrennt. Die
-öffentlichen Einstiegspunkte bleiben klein und delegieren Sampling,
-Providerzugriff und Artefaktverwaltung an eigene Module.
+The evaluation pipeline is separated by domain responsibility. Public entry points remain small and delegate sampling, provider access, and artifact management to dedicated modules.
 
-## Einstiegspunkte
+## Entry Points
 
-`src/evaluation/cli.py` enthält ausschließlich die drei CLI-Adapter:
+`src/evaluation/cli.py` contains only three CLI adapters:
 
 - `cmd_prepare`
 - `cmd_evaluate`
 - `cmd_decompose`
 
-Die Adapter parsen `--config`, laden das passende Pydantic-Modell und rufen
-den jeweiligen Anwendungsfall auf. Fachlogik und Dateizugriffe liegen nicht in
-der CLI.
-
-Die Anwendungsfälle sind:
+The adapters parse `--config`, load the appropriate Pydantic model, and invoke the corresponding use case. Domain logic and file access do not live in the CLI.
 
 ```text
 prepare.py        -> prepare_case_set(...)
@@ -24,191 +18,160 @@ runner.py         -> evaluate_run(...)
 decomposition.py  -> decompose_run(...)
 ```
 
-## Gemeinsames Config-Loading
+## Shared Config Loading
 
-`src/configuration.py` stellt mit `NamedYamlConfigSource` die gemeinsame
-Infrastruktur für filename-basierte YAML-Configs bereit:
+`src/configuration.py` provides shared infrastructure for filename-based YAML configs through `NamedYamlConfigSource`:
 
-1. Config-IDs dürfen keinen Pfad oder Suffix enthalten.
-2. `<config-id>.yaml` wird im fachlichen Config-Verzeichnis gesucht.
-3. Die YAML-Wurzel muss ein Mapping sein.
-4. `config_name` darf nicht in der YAML stehen.
-5. Der Dateistamm wird vor der Pydantic-Validierung als `config_name`
-   eingesetzt.
+1. Config IDs must not contain a path or suffix.
+2. `<config-id>.yaml` is located in the domain-specific config directory.
+3. The YAML root must be a mapping.
+4. `config_name` must not appear in the YAML.
+5. The filename stem is inserted as `config_name` before Pydantic validation.
 
-Die fachlichen Module definieren weiterhin ihre eigenen Schemas und
-semantischen Regeln:
+Domain modules retain their own schemas and semantic rules:
 
-- `formal/grammar/config.py`: Grammar-Sampling
-- `generator/config.py`: Szenariogenerierung und Grammar-Auflösung
-- `evaluation/config.py`: Case Sets, Tiers und Evaluation-Runs
+- `formal/grammar/config.py`: grammar sampling.
+- `generator/config.py`: scenario generation and grammar resolution.
+- `evaluation/config.py`: case sets, tiers, and evaluation runs.
 
-Die gemeinsame Quelle kennt keine Grammar-, Generator- oder
-Evaluation-Parameter.
+The shared source knows no grammar, generator, or evaluation parameters.
 
 ## Prepare
 
-Der Prepare-Pfad ist in folgende Verantwortlichkeiten aufgeteilt:
-
 ### `prepare.py`
 
-Composition Root des Anwendungsfalls. Das Modul:
+The use-case composition root:
 
-- bestimmt das Output-Verzeichnis,
-- berechnet den Case-Set-Config-Hash,
-- lädt Basis-Grammar und Basis-Generator,
-- initialisiert das Manifest,
-- startet `CaseSetPreparer`.
+- Determines the output directory.
+- Computes the case-set config hash.
+- Loads the base grammar and generator.
+- Initializes the manifest.
+- Starts `CaseSetPreparer`.
 
 ### `case_preparation.py`
 
-Orchestriert die Materialisierung eines Case Sets:
+Orchestrates case-set materialization:
 
-- iteriert Tiers, Sampling-Runden und Sample-Indizes,
-- sampelt oder lädt Grammars,
-- startet den Szenariogenerator,
-- schreibt Cases,
-- meldet Fortschritt und Fehler an das Manifest.
+- Iterates tiers, sampling rounds, and sample indices.
+- Samples or loads grammars.
+- Starts the scenario generator.
+- Writes cases.
+- Reports progress and failures to the manifest.
 
-`PreparedGrammar`, `PreparedScenario` und `CaseCoordinates` transportieren
-zusammengehörige Daten explizit, statt lange lose Parameterlisten oder Tupel
-zu verwenden.
+`PreparedGrammar`, `PreparedScenario`, and `CaseCoordinates` transport related data explicitly instead of using long loose argument lists or tuples.
 
 ### `case_sampling.py`
 
-Enthält deterministische, seiteneffektfreie Sampling- und
-Config-Auflösung:
+Contains deterministic, side-effect-free sampling and config resolution:
 
-- Ableitung der Board-Seeds,
-- Sampling der Boardparameter,
-- Auflösung einer konkreten Grammar-Config,
-- Auflösung einer konkreten Generator-Config,
-- Bildung stabiler Grammar- und Case-IDs.
+- Board-seed derivation.
+- Board-parameter sampling.
+- Resolution of concrete grammar and generator configs.
+- Stable grammar and case IDs.
 
-Dieses Modul schreibt keine Dateien und startet keinen Generator.
+This module writes no files and starts no generator.
 
 ### `case_snapshot.py`
 
-Rekonstruiert aus vorbereiteter Grammar und vorbereitetem Szenario den
-unveränderlichen `EvaluationCase`. Hier wird die Grenze zwischen
-Generatorartefakten und dem gemeinsamen Evaluation-/Decomposition-Interface
-gezogen.
+Reconstructs the immutable `EvaluationCase` from a prepared grammar and scenario. This is the boundary between generator artifacts and the shared evaluation/decomposition interface.
 
 ### `preparation_artifacts.py`
 
-Besitzt den Prepare-Manifest-Lifecycle:
+Owns the prepare-manifest lifecycle:
 
-- Laden oder Erzeugen des Manifests,
-- Hash- und Checksum-Prüfung vorhandener Artefakte,
-- atomare Manifest-Updates,
-- Fehleraufzeichnung,
-- Schema-Ausgabe,
-- Abschlussstatus.
+- Loading or creating the manifest.
+- Hash and checksum validation for existing artifacts.
+- Atomic manifest updates.
+- Failure recording.
+- Schema output.
+- Completion status.
 
 ## Evaluate
 
-Der Evaluation-Pfad ist ebenfalls in Orchestrierung, Ausführung und
-Persistenz getrennt.
-
 ### `runner.py`
 
-Orchestriert einen Run:
+Orchestrates a run:
 
-- validiert das Prepare-Manifest,
-- wählt oder erzeugt einen resumierbaren Run,
-- baut und mischt wartende Jobs,
-- erzeugt Semaphore, Cooldown-State und Tasks,
-- persistiert Attempts,
-- finalisiert Manifest und Summary.
+- Validates the prepare manifest.
+- Selects or creates a resumable run.
+- Builds and shuffles pending jobs.
+- Creates semaphore, cooldown state, and tasks.
+- Persists attempts.
+- Finalizes the manifest and summary.
 
-Provider- und Retry-Details sind nicht Teil dieses Moduls.
+Provider and retry details do not belong to this module.
 
 ### `jobs.py`
 
-Expandiert eine Run-Config in `EvaluationJob`-Objekte. Das Modul besitzt:
+Expands a run config into `EvaluationJob` objects and owns:
 
-- Tier-, Modell- und Repräsentationsauswahl,
-- Auflösung der Case-Pfade,
-- stabile Job-IDs.
+- Tier, model, and representation selection.
+- Case-path resolution.
+- Stable job IDs.
 
 ### `job_execution.py`
 
-Besitzt die Ausführung eines einzelnen Jobs:
+Owns execution of one job:
 
-- Promptbau,
-- asynchroner LLM-Aufruf,
-- Parsing und granulare Evaluation,
-- globale Semaphore-Nutzung,
-- modellbezogene Cooldowns,
-- Retry-Klassifikation und Backoff,
-- Aufbau des Attempt-Ergebnisses.
+- Prompt construction.
+- Asynchronous LLM call.
+- Parsing and granular evaluation.
+- Global semaphore usage.
+- Model-specific cooldowns.
+- Retry classification and backoff.
+- Attempt-result construction.
 
-Der LLM-Caller wird als Callback übergeben. Dadurch kann diese Schicht ohne
-realen Provider getestet werden.
+The LLM caller is injected as a callback, allowing this layer to be tested without a real provider.
 
 ### `run_artifacts.py`
 
-Besitzt Run-Persistenz und Run-Lookup:
+Owns run persistence and lookup:
 
-- Resume eines passenden unvollständigen Runs,
-- Suche des neuesten abgeschlossenen Runs,
-- Erkennung finaler Attempts,
-- Laden und Aggregieren von Attempts,
-- Schreiben von Run-Manifest und Summary.
+- Resuming a matching incomplete run.
+- Finding the newest completed run.
+- Detecting final attempts.
+- Loading and aggregating attempts.
+- Writing run manifests and summaries.
 
-Die Decomposition verwendet denselben Run-Lookup und implementiert keine
-zweite Manifest-Suche.
+Decomposition uses the same run lookup rather than implementing another manifest search.
 
-## Gemeinsame Modelle und Utilities
+## Shared Models and Utilities
 
-- `models.py`: versionierte Pydantic-Modelle und das
-  `DecompositionAdapter`-Protokoll.
-- `artifacts.py`: kanonisches JSON, SHA-256, atomare JSON-Schreibvorgänge und
-  UTC-Zeitstempel.
-- `sampling.py`: stabile Seed-Ableitung und begrenztes Normal-Sampling.
+- `models.py`: versioned Pydantic models and the `DecompositionAdapter` protocol.
+- `artifacts.py`: canonical JSON, SHA-256, atomic JSON writes, and UTC timestamps.
+- `sampling.py`: stable seed derivation and bounded normal sampling.
 
-Diese Module enthalten keine CLI-Orchestrierung.
+These modules contain no CLI orchestration.
 
-## Abhängigkeitsrichtung
-
-Die beabsichtigte Richtung lautet:
+## Dependency Direction
 
 ```text
 CLI
-  -> Anwendungsfall-Orchestrierung
-      -> fachliche Services und pure Mapper
-      -> Artefakt-Persistenz
-      -> bestehende Grammar-, Generator- und LLM-Grenzen
+  -> use-case orchestration
+      -> domain services and pure mappers
+      -> artifact persistence
+      -> existing grammar, generator, and LLM boundaries
 ```
 
-Pure Sampling- und Mapping-Funktionen greifen nicht auf Manifeste oder
-Provider zu. Artefaktmodule bauen keine Prompts und sampeln keine Parameter.
-Dadurch können Sampling, Retry-Policy, Snapshot-Aufbau und Persistenz getrennt
-getestet und geändert werden.
+Pure sampling and mapping functions do not access manifests or providers. Artifact modules do not build prompts or sample parameters. Sampling, retry policy, snapshot construction, and persistence can therefore be tested and changed independently.
 
 ## Tests
 
-`tests/test_evaluation.py` prüft die wichtigsten Modulgrenzen:
+`tests/test_evaluation.py` covers the main module boundaries:
 
-- filename-basierte Config-Namen,
-- deterministisches und begrenztes Sampling,
-- Prepare-Snapshots und Manifeste,
-- globale Concurrency ohne realen Provider,
-- Evaluation- und Decomposition-Handoff,
-- Auswertung von Rate-Limit-Reset-Headern.
+- Filename-based config names.
+- Deterministic bounded sampling.
+- Prepare snapshots and manifests.
+- Global concurrency without a real provider.
+- Evaluation/decomposition handoff.
+- Rate-limit reset header handling.
 
-Provideraufrufe werden über den injizierten asynchronen LLM-Caller ersetzt.
-Die Tests erzeugen ihre Evaluation-Artefakte in temporären Verzeichnissen.
+Provider calls are replaced through the injected asynchronous LLM caller. Tests create evaluation artifacts in temporary directories.
 
-## Erweiterungen
+## Extensions
 
-- Eine neue Sampling-Achse gehört in `evaluation/config.py` und
-  `case_sampling.py`.
-- Ein neues Attempt-Feld wird in `job_execution.py` erzeugt und bei Bedarf in
-  `run_artifacts.py` aggregiert.
-- Eine neue Retry-Regel gehört ausschließlich in `job_execution.py`.
-- Ein anderes Decomposition-Verfahren implementiert
-  `DecompositionAdapter`; Prepare und Evaluate müssen dafür nicht geändert
-  werden.
-- Neue Config-Arten können `NamedYamlConfigSource` verwenden, behalten aber
-  ihr eigenes fachliches Pydantic-Modell.
+- Add a sampling axis in `evaluation/config.py` and `case_sampling.py`.
+- Create a new attempt field in `job_execution.py` and aggregate it in `run_artifacts.py` when needed.
+- Add retry rules only in `job_execution.py`.
+- Implement another decomposition method through `DecompositionAdapter`; prepare and evaluate do not need to change.
+- New config types may use `NamedYamlConfigSource` while retaining their own domain-specific Pydantic models.

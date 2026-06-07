@@ -1,84 +1,58 @@
-# Asynchrone Ausführung
+# Asynchronous Execution
 
-## Concurrency-Window
+## Concurrency Window
 
-Evaluate erzeugt für wartende Jobs asynchrone Tasks und begrenzt die
-gleichzeitigen Jobausführungen rund um den Provideraufruf mit einem globalen
-Semaphore.
-`max_concurrency` bestimmt die Größe dieses Concurrency-Windows. Der Default
-ist zehn.
+Evaluate creates asynchronous tasks for pending jobs and limits concurrent provider calls with a global semaphore. `max_concurrency` determines the size of this window; the default is ten.
 
-Sobald ein aktiver Aufruf abgeschlossen ist, belegt der nächste wartende Job
-den freien Slot. Das Limit gilt über alle Modellprofile hinweg, nicht separat
-pro Modell.
+As soon as an active call finishes, the next waiting job occupies the free slot. The limit applies across all model profiles rather than separately per model.
 
-Die Tasks nutzen die asynchrone LiteLLM-Schnittstelle. Backoff- und
-Cooldown-Wartezeiten finden außerhalb des Semaphores statt und halten keinen
-Concurrency-Slot belegt.
+Tasks use LiteLLM's asynchronous interface. Backoff and cooldown waits happen outside the semaphore and do not occupy a concurrency slot.
 
-Die Orchestrierung liegt in `runner.py`. `job_execution.py` besitzt Semaphore,
-Cooldowns, Retry-Policy, Provideraufruf, Parsing und Evaluation.
+The orchestration lives in `runner.py`. `job_execution.py` owns semaphore usage, cooldowns, retry policy, provider calls, parsing, and evaluation.
 
 ## Rate Limits
 
-Rate Limits sind modell-, projekt- und organisationsabhängig. Die
-Implementierung codiert deshalb keine OpenAI-Tierwerte fest ein.
+Rate limits depend on the model, project, and organization, so the implementation does not hard-code OpenAI usage-tier values.
 
-Aktuelle Limits müssen in der Provider-Konsole geprüft werden. Für OpenAI
-beschreiben die offiziellen Seiten sowohl die organisations- und
-projektbezogenen Limits als auch die modellbezogenen Tabellen:
+Current limits must be checked in the provider console. For OpenAI, the official documentation covers both organization/project limits and model-specific tables:
 
 - <https://platform.openai.com/docs/guides/rate-limits/usage-tiers>
 - <https://platform.openai.com/docs/models/gpt-5-mini>
 
-Retryreihenfolge:
+Retry delay precedence:
 
-1. `Retry-After`-Header des Providers,
-2. relevante Rate-Limit-Reset-Header,
-3. exponentielles Backoff mit zufälligem Jitter.
+1. The provider's `Retry-After` header.
+2. Relevant rate-limit reset headers.
+3. Exponential backoff with random jitter.
 
-`429`, Timeouts und temporäre `5xx`-Fehler sind retrybar. Authentifizierungs-,
-Bad-Request-, Schema- und Content-Policy-Fehler werden nicht automatisch
-wiederholt.
+`429`, timeouts, and temporary `5xx` errors are classified as retryable. Authentication, bad-request, schema, and content-policy errors are not retried automatically.
 
-Provider-SDK-Retries sind explizit deaktiviert. Nur `job_execution.py`
-wiederholt Requests, damit Anzahl, Laufzeit und Fehler jedes Versuchs
-beobachtbar bleiben. Setzt eine Run-Config `max_retries: 0`, wird ein Timeout
-als Transportfehler gespeichert und der Request nicht erneut gesendet.
+Provider SDK retries are explicitly disabled. Only `job_execution.py` may repeat requests, ensuring that the count, runtime, and error for each attempt remain observable. If a run config sets `max_retries: 0`, a timeout is stored as a final transport error and the request is not sent again.
 
-Ein modellbezogener Rate-Limit-Fehler setzt einen Cooldown für dieses
-Modellprofil. Andere Modellprofile dürfen weiterlaufen. Wartende Retries
-halten keinen globalen Concurrency-Slot besetzt.
+A model-specific rate-limit error creates a cooldown for that model profile. Other model profiles may continue. Waiting retries do not occupy a global concurrency slot.
 
-Fehlgeschlagene Requests zählen bei Providern häufig selbst gegen
-Minutenlimits. Backoff darf deshalb nicht als enge Retry-Schleife
-implementiert werden.
+Failed requests often still count against provider minute limits, so backoff must not become a tight retry loop.
 
-## Persistenz
+## Persistence
 
-Jedes finale Attempt-Artefakt speichert:
+Each final attempt artifact stores:
 
-- einen UTC-Zeitstempel,
-- die Laufzeit des finalen LLM-Aufrufs und aller Request-Versuche,
-- Retry-Nummer,
-- fehlgeschlagene Versuche und Retry-Wartezeiten,
-- den für den Run konfigurierten Reasoning-Effort,
-- Provider- und Modellmetadaten,
-- Hashes der tatsächlich gesendeten Prompts,
-- Usage,
-- Rate-Limit-Metadaten, soweit verfügbar,
-- Rohantwort oder Fehlerklassifikation,
-- Parsing- und Evaluationsergebnis.
+- a UTC timestamp,
+- runtime for the final LLM call and all request attempts,
+- retry number,
+- failed attempts and retry wait times,
+- the configured reasoning effort,
+- provider and model metadata,
+- hashes of the prompts actually sent,
+- usage data,
+- rate-limit metadata when available,
+- the raw response or error classification,
+- parsing and evaluation results.
 
-Einzelne Request-Versuche werden im finalen Attempt-Artefakt zusammengefasst
-und nicht als separate Dateien materialisiert.
+Individual request attempts are grouped in the final attempt artifact rather than materialized as separate files.
 
-Nach einem erfolgreichen Provideraufruf wird derselbe Job nicht erneut
-gesendet, auch wenn die Modellantwort fachlich ungültig war.
+After a successful provider call, the same job is not sent again even if the model response is semantically invalid.
 
-## Deterministische Reihenfolge
+## Deterministic Order
 
-Die Jobliste wird vor dem Start deterministisch mit einem aus der Run-Config
-abgeleiteten Seed gemischt. Dadurch werden Complexity-Tiers und Modelle nicht
-systematisch in zeitliche Blöcke gelegt, die mit Providerlast oder
-Tageszeiteffekten korrelieren könnten.
+Before execution, the job list is shuffled deterministically with a seed derived from the run config. This prevents complexity tiers and models from being placed in systematic time blocks that might correlate with provider load or time-of-day effects.

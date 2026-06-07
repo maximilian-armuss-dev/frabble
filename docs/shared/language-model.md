@@ -1,36 +1,34 @@
-# Sprachmodell
+# Language Model
 
-Die formale Sprache wird unabhängig von der konkreten sichtbaren Symbolrepräsentation definiert. Intern kann die Sprache mit Platzhaltern wie `A`, `B`, `C` oder abstrakten Symbol-IDs arbeiten. Erst in einem separaten Mapping-Schritt werden diese Platzhalter auf konkrete sichtbare Einheiten abgebildet.
+The formal language is defined independently of the visible symbol representation. Internally it may use placeholders such as `A`, `B`, `C`, or abstract symbol IDs. A separate mapping step assigns these placeholders to concrete visible units.
 
-## Platzhalter und Mapping
+## Placeholders and Mapping
 
-Für V1 wird noch kein echtes Tokenizer-Mapping genutzt. Die Platzhalter werden direkt als einfache Buchstaben angezeigt. Praktisch kann das sichtbare Alphabet aus `A` bis `Z` bestehen, während eine konkrete Sprache zunächst nur eine Teilmenge von `6` Symbolen verwendet.
+V1 does not yet use tokenizer-aware mappings. Placeholders are displayed directly as simple letters. The visible alphabet may use `A` through `Z` while one language uses only a subset of six symbols.
 
-Das spätere Mapping muss bidirektional sein. Wenn der Platzhalter `A` beispielsweise auf das sichtbare Symbol `Haus` gemappt wird, muss der Validator `Haus` wieder eindeutig auf `A` zurückführen können. Mehrzeichen-Symbole sind deshalb von Anfang an mitzudenken; die Modellantwort liefert `sequence` als Liste von Symbolen, nicht als zusammengezogenen String.
+Future mappings must be bidirectional. If placeholder `A` maps to the visible symbol `house`, the validator must map `house` back to `A` unambiguously. Multi-character symbols are therefore supported conceptually from the start: model output represents `sequence` as a list of symbols rather than a concatenated string.
 
 ## Strictly Local Languages
 
-Strictly Local Languages sind eine eingeschränkte Klasse regulärer Sprachen. Eine Sprache ist `k`-strictly-local, wenn die Gültigkeit eines Wortes durch lokale Teilstrings der Länge höchstens `k` bestimmt wird. Für den Benchmark wird die Sprache bevorzugt über verbotene Snippets beschrieben.
+Strictly Local Languages are a restricted class of regular languages. A language is `k`-strictly-local when word validity is determined by local substrings of length at most `k`. The benchmark preferably describes the language through forbidden snippets.
 
-Ein Wort ist gültig, wenn es kein verbotenes Snippet enthält und die minimale Wortlänge erfüllt.
+A word is valid if it contains no forbidden snippet and satisfies the minimum length.
 
-Beispiel mit Alphabet `{A, B, C}`, `k = 3` und forbidden snippets `{AAA, BCB}`:
+Example with alphabet `{A, B, C}`, `k = 3`, and forbidden snippets `{AAA, BCB}`:
 
-- `ABCABC` ist gültig.
-- `AAAB` ist ungültig, weil `AAA` vorkommt.
-- `ABCB` ist ungültig, weil `BCB` vorkommt.
+- `ABCABC` is valid.
+- `AAAB` is invalid because it contains `AAA`.
+- `ABCB` is invalid because it contains `BCB`.
 
-## Forbidden-Snippet-Approach
+## Forbidden-Snippet Approach
 
-Der forbidden-snippet-Approach ist für Skalierung geeignet, weil die Dichte der Sprache über Anzahl und Struktur verbotener Snippets kontrolliert werden kann. Werden mehr lokale Muster verboten, sinkt die Anzahl gültiger Strings. Werden weniger lokale Muster verboten, wird die Sprache dichter.
+This representation scales because language density can be controlled through the number and structure of forbidden snippets. More forbidden local patterns reduce the number of valid strings; fewer make the language denser.
 
-Für V1 kann eine einzelne einfache Strictly-Local-Sprache fest definiert werden. Für das Target Picture können forbidden snippets zufällig gesampelt werden.
+V1 may use one fixed simple language. The target benchmark can sample forbidden snippets randomly.
 
-## Adjazenzlisten
+## Adjacency Lists
 
-Für `k = 2` kann eine forbidden-snippet-Sprache äquivalent als Adjazenzliste dargestellt werden. Eine Adjazenzliste beschreibt für jedes Symbol, welche Symbole direkt danach kommen dürfen.
-
-Beispiel:
+For `k = 2`, a forbidden-snippet language can be represented equivalently as an adjacency list:
 
 ```text
 A: B, C
@@ -38,6 +36,6 @@ B: A
 C: A, B
 ```
 
-Diese Liste bedeutet: Nach `A` darf `B` oder `C` kommen, nach `B` nur `A`, nach `C` `A` oder `B`. Die Sequenz `A B A C B` ist gültig. Die Sequenz `A A B` ist ungültig, weil `A -> A` nicht erlaubt ist.
+After `A`, only `B` or `C` may follow; after `B`, only `A`; after `C`, `A` or `B`. `A B A C B` is valid, while `A A B` is not.
 
-Adjazenzlisten bleiben eine gute Prompt-Repräsentation für `k = 2`, auch wenn die interne Generierung über forbidden snippets beschrieben wird.
+Adjacency lists remain a useful prompt representation for `k = 2` even when internal generation uses forbidden snippets.

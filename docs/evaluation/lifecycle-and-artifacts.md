@@ -1,4 +1,4 @@
-# Lifecycle und Artefakte
+# Lifecycle and Artifacts
 
 ## Prepare
 
@@ -8,28 +8,19 @@ uv run prepare --config screening_v1
 
 Prepare:
 
-1. lädt und validiert das Case Set,
-2. expandiert Sampling-Runden, Tiers und Sample-Indizes,
-3. sampelt Grammarparameter und Grammars,
-4. sampelt Boardparameter und generiert Szenarien,
-5. rekonstruiert den Boardzustand am `board_depth`,
-6. materialisiert einen unveränderlichen Evaluation-Case,
-7. aktualisiert das Prepare-Manifest atomar.
+1. Loads and validates the case set.
+2. Expands sampling rounds, tiers, and sample indices.
+3. Samples grammar parameters and grammars.
+4. Samples board parameters and generates scenarios.
+5. Reconstructs the board state at `board_depth`.
+6. Materializes an immutable evaluation case.
+7. Updates the prepare manifest atomically.
 
-Intern bleibt `prepare.py` dabei der kleine Einstiegspunkt.
-`case_preparation.py` orchestriert die Materialisierung,
-`case_sampling.py` enthält das deterministische Sampling,
-`case_snapshot.py` baut den gemeinsamen Case-Snapshot und
-`preparation_artifacts.py` besitzt den Manifest-Lifecycle. Die genaue
-Aufteilung ist in [architecture.md](architecture.md) beschrieben.
+`prepare.py` remains the small entry point. `case_preparation.py` orchestrates materialization, `case_sampling.py` contains deterministic sampling, `case_snapshot.py` builds the shared snapshot, and `preparation_artifacts.py` owns the manifest lifecycle. See [architecture.md](architecture.md) for the detailed split.
 
-Für einen Case mit `board_depth = n` erzeugt der aufgelöste Generator
-mindestens `n + 1` Witness-Transitionen. Das Modell sieht das Board nach den
-Transitionen `0` bis `n - 1` und soll den Rack am Transition-Index `n`
-verwenden.
+For a case with `board_depth = n`, the resolved generator creates at least `n + 1` witness transitions. The model sees the board after transitions `0` through `n - 1` and must use the rack at transition index `n`.
 
-Prepare ist modellunabhängig. Ein vorhandenes Artefakt wird nur
-wiederverwendet, wenn ID, Config-Hash und Datei-Checksum zum Manifest passen.
+Prepare is model-independent. An existing artifact is reused only if its ID, config hash, and file checksum match the manifest.
 
 ## Evaluate
 
@@ -39,23 +30,18 @@ uv run evaluate --config gpt5_mini_all
 
 Evaluate:
 
-1. lädt die Run-Config und das referenzierte Prepare-Manifest,
-2. filtert Cases nach Tier,
-3. expandiert Modelle und Sprachrepräsentationen,
-4. erzeugt stabile Job-IDs,
-5. mischt wartende Jobs deterministisch,
-6. führt sie mit dem asynchronen Concurrency-Window aus,
-7. persistiert jedes finale Job-Ergebnis unmittelbar nach der
-   Retry-Sequenz,
-8. schreibt Manifest und Zusammenfassung.
+1. Loads the run config and referenced prepare manifest.
+2. Filters cases by tier.
+3. Expands models and language representations.
+4. Creates stable job IDs.
+5. Shuffles pending jobs deterministically.
+6. Executes them with the asynchronous concurrency window.
+7. Persists each final job result immediately after its retry sequence.
+8. Writes the manifest and summaries.
 
-`runner.py` koordiniert diesen Ablauf. Jobexpansion, Providerausführung und
-Run-Persistenz liegen getrennt in `jobs.py`, `job_execution.py` und
-`run_artifacts.py`.
+`runner.py` coordinates this flow. Job expansion, provider execution, and run persistence are separated into `jobs.py`, `job_execution.py`, and `run_artifacts.py`.
 
-Ein fachlich ungültiger Modellzug ist ein abgeschlossener Evaluation-Versuch
-mit `overall = false`. Transport-, Authentifizierungs- und Providerfehler sind
-keine Modellfehler und werden separat klassifiziert.
+A semantically invalid model move is a completed evaluation attempt with `overall = false`. Transport, authentication, and provider errors are not model failures and are classified separately.
 
 ## Decompose
 
@@ -63,38 +49,28 @@ keine Modellfehler und werden separat klassifiziert.
 uv run decompose --config gpt5_mini_all
 ```
 
-Decompose verwendet dieselbe Run-Config. Es sucht den neuesten abgeschlossenen
-Evaluation-Run mit demselben kanonischen Run-Config-Hash und verarbeitet dessen
-fachlich fehlgeschlagene Versuche.
+Decompose uses the same run config. It finds the newest completed evaluation run with the same canonical run-config hash and processes its semantically failed attempts.
 
-Der erste Adapter erzeugt versionierte `DecompositionRequest`-Artefakte und
-antwortet mit `not_implemented`. Er führt keine LLM-Aufrufe aus. Die spätere
-Implementierung kann das Python-Protokoll direkt implementieren oder die
-JSON-Artefakte separat konsumieren.
+The initial adapter creates versioned `DecompositionRequest` artifacts and returns `not_implemented`. It makes no LLM calls. A future implementation can implement the Python protocol directly or consume the JSON artifacts separately.
 
 ## Resume
 
-Jede Phase ist resumierbar:
+Every phase is resumable:
 
-- Prepare überspringt vollständige, hash-kompatible Grammars, Szenarien und
-  Cases.
-- Evaluate überspringt Jobs mit abgeschlossenem Attempt-Artefakt.
-- Retrybare Providerfehler bleiben erneut ausführbar.
-- Nicht-retrybare Infrastrukturfehler werden sichtbar im Run-Manifest
-  festgehalten.
-- Decompose überspringt bereits erzeugte Requests und Resultate.
+- Prepare skips complete, hash-compatible grammars, scenarios, and cases.
+- Evaluate skips jobs with final attempt artifacts.
+- Retryable provider failures remain executable while retry budget remains.
+- Exhausted or non-retryable infrastructure failures are recorded visibly in the run manifest.
+- Decompose skips requests and results that already exist.
 
-Manifeste werden nach jedem abgeschlossenen Artefakt aktualisiert. Ein Abbruch
-verliert damit höchstens den gerade aktiven Provideraufruf.
+Manifests are updated after every completed artifact. An interruption therefore loses at most the currently active provider call.
 
-## Identitäten und Hashes
+## Identities and Hashes
 
-IDs werden aus stabilen fachlichen Komponenten gebildet:
+IDs are built from stable domain components:
 
-- Grammar: Case Set, Tier, Sampling-Runde, Grammar-Index.
-- Scenario und Case: Case Set, Tier, Sampling-Runde, Grammar-Index und
-  Board-Index.
-- Job: Case-ID, Modellprofil und Sprachrepräsentation.
+- Grammar: case set, tier, sampling round, and grammar index.
+- Scenario and case: case set, tier, sampling round, grammar index, and board index.
+- Job: case ID, model profile, reasoning effort, and language representation.
 
-Hashes werden aus kanonischem JSON mit sortierten Keys gebildet. Zeitstempel
-und absolute lokale Pfade sind kein Bestandteil fachlicher Content-Hashes.
+Hashes are built from canonical JSON with sorted keys. Timestamps and absolute local paths are not part of semantic content hashes.

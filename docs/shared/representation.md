@@ -1,27 +1,25 @@
-# Repräsentation
+# Representation
 
-Koordinaten werden als 0-basierter Vektor `x = [x0, x1, ..., x_{d-1}]` verstanden. Für V1 gilt `d = 2`; dieselbe Repräsentation bleibt für höhere Dimensionen gültig.
+Coordinates are zero-based vectors `x = [x0, x1, ..., x_{d-1}]`. V1 uses `d = 2`; the same representation extends to higher dimensions.
 
-Achsen referenzieren dieselbe Indexlogik wie Koordinaten:
+Axes use the same indexing:
 
-- `axis = 0` bedeutet Bewegung entlang `x0`.
-- `axis = 1` bedeutet Bewegung entlang `x1`.
-- Allgemein bedeutet `axis = i` Bewegung entlang `xi`.
+- `axis = 0` advances along `x0`.
+- `axis = 1` advances along `x1`.
+- In general, `axis = i` advances along `xi`.
 
-Das Indexing ist im Prompt, im JSON-Format und intern 0-basiert.
+Prompt, JSON, and internal indexing are all zero-based.
 
 ## Board
 
-Das Board wird als sparse Map beziehungsweise als Liste belegter Koordinaten repräsentiert. Jede belegte Zelle enthält genau ein Symbol. Leere Zellen werden nicht einzeln aufgeführt.
+The board is represented as a sparse map or list of occupied coordinates. Each occupied cell contains exactly one symbol; empty cells are omitted.
 
-Eine Board Configuration enthält mindestens:
+A board configuration contains at least:
 
-- `dimensions`: Anzahl der Dimensionen.
-- `shape`: Größe des Boards pro Koordinatenachse.
-- `occupied`: Liste belegter Felder als Koordinaten-Symbol-Paare.
-- `rack`: verfügbare Symbole für den nächsten Zug.
-
-Beispiel:
+- `dimensions`: Number of dimensions.
+- `shape`: Board extent on each coordinate axis.
+- `occupied`: Occupied coordinate-symbol pairs.
+- `rack`: Symbols available for the next move.
 
 ```json
 {
@@ -37,7 +35,7 @@ Beispiel:
 
 ## Move Output
 
-Das Modell gibt genau ein strukturiertes JSON-Objekt aus:
+The model returns exactly one structured JSON object:
 
 ```json
 {
@@ -47,6 +45,6 @@ Das Modell gibt genau ein strukturiertes JSON-Objekt aus:
 }
 ```
 
-Die `sequence` ist die vollständige Wortsequenz. Sie enthält sowohl neu gelegte Rack-Symbole als auch bereits auf dem Board liegende Symbole, die konsistent überlappt werden. `sequence` ist eine Liste, damit spätere Mehrzeichen-Symbole eindeutig getrennt bleiben.
+`sequence` is the complete word, including newly placed rack symbols and existing board symbols reused consistently. A list preserves boundaries for future multi-character symbols.
 
-Pydantic-Modelle sollen Struktur, Typen und Normalisierung erzwingen. Parsingfehler werden getrennt von Spielregel- und Sprachfehlern ausgewertet. Wenn ein Provider über LiteLLM strukturierte Outputs unterstützt, soll das Pydantic-Schema dort eingebunden werden; andernfalls wird die Modellantwort nachträglich geparst und validiert.
+Pydantic models enforce structure, types, and normalization. Parsing errors are evaluated separately from rule and language failures. When a provider supports structured output through LiteLLM, the Pydantic schema is supplied directly; otherwise the response is parsed and validated afterward.

@@ -1,43 +1,41 @@
-# Generator-Algorithmus
+# Generator Algorithm
 
-Der Generator baut intern ein unbounded Board auf. Aus jedem erfolgreichen Übergang kann ein Szenario mit Witness extrahiert werden.
+The generator builds an internally unbounded board. Every successful transition can be exported as a scenario with a witness.
 
-## Reproduzierbarkeit
+## Reproducibility
 
-Die Generierung muss seeded ablaufen. Gleiche Generatorconfig plus gleicher Seed muss dieselben Szenarien erzeugen. Unterschiedliche Seeds dürfen andere, aber ebenfalls reproduzierbare Szenarien erzeugen.
+Generation must be seeded. The same generator config and seed must produce the same scenarios; different seeds may produce different but still reproducible scenarios.
 
-Alle zufälligen Entscheidungen nutzen denselben kontrollierten RNG oder deterministisch abgeleitete Child-Seeds. Dazu gehören:
+All random decisions use one controlled RNG or deterministically derived child seeds, including:
 
-- initiales Wort.
-- Wortlänge.
-- Symbolpräferenzen der CSP-Suche für freie Slotpositionen.
+- the initial word,
+- word length,
+- symbol preferences for free slot positions in the CSP.
 
-Sortierungen sind stabil. Bei gleichem Score wird deterministisch nach festen Feldern sortiert, zum Beispiel nach Koordinate, Achse, Anchor-Index und Sequenz.
+Sorting is stable. Score ties are resolved by fixed fields such as coordinate, axis, anchor index, and sequence.
 
-## Ablauf
+## Flow
 
-1. Starte mit einem leeren Board.
-2. Sample ein initiales gültiges Wort aus der V1-Sprache.
-3. Lege das initiale Wort entlang `axis = 0` um den Ursprung.
-4. Speichere das erste Segment.
-5. Wiederhole bis zum Abbruch:
-   - sample eine Wortlänge aus der erlaubten Längenverteilung.
-   - score und sortiere alle Anchor-Achsen-Paare billig.
-   - expandiere zunächst nur den nächsten Anchor-Batch.
-   - erzeuge SlotTemplates für alle möglichen Anchor-Indizes dieser Länge.
-   - prune geometrisch unmögliche Templates, doppelte Slots und deterministische Wortverlängerungen auf allen berührten Achsen.
-   - extrahiere Cross-Domains und prune Templates mit mindestens einer leeren Domain.
-   - score die verbleibenden Templates inklusive Domain-Slack.
-   - löse Templates bis zum kumulativen Top-K-CSP-Budget.
-   - bei keinem Erfolg: expandiere nur den nächsten noch nicht betrachteten Anchor-Batch.
-   - bei Lösung: platziere Wort, speichere Segment, speichere Transition als Witness.
-   - bei keiner Lösung: markiere die Länge für diesen Board-State als verbraucht und beginne von vorn, bis der Pool an möglichen Längen erschöpft ist.
+1. Start with an empty board.
+2. Sample an initial valid word from the V1 language.
+3. Place it on `axis = 0` around the origin.
+4. Store the first segment.
+5. Repeat until termination:
+   - Sample a word length from the allowed distribution.
+   - Cheaply score and sort all anchor-axis pairs.
+   - Expand the next anchor batch.
+   - Create slot templates for every anchor index of that length.
+   - Prune impossible geometry, duplicate slots, and deterministic extensions on every touched axis.
+   - Extract cross-domains and prune templates with an empty domain.
+   - Score remaining templates, including domain slack.
+   - Solve templates up to the cumulative top-K CSP budget.
+   - If none succeeds, expand the next unseen anchor batch.
+   - On success, place the word and store the segment and witness transition.
+   - If the length fails, mark it consumed for this board state and continue until the length pool is exhausted.
 
-## Feasibility-Aware Candidate-Ansatz
+## Feasibility-Aware Candidates
 
-V1 sampelt nicht zuerst ein einzelnes Anchor-Symbol. Stattdessen wird pro Schritt eine Wortlänge gesampelt und anschließend ein globaler Kandidatenpool aufgebaut.
-
-Der Ablauf ist:
+V1 does not sample one anchor symbol first. It samples a word length and then builds a global candidate pool:
 
 ```text
 sample length L
@@ -51,11 +49,11 @@ for fresh batch in sorted_anchors[0:40], [40:80], ...:
     stop on first valid move
 ```
 
-Dadurch bleibt zentrale Expansion die erste Präferenz, blockiert die Suche aber nicht dauerhaft: Liefert ein dichter innerer Batch keine machbaren Templates, werden ohne Wiederholung weiter außen liegende Anchors untersucht, solange das kumulative CSP-Budget noch nicht ausgeschöpft ist. Exakte Feasibility wird auf Template-Ebene bewertet, weil erst das konkrete Template seine Cross-Wort-Constraints bestimmt.
+Central expansion remains the first preference without permanently blocking search. If a dense interior batch has no feasible templates, farther anchors are examined without repeating earlier work while CSP budget remains. Exact feasibility is evaluated at template level because only a concrete template determines its cross-word constraints.
 
-Pro unverändertem Board-State wird jede Länge aus der konfigurierten Range höchstens einmal gesampelt. Wenn keine Länge einen Move erzeugt, bricht der Generator mit einem Failure-Report ab. Nach einem erfolgreichen Move wird die Längenrange für den neuen Board-State wieder frisch verwendet.
+Each length is sampled at most once per unchanged board state. If no length yields a move, generation terminates with a failure report. A successful move resets the length range for the new board state.
 
-Für V1 sind sinnvolle Defaults:
+Recommended V1 defaults:
 
 ```text
 top_anchor_count = 40
@@ -63,63 +61,62 @@ top_template_count = 120
 max_anchor_count = null
 ```
 
-`top_anchor_count` ist die Größe eines Anchor-Batches, nicht mehr der zwingende Gesamtabbruch nach den zentralsten Anchors. `top_template_count` begrenzt CSP-Versuche je Wortlänge kumulativ über alle Batches. `max_anchor_count` ist optional und schränkt das Widening hart ein.
+`top_anchor_count` is a batch size, `top_template_count` limits cumulative CSP attempts per length, and `max_anchor_count` optionally caps widening.
 
-Die Längenverteilung ist eine inklusive Range:
+The inclusive length range is:
 
 ```text
 length_distribution.start = 3
 length_distribution.end = 7
 ```
 
-Eine Range mit `start = end = 7` sampelt zwar formal pro Schritt neu, erzeugt aber praktisch immer gleich breite Slots; zusammen mit Centroid-Heuristik führt das zu einem sehr regelmäßigen Auffüllen.
+Using `start = end = 7` produces consistently wide slots and, together with centroid heuristics, may create unnaturally regular filling.
 
-## Criss-Cross-Achsenlogik
+## Crossing-Axis Logic
 
-Für jeden Anchor werden alle Achsen erzeugt, auf denen die Anchor-Koordinate noch nicht Teil eines bestehenden Wortes ist. Im 2D-Fall ergibt das die klassische Criss-Cross-Logik:
+For each anchor, candidates are created on every axis on which the coordinate is not already part of a word.
 
-- Wenn der Anchor Teil eines bestehenden Wortes entlang `axis = 0` ist, wird entlang `axis = 1` gelegt.
-- Wenn der Anchor Teil eines bestehenden Wortes entlang `axis = 1` ist, wird entlang `axis = 0` gelegt.
+In 2D:
 
-Im 3D-Fall kann eine Anchor-Koordinate mehrere Zielachsen erzeugen. Liegt ein Tile nur auf `axis = 0`, entstehen Kandidaten entlang `axis = 1` und `axis = 2`. Liegt ein Tile bereits auf `axis = 0` und `axis = 1`, bleibt nur `axis = 2`. Die spätere stabile Sortierung über Score, Koordinate und Achse hält die Generierung reproduzierbar, die Beschränkung auf Top-K Kandidaten hält sie kompakt.
+- An anchor belonging to `axis = 0` creates a candidate on `axis = 1`.
+- An anchor belonging to `axis = 1` creates a candidate on `axis = 0`.
 
-## Template-Pruning
+In higher dimensions, one anchor may create multiple target axes. Stable sorting by score, coordinate, and axis preserves reproducibility.
 
-Bevor ein Template an den Solver geht, werden einfache geometrische Fälle entfernt:
+## Template Pruning
 
-- das Template enthält nicht die Anchor-Koordinate an `anchor_index`.
-- eine belegte Zelle im Slot enthält ein anderes Symbol als das später dort fixierte Symbol.
-- der Slot würde ein bestehendes Wort entlang derselben Achse verlängern.
-- der Slot läuft entlang derselben Achse in ein bestehendes Segment hinein.
-- das Template hat keine konsistente Overlap-Verbindung.
-- der Slot ist ein Duplikat eines bereits aus einem anderen Anchor betrachteten geometrischen Slots.
-- der Slot würde eine bereits vorhandene gültige Sequenz auf der Legeachse oder auf einer durch neue Tiles berührten Cross-Achse deterministisch verlängern.
-- mindestens eine Cross-Domain ist leer, also erlaubt für eine neue Zelle kein Symbol ein gültiges Kreuzwort.
+Before reaching the solver, a template is removed when:
 
-Ein Cross-Wort darf damit neu entstehen, aber kein bereits gültiges Wort verlängern. Die berechneten nicht-leeren Domains werden für den nachfolgenden Slot-CSP wiederverwendet. Das Pruning ersetzt nicht den Validator, sondern reduziert Solver-Aufrufe und verhindert, dass beweisbar unmögliche Innenkandidaten das Top-K-Budget verbrauchen.
+- It does not contain the anchor at `anchor_index`.
+- An occupied cell conflicts with its fixed symbol.
+- It extends or runs into an existing segment on the same axis.
+- It lacks a consistent overlap.
+- Its geometric slot duplicates one already considered.
+- It deterministically extends an existing valid sequence on the placement axis or a touched cross-axis.
+- At least one cross-domain is empty.
 
-## Deterministische Candidate-Wahl
+New cross-words are allowed, but existing valid words may not be extended. Extracted non-empty domains are reused by the slot CSP. Pruning reduces solver calls but does not replace final validation.
 
-Alle Anchors und Templates werden stabil sortiert. Templates werden in Score-Reihenfolge an das lokale Slot-CSP gegeben. Wenn mehrere Templates denselben Score haben, wird das erste Template in stabiler Sortierreihenfolge genutzt.
+## Deterministic Candidate Selection
 
-Innerhalb des gewählten Templates priorisiert das Slot-CSP pro freier Position eine seeded zufällige Symbolreihenfolge. Dadurch wird nicht stets die erste alphabetisch erreichbare Lösung verwendet, während die Generierung bei gleicher Config und gleichem Seed reproduzierbar bleibt.
+Anchors and templates are stable-sorted. Templates reach the slot CSP in score order, with deterministic tie resolution. Within a selected template, the slot CSP uses seeded random symbol preferences for free positions so it does not always return the alphabetically first solution while remaining reproducible.
 
 ## Logging
 
-Für jedes generierte Szenario sollen gespeichert werden:
+Each generated scenario should record:
 
-- Generatorconfig.
+- Generator config.
 - Seed.
-- Sprach-ID und forbidden snippets.
-- Wortlängenverteilung.
-- Top-M Anchor-Koordinaten und Scores.
-- Top-K Templates und Scores.
-- Solverstatus pro versuchtem Template.
-- Witness-Move.
+- Language ID and forbidden snippets.
+- Word-length distribution.
+- Top-M anchor coordinates and scores.
+- Top-K templates and scores.
+- Solver status per attempted template.
+- Witness move.
 
 ## Witness
 
-Wenn der Solver ein Wort für ein Template findet, entsteht ein Move. Vor dem Anwenden wird der Move mit dem regulären Validator geprüft. Der Lauf wird inkrementell gespeichert: einmal das Initial-Board und danach pro Witness nur der Übergang.
+Before application, each solved move is checked by the regular validator. The run stores the initial board once and then one transition per witness:
 
 ```text
 initial_board = board_after_initial_word
@@ -130,4 +127,4 @@ transition:
   search_log = solver_and_candidate_trace
 ```
 
-Ein Board vor oder nach einem Witness wird bei Bedarf aus `initial_board` plus den vorherigen Transitions rekonstruiert. Dadurch werden Board-Kopien im internen Modell und im JSON-Export vermieden.
+Any board state is reconstructed from `initial_board` and preceding transitions, avoiding duplicated board snapshots in memory and JSON.

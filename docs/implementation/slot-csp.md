@@ -1,6 +1,6 @@
-# Lokales Slot-CSP
+# Local Slot CSP
 
-Das CSP wird nur für einen einzelnen Wortslot gebaut. Es sieht nie das gesamte Board.
+The CSP is built for one word slot and never sees the complete board.
 
 ## Input
 
@@ -10,9 +10,7 @@ template: SlotTemplate
 domains: list[set[Symbol]]
 ```
 
-`domains[i]` beschreibt, welche Symbole an Wortposition `i` erlaubt sind.
-
-Beispiel:
+`domains[i]` describes the symbols allowed at word position `i`.
 
 ```text
 length = 5
@@ -25,33 +23,33 @@ domains = [
 ]
 ```
 
-Hier sind Position `1` und `3` durch Overlaps mit bestehenden Boardzellen festgelegt.
+Positions `1` and `3` are fixed by overlaps with existing board cells.
 
-## Constraint-Extraktion
+## Constraint Extraction
 
-Aus dem Template und dem Board werden Domains gebaut:
+Domains are built from the template and board:
 
-- freie Zelle: Domain ist das gesamte Alphabet.
-- Anchor-Zelle: Domain ist `{anchor_symbol}`.
-- belegte Crossing-Zelle: Domain ist `{existing_symbol}`.
+- Free cell: the full alphabet.
+- Anchor cell: `{anchor_symbol}`.
+- Occupied crossing cell: `{existing_symbol}`.
 
-Zusätzlich gilt für V1:
+V1 additionally requires:
 
-- Länge mindestens `3`.
-- keine verbotenen Snippets.
-- keine Wörter der Länge `1` oder `2`.
+- Length at least `3`.
+- No forbidden snippets.
+- No words of length `1` or `2`.
 
-Cross-Wort-Constraints werden bereits vor dem CSP in die Domains eingetragen. Ist eine Domain danach leer, existiert an dieser Zellposition kein Symbol, das alle orthogonalen Kreuzwörter gültig machen kann. Das gesamte Template wird dann ohne CSP-Aufruf verworfen. Für nicht-leere Domains speichert der Template-Kandidat die extrahierten Mengen und reicht sie unverändert an den Solver weiter.
+Cross-word constraints are inserted into domains before the CSP. An empty domain proves that no symbol at that position can make every orthogonal cross-word valid, so the template is rejected without a solver call. Non-empty extracted domains are stored on the template candidate and passed unchanged to the solver.
 
-## OR-Tools-Modell
+## OR-Tools Model
 
-Jede Wortposition wird als Integer-Variable modelliert.
+Each word position is an integer variable:
 
 ```python
 x[i] in domain_ids[i]
 ```
 
-Die Strictly-Local-Sprache wird in einen DFA kompiliert und über `AddAutomaton` eingebunden:
+The Strictly Local language is compiled into a DFA and attached with `AddAutomaton`:
 
 ```python
 model.AddAutomaton(
@@ -62,22 +60,22 @@ model.AddAutomaton(
 )
 ```
 
-Der OR-Tools-Automat ist innerhalb einer `SlotCSP`-Instanz unverändert und wird deshalb einmal lazy erzeugt und für weitere Template-Versuche wiederverwendet.
+The automaton is constant within a `SlotCSP` instance, so it is created lazily once and reused.
 
-Erhält `SlotCSP` den seeded Generator-RNG, wird für jede nicht fixierte Wortposition vor dem Solve eine zufällige Symbolpräferenz erzeugt. Diese Präferenzen werden als Branching-Entscheidungen vor den eigentlichen Integer-Variablen verwendet. Der Solver sucht damit weiterhin nur irgendeine gültige Belegung, startet aber nicht bei jedem Slot mit derselben alphabetischen Sequenz. Gleiches Board, gleiche Config und gleicher Seed bleiben reproduzierbar.
+With a seeded generator RNG, each unfixed position receives a random symbol preference before solving. These preferences influence branching while the solver still seeks any valid assignment. Equal board, config, and seed remain reproducible.
 
-Der Solver liefert:
+The solver returns:
 
 ```python
 list[Symbol] | None
 ```
 
-`None` bedeutet, dass für dieses Template kein Wort existiert, das Sprache und Positionsconstraints erfüllt.
+`None` means no word satisfies both the language and positional constraints for this template.
 
-## k = 2
+## `k = 2`
 
-V1 startet mit `k = 2`. Der DFA-Zustand entspricht im Kern dem letzten gelesenen Symbol plus Startzustand. Für die Startsprache mit verbotenen Doppelungen sind Übergänge `A -> A`, `B -> B` usw. verboten.
+V1 starts with `k = 2`. The DFA state is essentially the last symbol plus the start state. For the initial language, repeated transitions such as `A -> A` and `B -> B` are forbidden.
 
-## k = 3 und mixed-width
+## `k = 3` and Mixed Width
 
-`k = 3` bleibt Target Picture. Dann speichert der DFA-Zustand den letzten Suffix bis Länge `2`. Mixed-width forbidden snippets der Länge `2` und `3` lassen sich über denselben DFA-Compiler abbilden. Der Solver sieht weiterhin nur einen Automaten.
+`k = 3` is part of the target design. The DFA state stores a suffix of up to length `2`. Mixed-width forbidden snippets of length `2` and `3` can use the same compiler; the solver still sees only an automaton.

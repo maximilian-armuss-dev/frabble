@@ -1,18 +1,12 @@
-# Evaluation-Konfiguration
+# Evaluation Configuration
 
-Alle hier beschriebenen Config-Arten folgen derselben filename-basierten
-Laderegel. Der gemeinsame Loader liegt in `src/configuration.py`; die
-fachlichen Pydantic-Modelle und Zusatzvalidierungen bleiben in den jeweiligen
-Grammar-, Generator- und Evaluation-Modulen.
+All configuration types described here follow the same filename-based loading rule. The shared loader lives in `src/configuration.py`; domain-specific Pydantic models and semantic validation remain in their grammar, generator, and evaluation modules.
 
-Eine Config-ID ist immer ein Name ohne Parent-Pfad und ohne `.yaml`-Suffix.
-`config_name` wird aus dem Dateistamm abgeleitet und ist in allen
-menschengepflegten YAML-Dateien ungültig.
+A config ID is always a name without a parent path or `.yaml` suffix. `config_name` is derived from the filename stem and must not appear in human-maintained YAML files.
 
-## Standalone Grammar-Configs
+## Standalone Grammar Configs
 
-Grammar-Configs liegen unter `config/grammars/`. Der Dateiname ohne `.yaml`
-bestimmt die Grammar-ID:
+Grammar configs live under `config/grammars/`. The filename without `.yaml` determines the grammar ID:
 
 ```bash
 uv run sample-grammar --config generator_v1_grammar
@@ -36,13 +30,11 @@ auto_resample:
 show_stats: true
 ```
 
-Standardoutput ist `outputs/grammars/<grammar-id>.json`. Ein optionales
-`output_path` erlaubt für Standalone-Experimente einen abweichenden Pfad.
+The default output is `outputs/grammars/<grammar-id>.json`. An optional `output_path` allows standalone experiments to use another location.
 
-## Standalone Generation-Configs
+## Standalone Generation Configs
 
-Generation-Configs bleiben vollständige, einzeln ausführbare
-Generatorbeschreibungen:
+Generation configs remain complete, independently executable generator descriptions:
 
 ```bash
 uv run generate --config generator_v1
@@ -72,18 +64,13 @@ additional_rack_noise: 1
 include_search_logs: true
 ```
 
-`config_name` entfällt. `grammar` ist eine ID ohne Parent-Pfad oder Suffix und
-wird nach `outputs/grammars/<grammar>.json` aufgelöst. Für externe Dateien
-kann alternativ `grammar_path` gesetzt werden. Beide Felder gleichzeitig sind
-ungültig.
+`config_name` is omitted. `grammar` is an ID without a parent path or suffix and resolves to `outputs/grammars/<grammar>.json`. External files can instead be selected with `grammar_path`; both fields cannot be set simultaneously.
 
-Standardoutput ist `outputs/scenarios/<generation-id>.json`. `output_path`
-bleibt ein optionaler Override. Alle Suchbudgets, Heuristiken und
-Scoring-Gewichte bleiben Teil der Standalone-Config.
+The default output is `outputs/scenarios/<generation-id>.json`. `output_path` remains an optional override. All search budgets, heuristics, and scoring weights remain part of the standalone config.
 
-## Case-Set-Configs
+## Case-Set Configs
 
-Case-Set-Configs liegen unter `config/evaluation/case_sets/`.
+Case-set configs live under `config/evaluation/case_sets/`.
 
 ```yaml
 generation_config: evaluation_base
@@ -128,28 +115,22 @@ tiers:
     k: 4
 ```
 
-`generation_config` und `grammar_config` referenzieren vollständige
-Standalone-Configs. Das Case Set überschreibt nur IDs, Seeds, Outputs und die
-experimentell skalierten Achsen.
+`generation_config` and `grammar_config` reference complete standalone configs. The case set overrides only IDs, seeds, outputs, and experimentally scaled axes.
 
-Ein Achsenwert ist entweder ein fester Scalar oder ein Intervall mit `min` und
-`max`. Intervalle werden mit einer begrenzten Normalverteilung gesampelt:
+An axis value can be either a fixed scalar or an interval with `min` and `max`. Intervals are sampled with a bounded normal distribution:
 
-- Mittelwert: Intervallmitte.
-- Standardabweichung: Intervallbreite geteilt durch sechs.
-- Ziehungen außerhalb des Intervalls werden wiederholt.
-- Integerfelder werden gerundet und abschließend begrenzt.
+- Mean: interval midpoint.
+- Standard deviation: interval width divided by six.
+- Values outside the interval are redrawn.
+- Integer fields are rounded and finally clamped.
 
-Grammarparameter werden pro Grammar-Sample gezogen. Boardparameter werden pro
-Board-Sample gezogen.
+Grammar parameters are drawn per grammar sample. Board parameters are drawn per board sample.
 
-`sampling_rounds` erzeugt vollständig neue Parameter, Grammars und Boards. Bei
-vier Tiers, einer Runde, drei Grammar-Samples und zehn Boards entstehen
-`4 * 1 * 3 * 10 = 120` Cases.
+`sampling_rounds` creates completely new parameters, grammars, and boards. Four tiers, one round, three grammar samples, and ten boards produce `4 * 1 * 3 * 10 = 120` cases.
 
-## Run-Configs
+## Run Configs
 
-Run-Configs liegen unter `config/evaluation/runs/`:
+Run configs live under `config/evaluation/runs/`:
 
 ```yaml
 case_set: screening_v1
@@ -169,19 +150,10 @@ execution:
   max_retries: 5
 ```
 
-`models` bildet jeden Modellprofilnamen aus `config/model_configs.yaml` auf
-die Complexity-Tiers ab, die dieses Modell bearbeiten soll. `[all]` wählt
-alle vorbereiteten Tiers für genau dieses Modell.
-`language_representations` akzeptiert eine Liste oder den Wert `all`.
-`reasoning_effort` gilt für alle Modellaufrufe des Runs, wird explizit an
-LiteLLM übergeben und ist Teil des Run-Config-Hashes. Modellprofile enthalten
-deshalb keine Reasoning-Einstellung.
+`models` maps each model profile from `config/model_configs.yaml` to the complexity tiers it should process. `[all]` selects every prepared tier for that model.
 
-Board- und Rack-Repräsentationen erscheinen nicht in der Run-Config, solange
-jeweils nur eine Implementierung existiert. Jede zugelassene Kombination aus
-Case-Tier, Modellprofil und Sprachrepräsentation ist ein eigener Job.
+`language_representations` accepts a list or `all`. `reasoning_effort` applies to every model call in the run, is passed explicitly to LiteLLM, and is part of the run-config hash. Model profiles therefore do not contain a reasoning setting.
 
-Es gibt absichtlich keinen `repetitions`-Key für erneutes Sampling. Neue
-Instanzen werden durch `sampling_rounds` im Case Set erzeugt. Wiederholte
-Modellaufrufe auf exakt demselben Case können später als separate
-Ausführungsdimension eingeführt werden.
+Board and rack representations do not appear in the run config while only one implementation exists for each. Every allowed case-tier, model-profile, and language-representation combination becomes a separate job.
+
+There is intentionally no `repetitions` key for resampling. New instances are created through `sampling_rounds` in the case set. Repeated model calls on the exact same case may later be introduced as a separate execution dimension.
