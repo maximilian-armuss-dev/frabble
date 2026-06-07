@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import random
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -15,18 +16,27 @@ from .run_artifacts import attempt_is_final, finalize_run, select_or_create_run
 from .sampling import derive_seed
 
 EVALUATION_OUTPUT_DIR = PROJECT_ROOT / "outputs" / "evaluation"
+ProgressCallback = Callable[[int, int], None]
 
 
-async def evaluate_run(config: RunConfig) -> dict[str, Any]:
+async def evaluate_run(
+    config: RunConfig,
+    *,
+    progress_callback: ProgressCallback | None = None,
+) -> dict[str, Any]:
     case_root = EVALUATION_OUTPUT_DIR / config.case_set
     prepare_manifest = _load_completed_prepare_manifest(case_root, config.case_set)
     config_hash = content_sha256(config.model_dump(mode="json"))
     run_dir, manifest = select_or_create_run(case_root, config, config_hash)
+    jobs = build_evaluation_jobs(config, prepare_manifest)
     pending_jobs = _pending_jobs(
-        build_evaluation_jobs(config, prepare_manifest),
+        jobs,
         run_dir,
         config_hash,
     )
+    progress = {"finished": len(jobs) - len(pending_jobs), "total": len(jobs)}
+    if progress_callback is not None:
+        progress_callback(progress["finished"], progress["total"])
 
     semaphore = asyncio.Semaphore(config.execution.max_concurrency)
     cooldowns = ModelCooldowns()
@@ -42,6 +52,8 @@ async def evaluate_run(config: RunConfig) -> dict[str, Any]:
                 run_dir=run_dir,
                 manifest=manifest,
                 manifest_lock=manifest_lock,
+                progress=progress,
+                progress_callback=progress_callback,
             )
             for job in pending_jobs
         )
@@ -61,6 +73,8 @@ async def _run_and_persist(
     run_dir: Path,
     manifest: dict[str, Any],
     manifest_lock: asyncio.Lock,
+    progress: dict[str, int],
+    progress_callback: ProgressCallback | None,
 ) -> None:
     result = await execute_with_retries(
         job,
@@ -74,6 +88,9 @@ async def _run_and_persist(
         manifest["updated_at"] = utc_now()
         manifest["attempted_jobs"] = int(manifest.get("attempted_jobs", 0)) + 1
         write_json_atomic(run_dir / "run-manifest.json", manifest)
+        progress["finished"] += 1
+        if progress_callback is not None:
+            progress_callback(progress["finished"], progress["total"])
 
 
 def _load_completed_prepare_manifest(

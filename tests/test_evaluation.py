@@ -18,7 +18,7 @@ from src.evaluation.job_execution import parse_duration, retry_delay
 from src.evaluation.jobs import build_evaluation_jobs
 from src.evaluation.prepare import prepare_case_set
 from src.evaluation.result_aggregation import build_aggregate
-from src.evaluation.runner import evaluate_run
+from src.evaluation.runner import _pending_jobs, evaluate_run
 from src.evaluation.run_artifacts import summarize_attempts
 from src.evaluation.sampling import derive_seed, sample_axis
 from src.formal.grammar.config import load_grammar_config
@@ -30,9 +30,11 @@ from src.generator.config import (
 from src.llm.client import LLMCallResult
 from src.llm.env import ENV
 from visualization.evaluation_figures import (
+    latest_completed_case_set,
     load_evaluation_results,
     plot_grammar_pass_rates,
     plot_latency_tables,
+    plot_pass_rate_heatmaps,
     plot_primary_failure_bars,
     plot_token_usage_bars,
 )
@@ -225,6 +227,123 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(older_aggregate["overall"]["passed"], 1)
         self.assertEqual(older_aggregate["overall"]["failed"], 1)
 
+    def test_evaluation_plots_include_all_models_and_tiers_in_pool(self):
+        aggregate = _multi_group_plot_aggregate()
+
+        pass_figure = plot_pass_rate_heatmaps(aggregate)[0]
+        self.assertEqual(list(pass_figure.data[0].x), ["low", "medium", "high"])
+        self.assertEqual(
+            list(pass_figure.data[0].y),
+            ["gpt-5", "gpt-5-mini"],
+        )
+        self.assertEqual(
+            [list(row) for row in pass_figure.data[0].z],
+            [[None, 0.8, None], [0.4, 0.6, 0.2]],
+        )
+
+        failure_figure = plot_primary_failure_bars(aggregate)[0]
+        self.assertEqual(
+            sorted({value for trace in failure_figure.data for value in trace.x}),
+            [
+                "gpt-5 · medium",
+                "gpt-5-mini · high",
+                "gpt-5-mini · low",
+                "gpt-5-mini · medium",
+            ],
+        )
+        self.assertEqual(
+            list(failure_figure.layout.xaxis.categoryarray),
+            [
+                "gpt-5 · medium",
+                "gpt-5-mini · low",
+                "gpt-5-mini · medium",
+                "gpt-5-mini · high",
+            ],
+        )
+
+        grammar_figures = plot_grammar_pass_rates(aggregate)
+        self.assertEqual(len(grammar_figures), 3)
+        self.assertEqual(
+            {
+                tuple(figure.data[0].y)
+                for figure in grammar_figures
+            },
+            {
+                ("gpt-5-mini",),
+                ("gpt-5", "gpt-5-mini"),
+            },
+        )
+
+        token_figure = plot_token_usage_bars(aggregate)[0]
+        self.assertEqual(
+            list(token_figure.data[0].x),
+            [
+                "gpt-5 · medium",
+                "gpt-5-mini · low",
+                "gpt-5-mini · medium",
+                "gpt-5-mini · high",
+            ],
+        )
+
+        runtime_figure = plot_latency_tables(aggregate)[0]
+        self.assertEqual(
+            list(runtime_figure.data[0].cells.values[0]),
+            ["GPT-5 Nano", "GPT-5 Mini", "GPT-5"],
+        )
+        self.assertEqual(
+            list(runtime_figure.data[0].cells.values[1]),
+            ["-", "10.00 s", "-"],
+        )
+        self.assertEqual(
+            list(runtime_figure.data[0].cells.values[2]),
+            ["-", "20.00 s", "25.00 s"],
+        )
+        self.assertEqual(
+            list(runtime_figure.data[0].cells.values[3]),
+            ["-", "30.00 s", "-"],
+        )
+
+    def test_none_case_set_selects_newest_completed_run_and_ignores_in_progress(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir)
+            older_root = (
+                project_root / "outputs" / "evaluation" / "older"
+            )
+            newer_root = (
+                project_root / "outputs" / "evaluation" / "newer"
+            )
+            incomplete_root = (
+                project_root / "outputs" / "evaluation" / "incomplete"
+            )
+            _write_completed_run(
+                older_root / "runs" / "run-a",
+                completed_at="2026-06-01T10:00:00+00:00",
+                attempts=[_attempt(overall=True, grammar=0)],
+                case_set="older",
+            )
+            _write_completed_run(
+                newer_root / "runs" / "run-b",
+                completed_at="2026-06-02T10:00:00+00:00",
+                attempts=[_attempt(overall=True, grammar=0)],
+                case_set="newer",
+            )
+            _write_run_manifest(
+                incomplete_root / "runs" / "run-c",
+                case_set="incomplete",
+                status="in_progress",
+                completed_at=None,
+            )
+
+            selected = latest_completed_case_set(project_root=project_root)
+            source, aggregate = load_evaluation_results(
+                None,
+                project_root=project_root,
+            )
+
+        self.assertEqual(selected, "newer")
+        self.assertEqual(source.parent.name, "newer")
+        self.assertEqual(aggregate["overall"]["completed"], 1)
+
     def test_model_specific_tiers_expand_to_expected_jobs(self):
         model_names = ENV.get_registered_model_names()
         config = RunConfig.model_validate(
@@ -373,6 +492,7 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
         active = 0
         peak = 0
         observed_reasoning_efforts: list[str | None] = []
+        progress_updates: list[tuple[int, int]] = []
 
         async def fake_call(
             _system: str,
@@ -405,7 +525,12 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
                     "src.evaluation.runner.acall_llm_detailed",
                     side_effect=fake_call,
                 ):
-                    result = await evaluate_run(tiny_run(concurrency=2))
+                    result = await evaluate_run(
+                        tiny_run(concurrency=2),
+                        progress_callback=lambda finished, total: (
+                            progress_updates.append((finished, total))
+                        ),
+                    )
                 decomposition = await decompose_run(tiny_run(concurrency=2))
 
             attempts = list(
@@ -421,6 +546,10 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(attempts), 3)
         self.assertEqual(result["summary"]["completed"], 3)
         self.assertEqual(observed_reasoning_efforts, ["low", "low", "low"])
+        self.assertEqual(
+            progress_updates,
+            [(0, 3), (1, 3), (2, 3), (3, 3)],
+        )
         self.assertTrue(
             all(item["reasoning_effort"] == "low" for item in attempt_data)
         )
@@ -436,6 +565,33 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
         self.assertGreaterEqual(peak, 2)
         self.assertLessEqual(peak, 2)
         self.assertEqual(decomposition["processed"], 3)
+
+    async def test_pending_jobs_excludes_already_final_attempts(self):
+        jobs = [
+            SimpleNamespace(job_id="done"),
+            SimpleNamespace(job_id="retryable"),
+            SimpleNamespace(job_id="missing"),
+        ]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            run_dir = Path(temp_dir)
+            write_json_atomic(
+                run_dir / "attempts" / "done.json",
+                {"status": "complete"},
+            )
+            write_json_atomic(
+                run_dir / "attempts" / "retryable.json",
+                {
+                    "status": "transport_error",
+                    "retryable": True,
+                },
+            )
+
+            pending = _pending_jobs(jobs, run_dir, "config-hash")
+
+        self.assertEqual(
+            {job.job_id for job in pending},
+            {"retryable", "missing"},
+        )
 
 
 def _attempt(
@@ -520,21 +676,41 @@ def _plot_aggregate() -> dict[str, object]:
     }
 
 
+def _multi_group_plot_aggregate() -> dict[str, object]:
+    groups = []
+    for model, tier, pass_rate, runtime in (
+        ("gpt-5-mini", "low", 0.4, 10),
+        ("gpt-5-mini", "medium", 0.6, 20),
+        ("gpt-5-mini", "high", 0.2, 30),
+        ("gpt-5", "medium", 0.8, 25),
+    ):
+        group = dict(_plot_aggregate()["groups"][0])
+        group.update(
+            {
+                "model": model,
+                "tier": tier,
+                "pass_rate": pass_rate,
+                "timing": {
+                    "llm_elapsed_seconds": {"mean": runtime},
+                },
+            }
+        )
+        groups.append(group)
+    return {"groups": groups}
+
+
 def _write_completed_run(
     run_dir: Path,
     *,
     completed_at: str,
     attempts: list[dict[str, object]],
+    case_set: str | None = None,
 ) -> None:
-    write_json_atomic(
-        run_dir / "run-manifest.json",
-        {
-            "schema_version": 1,
-            "run_id": run_dir.name,
-            "config_hash": run_dir.name,
-            "status": "complete",
-            "completed_at": completed_at,
-        },
+    _write_run_manifest(
+        run_dir,
+        case_set=case_set,
+        status="complete",
+        completed_at=completed_at,
     )
     for index, attempt in enumerate(attempts):
         write_json_atomic(
@@ -542,6 +718,26 @@ def _write_completed_run(
             attempt,
         )
     write_json_atomic(run_dir / "aggregate.json", build_aggregate(attempts))
+
+
+def _write_run_manifest(
+    run_dir: Path,
+    *,
+    case_set: str | None,
+    status: str,
+    completed_at: str | None,
+) -> None:
+    write_json_atomic(
+        run_dir / "run-manifest.json",
+        {
+            "schema_version": 1,
+            "run_id": run_dir.name,
+            "case_set": case_set,
+            "config_hash": run_dir.name,
+            "status": status,
+            "completed_at": completed_at,
+        },
+    )
 
 
 if __name__ == "__main__":

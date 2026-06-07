@@ -37,11 +37,33 @@ def cmd_prepare() -> None:
 
 def cmd_evaluate() -> None:
     args = _config_parser("Evaluate a prepared case set.").parse_args()
+    progress: tqdm | None = None
+
+    def update_progress(finished: int, total: int) -> None:
+        nonlocal progress
+        if progress is None:
+            progress = tqdm(
+                total=total,
+                initial=finished,
+                desc="requests",
+                unit="request",
+            )
+            return
+        progress.update(finished - progress.n)
+
     try:
-        result = asyncio.run(evaluate_run(load_run_config(args.config)))
+        result = asyncio.run(
+            evaluate_run(
+                load_run_config(args.config),
+                progress_callback=update_progress,
+            )
+        )
     except (EvaluationConfigError, ValueError) as exc:
         print(f"evaluation failed: {exc}")
         raise SystemExit(1) from exc
+    finally:
+        if progress is not None:
+            progress.close()
     print(f"evaluation run: {result['run_dir']}")
     print(f"summary: {result['summary']}")
 

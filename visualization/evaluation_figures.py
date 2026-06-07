@@ -37,22 +37,53 @@ def load_evaluation_aggregate(run_dir: str | Path) -> dict[str, Any]:
 
 
 def load_evaluation_results(
-    case_set: str,
+    case_set: str | None,
     run_id: str | None = None,
     *,
     project_root: str | Path = PROJECT_ROOT,
 ) -> tuple[Path, dict[str, Any]]:
+    resolved_case_set = case_set or latest_completed_case_set(
+        project_root=project_root
+    )
     if run_id is not None:
         run_dir = resolve_evaluation_run(
-            case_set,
+            resolved_case_set,
             run_id,
             project_root=project_root,
         )
         return run_dir, load_evaluation_aggregate(run_dir)
 
-    case_root = Path(project_root) / "outputs" / "evaluation" / case_set
+    case_root = (
+        Path(project_root)
+        / "outputs"
+        / "evaluation"
+        / resolved_case_set
+    )
     index = load_or_build_result_index(case_root)
     return case_root / INDEX_FILENAME, dict(index["aggregate"])
+
+
+def latest_completed_case_set(
+    *,
+    project_root: str | Path = PROJECT_ROOT,
+) -> str:
+    evaluation_root = Path(project_root) / "outputs" / "evaluation"
+    completed = []
+    for manifest_path in evaluation_root.glob("*/runs/*/run-manifest.json"):
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if manifest.get("status") != "complete":
+            continue
+        completed.append(
+            (
+                str(manifest.get("completed_at") or ""),
+                str(manifest.get("case_set") or manifest_path.parents[2].name),
+            )
+        )
+    if not completed:
+        raise FileNotFoundError(
+            f"No completed evaluation run found under {evaluation_root}"
+        )
+    return max(completed)[1]
 
 
 def plot_pass_rate_heatmaps(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
@@ -153,6 +184,10 @@ def plot_primary_failure_bars(
             y_title="share of failed attempts",
         )
         figure.update_layout(legend={"traceorder": "reversed"})
+        figure.update_xaxes(
+            categoryorder="array",
+            categoryarray=labels,
+        )
         figure.update_yaxes(tickformat=".0%", range=[0, 1])
         figures.append(figure)
     return tuple(figures)

@@ -2,8 +2,8 @@ generation_config: evaluation_base
 grammar_config: evaluation_base
 root_seed: 42
 sampling_rounds: 1
-grammar_samples_per_tier: 3
-boards_per_grammar: 3
+grammar_samples_per_tier: 2
+boards_per_grammar: 2
 tiers:
   low:
     dimensions: 2
@@ -26,10 +26,10 @@ tiers:
     alphabet_size: 8
     forbidden_fraction: { min: 0.30, max: 0.40 }
     k: 3
-  # stress:
-  #   dimensions: 5
-  #   board_depth: {min: 152, max: 200}
-  #   additional_rack_noise: {min: 6, max: 7}
-  #   alphabet_size: 10
-  #   forbidden_fraction: {min: 0.40, max: 0.50}
-  #   k: 4
+  stress:
+    dimensions: 5
+    board_depth: {min: 152, max: 200}
+    additional_rack_noise: {min: 6, max: 7}
+    alphabet_size: 10
+    forbidden_fraction: {min: 0.40, max: 0.50}
+    k: 4
