@@ -5,10 +5,47 @@ from itertools import product as iproduct
 
 from ...domain.models import Symbol
 from ...formal.language import StrictlyLocalLanguage
+from .config import GrammarConfig
 
 
 class GrammarSamplingError(Exception):
     pass
+
+
+def sample_grammar_from_config(
+    config: GrammarConfig,
+    *,
+    language_id: str | None = None,
+) -> tuple[StrictlyLocalLanguage, int]:
+    from .alphabet import LetterAlphabetSampler
+
+    sampler = LetterAlphabetSampler(case=config.alphabet_case)
+    alphabet = sampler.sample(config.alphabet_size, config.seed)
+    resolved_id = language_id or config.config_name
+    if config.auto_resample.enabled:
+        return sample_sl_grammar_auto(
+            alphabet=alphabet,
+            k=config.k,
+            forbidden_fraction=config.forbidden_fraction,
+            min_word_length=config.resolved_min_word_length,
+            seed=config.seed,
+            max_attempts=config.auto_resample.max_attempts,
+            perron_min=config.auto_resample.perron_min,
+            perron_max=config.auto_resample.perron_max,
+            resample_length_min=config.auto_resample.resample_length_min,
+            resample_length_max=config.auto_resample.resample_length_max,
+            min_word_count=config.auto_resample.min_word_count,
+            language_id=resolved_id,
+        )
+    grammar = sample_sl_grammar(
+        alphabet=alphabet,
+        k=config.k,
+        forbidden_fraction=config.forbidden_fraction,
+        min_word_length=config.resolved_min_word_length,
+        seed=config.seed,
+        language_id=resolved_id,
+    )
+    return grammar, config.seed
 
 
 def sample_sl_grammar(

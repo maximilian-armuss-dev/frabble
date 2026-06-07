@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Mapping
 
-from litellm import completion
+from litellm import acompletion, completion
 
 from ..formal.parsing import SubmittedMove
 from .env import ENV, ModelConfig
@@ -20,11 +20,14 @@ def call_llm(
     system_prompt: str,
     user_prompt: str,
     model_name: str,
+    *,
+    reasoning_effort: str | None = None,
 ) -> str:
     return call_llm_detailed(
         system_prompt,
         user_prompt,
         model_name,
+        reasoning_effort=reasoning_effort,
     ).content
 
 
@@ -32,9 +35,41 @@ def call_llm_detailed(
     system_prompt: str,
     user_prompt: str,
     model_name: str,
+    *,
+    reasoning_effort: str | None = None,
 ) -> LLMCallResult:
     config = ENV.get_model_config(model_name)
-    response = completion(**_completion_kwargs(config, system_prompt, user_prompt))
+    response = completion(
+        **_completion_kwargs(
+            config,
+            system_prompt,
+            user_prompt,
+            reasoning_effort=reasoning_effort,
+        )
+    )
+    return _parse_completion_response(response)
+
+
+async def acall_llm_detailed(
+    system_prompt: str,
+    user_prompt: str,
+    model_name: str,
+    *,
+    reasoning_effort: str | None = None,
+) -> LLMCallResult:
+    config = ENV.get_model_config(model_name)
+    response = await acompletion(
+        **_completion_kwargs(
+            config,
+            system_prompt,
+            user_prompt,
+            reasoning_effort=reasoning_effort,
+        )
+    )
+    return _parse_completion_response(response)
+
+
+def _parse_completion_response(response) -> LLMCallResult:
     content = response.choices[0].message.content or ""  # Ignore linter error
     headers = {
         str(key).lower(): value
@@ -54,6 +89,20 @@ def call_llm_detailed(
             "x-openai-processing-ms",
         ),
         "system_fingerprint": response.get("system_fingerprint"),
+        "rate_limits": _without_none(
+            {
+                key: headers.get(key)
+                for key in (
+                    "x-ratelimit-limit-requests",
+                    "x-ratelimit-limit-tokens",
+                    "x-ratelimit-remaining-requests",
+                    "x-ratelimit-remaining-tokens",
+                    "x-ratelimit-reset-requests",
+                    "x-ratelimit-reset-tokens",
+                    "retry-after",
+                )
+            }
+        ),
     }
     try:
         submitted = SubmittedMove.model_validate_json(content)
@@ -71,6 +120,8 @@ def _completion_kwargs(
     config: ModelConfig,
     system_prompt: str,
     user_prompt: str,
+    *,
+    reasoning_effort: str | None,
 ) -> dict[str, object]:
     kwargs: dict[str, object] = {
         "model": config.model,
@@ -79,9 +130,12 @@ def _completion_kwargs(
             {"role": "user", "content": user_prompt},
         ],
         "temperature": config.temperature,
-        "reasoning_effort": config.reasoning_effort,
+        "reasoning_effort": reasoning_effort,
         "max_completion_tokens": config.max_completion_tokens,
         "response_format": SubmittedMove,
+        # Retries are owned by the evaluation runner so they can be counted,
+        # timed, and persisted. OpenAI's SDK otherwise retries twice by default.
+        "max_retries": 0,
         "api_key": config.api_key,
         "base_url": config.base_url,
         "timeout": config.timeout_seconds,

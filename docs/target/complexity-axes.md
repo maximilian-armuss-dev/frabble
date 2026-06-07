@@ -1,22 +1,61 @@
-# Komplexitätsachsen
+# Complexity Axes
 
-Langfristig kann der Benchmark als vierdimensionaler Experimentalraum verstanden werden:
+The target benchmark varies four largely independent dimensions of complexity.
 
-- Alphabetklasse.
-- Board-Dimensionalität.
-- Board-Komplexität.
-- Automaten-Komplexität.
+## 1. Alphabet Class
 
-Die Alphabetklasse beschreibt, auf welcher Tokenebene die konkreten Symbole liegen. Denkbar sind Sub-Token-Level, Token-Level und Supra-Token-Level. Im Zielbild wird dieselbe abstrakte Platzhaltersprache auf unterschiedliche konkrete Alphabete gemappt, um zu messen, wie stark die Modellleistung von der Symbolrepräsentation abhängt.
+The symbols shown to the model can represent units at different linguistic levels:
 
-Die Board-Dimensionalität skaliert von 2D zu höheren Dimensionen. Für das Paper bleibt interessant, ob Modelle bei gleicher Taskgröße schlechter werden, wenn dieselben lokalen Regeln in einem höherdimensionalen Koordinatenraum angewendet werden müssen.
+- **sub-token alphabets**, whose symbols tend to be parts of tokenizer tokens,
+- **token-level alphabets**, whose symbols tend to correspond to complete tokens,
+- **supra-token alphabets**, whose symbols tend to require multiple tokens.
 
-Die Board-Komplexität beschreibt die Größe und Struktur des Brettzustands. Sie kann über Boardgröße, Anzahl belegter Symbole, Anzahl bereits liegender Wörter, Wortlängen, Rackgröße, Anzahl möglicher Anker und Constraint-Enge wachsen.
+Placeholder symbols can be mapped to these classes while the underlying formal language remains unchanged. This separates reasoning difficulty from the syntactic properties of the visible representation.
 
-Die Automaten-Komplexität beschreibt die Schwierigkeit der formalen Sprache. Relevante Parameter sind `k`, Anzahl und Länge verbotener Snippets, Anzahl der Zustände, Übergangsdichte, Akzeptanzdichte, minimale DFA-Größe, erlaubte Wortlängen und Anzahl akzeptierter Strings pro Länge.
+## 2. Board Dimensionality
 
-Für das Target Picture können Strictly-Local-Sprachen über mixed-width forbidden snippets erzeugt werden. Bei maximalem `k = 3` können also beispielsweise verbotene Snippets der Länge `2` und `3` kombiniert werden. Dadurch lässt sich die Dichte der Sprache feiner steuern als bei einer festen Übergangsliste.
+Boards may have two, three, or more dimensions. Increasing dimensionality changes:
 
-Die Transfer Matrix der Sprache kann genutzt werden, um die Anzahl gültiger Strings pro Länge effizient zu berechnen. Die Perron-Eigenvalue der Transfer Matrix gibt zusätzlich ein Signal für die asymptotische Wachstumsrate der Sprache und damit für die Dichte des Lösungsraums. Diese Werte können verwendet werden, um zufällig generierte Sprachen zu filtern und Komplexitätsklassen zu bilden.
+- the number of legal placement axes,
+- the number of possible perpendicular cross-words,
+- the spatial bookkeeping required from the model.
 
-Die Skalierungsachsen sollen getrennt steuerbar bleiben. Ein höherdimensionales Board darf nicht automatisch ein größeres oder dichteres Board sein, außer genau das ist Teil des Experiments.
+Higher-dimensional boards should retain the same local placement semantics as the two-dimensional case.
+
+## 3. Board Complexity
+
+Board complexity includes:
+
+- board size or occupied bounding-box volume,
+- occupancy density,
+- number and length of existing words,
+- rack size,
+- number of usable anchors,
+- number and tightness of cross-word constraints.
+
+These parameters should be controlled separately where possible. A larger board is not necessarily harder if it contains only one unconstrained anchor.
+
+## 4. Automaton Complexity
+
+The formal language can be varied through parameters such as:
+
+- forbidden-snippet width \(k\),
+- number of forbidden snippets,
+- number of automaton states,
+- transition density,
+- acceptance density,
+- size of the minimal DFA,
+- accepted word lengths and counts.
+
+For \(k = 3\), forbidden snippets may have mixed widths up to three. This permits local constraints of different granularities within one language.
+
+For a fixed automaton, growth in the number of accepted words by length can be analyzed through its transition matrix. The dominant Perron eigenvalue provides an asymptotic measure of language growth.
+
+## Experimental Control
+
+The axes should be varied independently enough to support causal comparisons. In particular:
+
+- changing the alphabet representation should not change the abstract language,
+- changing dimensionality should not silently change the language,
+- changing board density should not automatically change rack size,
+- changing automaton complexity should not require changing the prompt schema.

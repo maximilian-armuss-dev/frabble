@@ -1,37 +1,52 @@
-# V1-Promptformat
+# V1 Prompt Format
 
-Der System Prompt enthält stabile Regeln: Spielregeln, Sprachbeschreibung und erwartetes Output-Format. Der User Prompt enthält den variablen Zustand: Board Configuration, Rack und konkrete Aufgabe.
+The prompt is split into stable and scenario-specific content.
 
-Das Modell gibt nur JSON aus, keine Begründung.
+## System Prompt
 
-## Sprachrepräsentation
+The system prompt contains:
 
-Die Sprache wird im V1-Prompt über forbidden snippets oder eine daraus abgeleitete einfache Regel dargestellt. Zusätzlich wird ein kurzes One-Shot-Beispiel autogeneriert, das eine gültige und eine ungültige Sequenz erklärt. Hoffnung dahinter: Durch Beispiele kann das LLM die Komplexität der Sprachrepräsentation besser überwinden.
+- the placement rules,
+- the formal-language rule,
+- the required output schema.
 
-## Boardrepräsentation
+It may also include the forbidden snippets and one worked example.
 
-Das Board wird als JSON-kompatible Board Configuration dargestellt:
+## User Prompt
+
+The user prompt contains:
+
+- board dimensionality,
+- occupied board cells,
+- the rack,
+- the instruction to produce one legal move.
+
+## Board Representation
+
+The board is represented as sparse JSON:
 
 ```json
 {
   "dimensions": 2,
-  "shape": [8, 8],
-  "occupied": [
-    {"coord": [2, 3], "symbol": "A"},
-    {"coord": [3, 3], "symbol": "B"}
-  ],
-  "rack": ["A", "A", "C", "D"]
+  "cells": [
+    {"coordinate": [0, 0], "symbol": "A"},
+    {"coordinate": [1, 0], "symbol": "B"}
+  ]
 }
 ```
 
-## Output
+Coordinates are integer vectors whose length equals the board dimensionality.
 
-Das erwartete Modelloutputformat ist:
+## Output Representation
+
+The model must return JSON only:
 
 ```json
 {
-  "start": [2, 3],
-  "axis": 0,
-  "sequence": ["A", "B", "C", "D"]
+  "word": "ABC",
+  "start": [0, 0],
+  "direction": [1, 0]
 }
 ```
+
+`direction` must be a positive unit vector along exactly one axis. The evaluator derives all occupied coordinates from `start`, `direction`, and `word`.

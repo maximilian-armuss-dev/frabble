@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Mapping
 
-import yaml
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from ..configuration import NamedYamlConfigSource
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_DIR = PROJECT_ROOT / "config"
@@ -13,6 +14,13 @@ GENERATION_CONFIG_DIR = CONFIG_DIR / "generation"
 
 class ConfigError(ValueError):
     pass
+
+
+GENERATION_CONFIG_SOURCE = NamedYamlConfigSource(
+    directory=GENERATION_CONFIG_DIR,
+    kind="generation",
+    error_type=ConfigError,
+)
 
 
 class LengthDistribution(BaseModel):
@@ -45,7 +53,8 @@ class GeneratorConfig(BaseModel):
     config_name: str
     dimensions: int = Field(ge=2)
     seed: int
-    grammar_path: str
+    grammar: str | None = None
+    grammar_path: str | None = None
     initial_word_axis: int
     initial_word_length: int
     length_distribution: LengthDistribution
@@ -55,45 +64,80 @@ class GeneratorConfig(BaseModel):
     target_witness_count: int = Field(gt=0)
     scoring: ScoringConfig
     additional_rack_noise: int = Field(ge=0)
-    output_path: str
+    output_path: str | None = None
     include_search_logs: bool
 
     @model_validator(mode="after")
     def validate_generator(self) -> "GeneratorConfig":
         if self.initial_word_axis < 0 or self.initial_word_axis >= self.dimensions:
             raise ValueError("initial_word_axis is outside configured dimensions.")
+        if (self.grammar is None) == (self.grammar_path is None):
+            raise ValueError("Exactly one of grammar or grammar_path must be configured.")
+        if self.grammar is not None and (
+            "/" in self.grammar
+            or "\\" in self.grammar
+            or self.grammar.endswith(".json")
+        ):
+            raise ValueError("grammar must be an ID without path or suffix.")
         return self
 
 
 def resolve_config_path(config_name: str) -> Path:
-    if not config_name:
-        raise ConfigError("--config must not be empty.")
-    if "/" in config_name or "\\" in config_name:
-        raise ConfigError("--config must be a config name, not a path.")
-    filename = config_name if config_name.endswith(".yaml") else f"{config_name}.yaml"
-    return GENERATION_CONFIG_DIR / filename
+    return GENERATION_CONFIG_SOURCE.path(config_name)
 
 
-def load_generator_config(config_name: str) -> GeneratorConfig:
+def resolve_grammar_path(config: GeneratorConfig) -> Path:
+    if config.grammar is not None:
+        return PROJECT_ROOT / "outputs" / "grammars" / f"{config.grammar}.json"
+    if config.grammar_path is None:
+        raise ConfigError("Generator config has no grammar reference.")
+    grammar_path = Path(config.grammar_path)
+    return grammar_path if grammar_path.is_absolute() else PROJECT_ROOT / grammar_path
+
+
+def resolve_output_path(config: GeneratorConfig) -> Path:
+    if config.output_path is None:
+        return PROJECT_ROOT / "outputs" / "scenarios" / f"{config.config_name}.json"
+    output = Path(config.output_path)
+    return output if output.is_absolute() else PROJECT_ROOT / output
+
+
+def resolve_scenario_grammar_path(
+    scenario_config: Mapping[str, object],
+    *,
+    scenario_path: Path | None = None,
+) -> Path:
+    grammar = scenario_config.get("grammar")
+    if grammar:
+        return PROJECT_ROOT / "outputs" / "grammars" / f"{grammar}.json"
+    raw_path = scenario_config.get("grammar_path")
+    if not raw_path:
+        raise ConfigError("Scenario config has no grammar or grammar_path reference.")
+    direct = Path(str(raw_path))
+    candidates = [
+        direct,
+        PROJECT_ROOT / direct,
+    ]
+    if scenario_path is not None:
+        candidates.append(scenario_path.parent / direct)
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    raise ConfigError(f"Grammar file not found: {raw_path}")
+
+
+def load_generator_config(
+    config_name: str,
+    *,
+    validate_grammar: bool = True,
+) -> GeneratorConfig:
     from ..formal.grammar.serialization import load_grammar
 
-    path = resolve_config_path(config_name)
-    if not path.exists():
-        raise ConfigError(f"Config file does not exist: {path}")
-    raw = _read_yaml(path)
-    try:
-        config = GeneratorConfig.model_validate(raw)
-    except ValidationError as exc:
-        raise ConfigError(str(exc)) from exc
-    expected_name = path.stem
-    if config.config_name != expected_name:
-        raise ConfigError(
-            f"config_name must match file name: expected {expected_name!r}, got {config.config_name!r}."
-        )
+    config = GENERATION_CONFIG_SOURCE.load(config_name, GeneratorConfig)
+    if not validate_grammar:
+        return config
 
-    grammar_path = Path(config.grammar_path)
-    if not grammar_path.is_absolute():
-        grammar_path = PROJECT_ROOT / grammar_path
+    grammar_path = resolve_grammar_path(config)
     if not grammar_path.exists():
         raise ConfigError(f"grammar_path does not exist: {grammar_path}")
     grammar, _cfg, _name = load_grammar(grammar_path)
@@ -110,11 +154,3 @@ def load_generator_config(config_name: str) -> GeneratorConfig:
         )
 
     return config
-
-
-def _read_yaml(path: Path) -> dict[str, Any]:
-    with path.open("r", encoding="utf-8") as handle:
-        data = yaml.safe_load(handle)
-    if not isinstance(data, dict):
-        raise ConfigError("Config root must be a mapping.")
-    return data

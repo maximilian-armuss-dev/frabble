@@ -16,6 +16,7 @@ from src.formal.language import StrictlyLocalLanguage
 from src.formal.parsing import SubmittedMove, parse_submitted_move
 from src.formal.validation import validate_move_detailed
 from src.generator.reconstruction import board_before_transition
+from src.generator.config import resolve_scenario_grammar_path
 from src.generator.scenario_io import load_scenario_run
 from src.llm.client import call_llm_detailed
 from src.llm.env import ENV, MODEL_CONFIGS_PATH
@@ -52,6 +53,7 @@ class PreparedLLMTransition:
     scenario_path: Path
     transition_index: int
     model_name: str
+    reasoning_effort: str | None
     board: Board
     rack: tuple[str, ...]
     ground_truth_move: Move
@@ -116,6 +118,7 @@ def run_llm_transition(
     scenario_name: str | Path,
     transition_index: int,
     model_name: str,
+    reasoning_effort: str | None,
     output_dir: str | Path | None = None,
     representers: RepresenterConfig | None = None,
 ) -> LLMRunContext:
@@ -124,6 +127,7 @@ def run_llm_transition(
         scenario_name=scenario_name,
         transition_index=transition_index,
         model_name=model_name,
+        reasoning_effort=reasoning_effort,
         representers=representers,
     )
     response = call_prepared_llm_transition(prepared)
@@ -135,6 +139,7 @@ def prepare_llm_transition(
     scenario_name: str | Path,
     transition_index: int,
     model_name: str,
+    reasoning_effort: str | None,
     representers: RepresenterConfig | None = None,
 ) -> PreparedLLMTransition:
     """Load and render a transition without making an LLM request."""
@@ -156,6 +161,7 @@ def prepare_llm_transition(
         scenario_path=scenario_path,
         transition_index=transition_index,
         model_name=model_name,
+        reasoning_effort=reasoning_effort,
         board=board,
         rack=transition.rack,
         ground_truth_move=transition.move,
@@ -175,14 +181,14 @@ def call_prepared_llm_transition(
         prepared.system_prompt,
         prepared.user_prompt,
         prepared.model_name,
+        reasoning_effort=prepared.reasoning_effort,
     )
     elapsed = perf_counter() - started_at
-    model_config = ENV.get_model_config(prepared.model_name)
     metadata = {
         **result.metadata,
         "configured_model": prepared.model_name,
         "backend": "litellm",
-        "reasoning_effort": model_config.reasoning_effort,
+        "reasoning_effort": prepared.reasoning_effort,
     }
     return TimedLLMResponse(
         raw_response=result.content,
@@ -232,8 +238,7 @@ def finalize_llm_transition(
         "model": prepared.model_name,
         "model_config": {
             "model": model_config.model,
-            "reasoning_depth": model_config.reasoning_effort,
-            "reasoning_effort": model_config.reasoning_effort,
+            "reasoning_effort": prepared.reasoning_effort,
             "max_completion_tokens": model_config.max_completion_tokens,
             "structured_output": True,
             "timeout_seconds": model_config.timeout_seconds,
@@ -732,16 +737,10 @@ def _move_from_object(data: object) -> Move | None:
 
 def _grammar_path(scenario_path: Path) -> Path:
     scenario_run = load_scenario_run(scenario_path)
-    grammar_path = Path(str(scenario_run.config.get("grammar_path", "")))
-    if grammar_path.is_absolute() and grammar_path.exists():
-        return grammar_path
-    root_path = PROJECT_ROOT / grammar_path
-    if root_path.exists():
-        return root_path
-    relative_to_scenario = scenario_path.parent / grammar_path
-    if relative_to_scenario.exists():
-        return relative_to_scenario
-    raise FileNotFoundError(f"Grammar file not found: {grammar_path}")
+    return resolve_scenario_grammar_path(
+        scenario_run.config,
+        scenario_path=scenario_path,
+    )
 
 
 def _resolve_path(raw_path: str, project_root: Path, fallback_dir: Path) -> Path:

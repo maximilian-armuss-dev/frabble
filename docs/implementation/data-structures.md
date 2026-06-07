@@ -1,8 +1,8 @@
-# Datenstrukturen
+# Data Structures
 
 ## Board
 
-Das Board wird sparse repräsentiert. Ein Tensor oder dichtes Array ist für unbounded Generation ungeeignet, weil der Raum sehr dünn belegt ist und negative Koordinaten möglich bleiben sollen.
+The board uses a sparse representation. A tensor or dense array is unsuitable for unbounded generation because occupancy is sparse and coordinates may be negative.
 
 ```python
 Coord = tuple[int, ...]
@@ -11,16 +11,11 @@ Symbol = str
 cells: dict[Coord, Symbol]
 ```
 
-Für V1 gilt:
+V1 requires `dimensions >= 2`.
 
-```python
-dimensions >= 2
-Coord = tuple[int, ...]
-```
+## Segments
 
-## Segmente
-
-Neben `cells` wird eine Segmentliste geführt. Ein Segment entspricht einem gelegten Wort.
+In addition to `cells`, the board stores segments. A segment corresponds to one placed word.
 
 ```python
 Segment:
@@ -29,15 +24,15 @@ Segment:
     sequence: tuple[Symbol, ...]
 ```
 
-Segmente werden benötigt, um schnell zu bestimmen:
+Segments support efficient checks for:
 
-- auf welcher Achse eine Koordinate bereits Teil eines Wortes ist.
-- welche Zielachse für ein neues Crossing erlaubt ist.
-- ob eine Platzierung ein bestehendes Wort entlang derselben Achse verlängern würde.
+- axes on which a coordinate already belongs to a word,
+- target axes allowed for a new crossing,
+- placements that would extend an existing word on the same axis.
 
-## Indizes
+## Indices
 
-Für effiziente Generierung werden aus `cells` und `segments` Indizes abgeleitet.
+Derived indices support efficient generation:
 
 ```python
 symbol_index: dict[Symbol, set[Coord]]
@@ -45,11 +40,11 @@ coord_axes: dict[Coord, set[int]]
 coord_segments: dict[Coord, set[SegmentId]]
 ```
 
-`symbol_index` dient dem Anchor-Sampling. `coord_axes` dient der Criss-Cross-Achsenwahl. `coord_segments` dient Debugging, Validierung und späterer Analyse.
+`symbol_index` supports anchor sampling, `coord_axes` crossing-axis selection, and `coord_segments` debugging, validation, and later analysis.
 
-## Board-API
+## Board API
 
-`Board` bleibt schlank. Es hält Zustand und bietet nur die geometrischen Operationen an, die Generator und Validator direkt brauchen.
+`Board` remains small and provides only state and geometric operations needed by the generator and validator.
 
 ```python
 class Board:
@@ -64,11 +59,9 @@ class Board:
     def place(self, move: "Move") -> "Board": ...
 ```
 
-`place()` arbeitet nicht in-place, sondern gibt eine neue Board-Instanz zurück. Dadurch bleiben Witness-States, Reproduzierbarkeit und Debugging sauber.
+`place()` returns a new board rather than mutating in place, preserving witness states, reproducibility, and debuggability.
 
 ## SlotAnalysis
-
-`analyze_slot()` fasst die geometrische Analyse eines Templates zusammen.
 
 ```python
 SlotAnalysis:
@@ -79,11 +72,9 @@ SlotAnalysis:
     conflicts: tuple[Coord, ...]
 ```
 
-Der Generator verwendet `SlotAnalysis`, um Domains für das lokale Slot-CSP zu bauen. Der Solver muss keine Boardgeometrie kennen.
+The generator uses `SlotAnalysis` to build domains for the local slot CSP. The solver does not need to know board geometry.
 
 ## Move
-
-Ein Move beschreibt ein neu gelegtes Wort.
 
 ```python
 Move:
@@ -92,11 +83,9 @@ Move:
     sequence: tuple[Symbol, ...]
 ```
 
-`sequence` enthält die vollständige Wortsequenz, inklusive Symbolen, die bereits auf dem Board liegen und konsistent überlappt werden.
+`sequence` contains the full word, including existing symbols that are reused consistently.
 
 ## SlotTemplate
-
-Ein SlotTemplate ist ein geometrischer Rahmen, bevor das konkrete Wort gelöst wurde.
 
 ```python
 SlotTemplate:
@@ -109,8 +98,6 @@ SlotTemplate:
     covered_coords: tuple[Coord, ...]
 ```
 
-Für ein Template gilt:
-
 ```text
 start = anchor_coord - anchor_index * unit(axis)
 coord(i) = start + i * unit(axis)
@@ -118,7 +105,7 @@ coord(i) = start + i * unit(axis)
 
 ## Scoring Helper
 
-Scoring gehört nicht direkt in `Board`. Es wird als eigene Helper-Schicht modelliert, damit Boardlogik und Heuristiken austauschbar bleiben.
+Scoring is separated from `Board` so geometry and heuristics remain independently replaceable.
 
 ```python
 class BoardScoring:
@@ -129,6 +116,4 @@ class BoardScoring:
     def local_adjacent_density(board: Board, coords: tuple[Coord, ...]) -> int: ...
 ```
 
-`BoardScoring` liefert die Features für Anchor- und Template-Ranking. Der Generator berechnet den Centroid einmal pro unverändertem Board-State und reicht ihn an die Distanzfeatures weiter, statt ihn für jeden Kandidaten neu über alle Boardzellen zu bestimmen.
-
-`TemplateCandidate` kann außerdem die bereits extrahierten, nicht-leeren Cross-Domains sowie `domain_slack` tragen. Dadurch wird Feasibility vor dem Ranking sichtbar und dieselbe Domain-Extraktion muss vor dem Slot-CSP nicht wiederholt werden.
+The generator computes the centroid once per unchanged board state and passes it to distance features. `TemplateCandidate` may also carry extracted non-empty cross-domains and `domain_slack`, avoiding repeated extraction before the slot CSP.

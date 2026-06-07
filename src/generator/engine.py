@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from pathlib import Path
 import random
-
-from pathlib import Path
 
 from ..benchmark.scoring import BoardScoring
 from ..domain.board import Board
@@ -25,7 +22,7 @@ from ..formal.grammar.serialization import load_grammar
 from ..formal.slot_csp import SlotCSP
 from ..formal.validation import extends_existing_sequence_in_any_axis, validate_move_detailed
 from .candidates import top_anchors, top_templates
-from .config import GeneratorConfig, PROJECT_ROOT
+from .config import GeneratorConfig, resolve_grammar_path, resolve_output_path
 from .scenario_io import write_scenario_run
 
 
@@ -56,9 +53,7 @@ class ScenarioGenerator:
     def __init__(self, config: GeneratorConfig) -> None:
         self.config = config
         self.rng = random.Random(config.seed)
-        grammar_path = Path(config.grammar_path)
-        if not grammar_path.is_absolute():
-            grammar_path = PROJECT_ROOT / grammar_path
+        grammar_path = resolve_grammar_path(config)
         self.language, _cfg, self.grammar_name = load_grammar(grammar_path)
         self.solver = SlotCSP(self.language, rng=self.rng)
 
@@ -200,10 +195,7 @@ class ScenarioGenerator:
         return board, None, tuple(failures)
 
     def write(self, scenario_run: ScenarioRun) -> Path:
-        output = Path(self.config.output_path)
-        if not output.is_absolute():
-            output = PROJECT_ROOT / output
-        return write_scenario_run(output, scenario_run)
+        return write_scenario_run(resolve_output_path(self.config), scenario_run)
 
     def _initial_board(self) -> Board:
         sequences = enumerate_accepted_sequences(self.language, self.config.initial_word_length)

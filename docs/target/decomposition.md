@@ -1,14 +1,33 @@
-# Decomposition
+# Evaluation Decomposition
 
-Später soll die Evaluation nicht nur sagen, dass ein Modell gescheitert ist, sondern auch wo. Dafür kann ein Performance-Threshold definiert werden. Wenn ein Modell unter diesen Threshold fällt, wird die Aufgabe in kleinere Komponenten zerlegt.
+If full-puzzle performance falls below a useful threshold, the target benchmark can be decomposed into narrower tasks.
 
-Mögliche Komponenten sind:
+## Components
 
-- Membership: Klassifikation, ob eine gegebene Symbolfolge Teil der Sprache ist.
-- Generation: Erzeugung einer gültigen Symbolfolge aus einem Rack.
-- Tile Constraint: Nutzung nur verfügbarer Symbole.
-- Placement: Wahl einer gültigen Position und Achse.
-- Cross Words: Gültigkeit aller durch den Zug entstehenden Sequenzen.
-- Output Schema: parsebares strukturiertes JSON.
+1. **Membership**
 
-Diese Decomposition ist kein V1-Ziel. Sie beschreibt, wie spätere Experimente aus Fehlern erklärbare Signale gewinnen können.
+   Decide whether a sequence belongs to the formal language.
+
+2. **Generation**
+
+   Produce a sequence that belongs to the formal language.
+
+3. **Tile Constraint**
+
+   Determine whether a candidate can be formed from the available rack symbols and board overlap.
+
+4. **Placement**
+
+   Place a supplied valid sequence on the board according to geometric rules.
+
+5. **Cross-Words**
+
+   Verify that all perpendicular sequences created by a placement are valid.
+
+6. **Output Schema**
+
+   Encode an otherwise known-valid move in the required structured format.
+
+This decomposition helps distinguish failures of language induction, search, spatial reasoning, constraint satisfaction, and serialization.
+
+It is not part of V1. V1 evaluates only the complete move-generation task.

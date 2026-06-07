@@ -1,0 +1,35 @@
+generation_config: evaluation_base
+grammar_config: evaluation_base
+root_seed: 42
+sampling_rounds: 1
+grammar_samples_per_tier: 2
+boards_per_grammar: 2
+tiers:
+  low:
+    dimensions: 2
+    board_depth: { min: 5, max: 53 }
+    additional_rack_noise: { min: 0, max: 1 }
+    alphabet_size: 4
+    forbidden_fraction: { min: 0.10, max: 0.20 }
+    k: 2
+  medium:
+    dimensions: 3
+    board_depth: { min: 54, max: 102 }
+    additional_rack_noise: { min: 2, max: 3 }
+    alphabet_size: 6
+    forbidden_fraction: { min: 0.20, max: 0.30 }
+    k: 2
+  high:
+    dimensions: 4
+    board_depth: { min: 103, max: 151 }
+    additional_rack_noise: { min: 4, max: 5 }
+    alphabet_size: 8
+    forbidden_fraction: { min: 0.30, max: 0.40 }
+    k: 3
+  stress:
+    dimensions: 5
+    board_depth: {min: 152, max: 200}
+    additional_rack_noise: {min: 6, max: 7}
+    alphabet_size: 10
+    forbidden_fraction: {min: 0.40, max: 0.50}
+    k: 4

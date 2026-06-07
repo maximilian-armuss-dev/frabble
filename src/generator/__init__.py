@@ -1,4 +1,12 @@
-from .config import ConfigError, GeneratorConfig, load_generator_config, resolve_config_path
+from .config import (
+    ConfigError,
+    GeneratorConfig,
+    load_generator_config,
+    resolve_config_path,
+    resolve_grammar_path,
+    resolve_output_path,
+    resolve_scenario_grammar_path,
+)
 from .engine import GenerationError, ScenarioGenerator
 from .reconstruction import board_before_transition, reconstruct_boards
 from .scenario_codec import scenario_run_from_json, scenario_run_to_json
@@ -14,6 +22,9 @@ __all__ = [
     "load_scenario_run",
     "reconstruct_boards",
     "resolve_config_path",
+    "resolve_grammar_path",
+    "resolve_output_path",
+    "resolve_scenario_grammar_path",
     "scenario_run_from_json",
     "scenario_run_to_json",
     "write_scenario_run",

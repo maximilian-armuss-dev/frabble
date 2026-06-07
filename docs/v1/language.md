@@ -1,42 +1,42 @@
-# V1-Sprache
+# V1 Language
 
-V1 startet mit genau einer einfachen Strictly-Local-Sprache. Ziel ist nicht, die Sprachachse schon breit zu benchmarken, sondern zu prüfen, ob der Prototyp technisch funktioniert und ob das LLM bereits bei einer einfachen formalen Sprache Probleme hat.
+V1 uses one deliberately simple strictly local language.
 
-## Festlegungen
+## Alphabet
 
-- Alphabetgröße `6`.
-- Alphabet `{A, B, C, D, E, F}`.
-- Strictly Local Language.
-- Forbidden-snippet-Repräsentation.
-- Wörter der Länge `1` und `2` sind ungültig.
-- Minimale Wortlänge ist `3`.
+\[
+\Sigma = \{A, B, C, D, E, F\}
+\]
 
-## Startsprache
+## Rule
 
-Für den ersten Prototypen kann eine einfache `k = 2`-Sprache genutzt werden, die gleiche benachbarte Symbole verbietet:
+A sequence is valid if:
 
-```text
-forbidden = {
-  "AA", "BB", "CC", "DD", "EE", "FF"
-}
-```
+- it has length at least three,
+- no symbol is immediately repeated.
 
-Ein Wort ist gültig, wenn es Länge mindestens `3` hat und kein Symbol direkt zweimal hintereinander vorkommt.
-
-Gültig:
+Equivalently, the forbidden length-two snippets are:
 
 ```text
-A B C
-A C A D
-F E D C
+AA BB CC DD EE FF
 ```
 
-Ungültig:
+## Examples
+
+Valid:
 
 ```text
-A B
-A A C
-D E E F
+ABC
+ABACA
+FEDCBA
 ```
 
-Diese Sprache ist absichtlich simpel. Sie hat keine Sackgassen, alle Symbole bleiben produktiv und der Generator findet leicht gültige Wörter. Sie dient als erster End-to-end-Test für Prompting, Parsing, Boardvalidierung und Szenariogenerierung.
+Invalid:
+
+```text
+AB
+ABBC
+FAA
+```
+
+This language is intentionally easy to explain and validate. Its purpose is to test the end-to-end benchmark pipeline before introducing more complex automata.

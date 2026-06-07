@@ -10,63 +10,57 @@ uv sync
 
 ## Workflow
 
-There are two configuration layers:
+There are three configuration layers:
 
-- `config/grammar_configs.yaml` contains defaults used while sampling a grammar. Sampling produces a concrete, reproducible JSON grammar under `outputs/grammars/`.
-- `config/generation/<name>.yaml` controls a board/scenario run and selects one
-  sampled grammar through `grammar_path`.
+- `config/grammars/<name>.yaml` fully describes one reproducible grammar sample.
+- `config/generation/<name>.yaml` controls a standalone board/scenario run and
+  selects a sampled grammar through its ID.
+- `config/evaluation/` defines reusable case sets and concrete model runs.
 
 ### 1. Sample a grammar
 
 Sample a random strictly-local (SL_k) grammar and save it to `outputs/grammars/<name>.json`:
 
 ```bash
-uv run sample-grammar --name my_grammar --alphabet-size 5 --k 3 --seed 42 --show-stats
+uv run sample-grammar --config generator_v1_grammar
 ```
 
-Global defaults (forbidden fraction, Perron bounds, word-count window, etc.) are read from `config/grammar_configs.yaml`. Any CLI flag overrides just that one value for the run. All resolved parameters are written into the JSON for full traceability.
-
-Key flags (all optional — unset flags fall back to `config/grammar_configs.yaml`):
-
-```
---name TEXT                  Grammar name; file saved as outputs/grammars/<name>.json
---output-dir PATH            Output directory (default: outputs/grammars/)
---alphabet-size INT          Number of symbols (default: 5)
---k INT                      Forbidden pattern length (default: 3)
---forbidden-fraction FLOAT   Fraction of k-grams to forbid independently
---min-word-length INT        Minimum accepted word length (default: k)
---seed INT                   Base random seed (default: 42)
---alphabet-case upper|lower
---auto-resample / --no-auto-resample
---max-attempts INT           Max resample attempts
---perron-min FLOAT           Minimum Perron eigenvalue for auto-resample
---perron-max FLOAT           Maximum Perron eigenvalue for auto-resample
---resample-length-min INT    Word-count window start length
---resample-length-max INT    Word-count window end length
---min-word-count INT         Min words in the resample length window
---show-stats                 Print Perron eigenvalue and word-count spectrum
-```
+The filename stem is the grammar ID and the default output name. For example,
+`config/grammars/generator_v1_grammar.yaml` produces
+`outputs/grammars/generator_v1_grammar.json`. The YAML contains all alphabet,
+SL_k, seed, forbidden-fraction, and auto-resampling parameters. An optional
+`output_path` overrides the conventional output location.
 
 ### 2. Analyse a grammar
 
 Inspect the Perron eigenvalue (language growth rate) and the exact word count at each length:
 
 ```bash
-uv run analyze-grammar outputs/grammars/my_grammar.json --max-length 10
+uv run analyze-grammar generator_v1_grammar --max-length 10
 ```
+
+An explicit JSON path is also accepted.
 
 ### 3. Generate scenarios
 
 Generator configurations live under `config/generation/`. The YAML file is the single source of truth; the CLI only takes the config name.
 
-Each config references a pre-sampled grammar via `grammar_path`. Generate the grammar first (step 1), then point the config at it.
+Each config references a pre-sampled grammar by ID:
+
+```yaml
+grammar: generator_v1_grammar
+```
 
 ```bash
 uv run generate --config generator_v1
 uv run generate --config generator_3d
 ```
 
-`--config generator_v1` loads `config/generation/generator_v1.yaml`, `--config generator_3d` loads the 3D variant. A generation config may set any `dimensions >= 2`, including higher-dimensional scenarios. Missing or incomplete config values cause a hard error; there are no silent code defaults.
+`--config generator_v1` loads `config/generation/generator_v1.yaml` and writes
+`outputs/scenarios/generator_v1.json` by convention. `config_name` is derived
+from the filename. All generator budgets, length ranges, scoring weights, rack
+noise, and search-log settings remain explicit YAML fields. `output_path` and
+an external `grammar_path` are optional overrides.
 
 ### 4. Visualize generated boards and moves
 
@@ -90,63 +84,34 @@ symbol.
 
 ### End-to-end run with a new 2D grammar
 
-To use a newly sampled grammar without replacing the checked-in example, create
-a generation config such as `config/generation/my_2d.yaml` from
-`generator_v1.yaml` and change these fields:
+To use a newly sampled grammar, create `config/grammars/my_2d_grammar.yaml` and
+a generation config such as `config/generation/my_2d.yaml`. The latter only
+needs to refer to the grammar ID:
 
 ```yaml
-config_name: my_2d
-grammar_path: outputs/grammars/my_2d_grammar.json
-output_path: outputs/scenarios/my_2d.json
+grammar: my_2d_grammar
 ```
 
 Sample the grammar and generate its scenario:
 
 ```bash
-uv run sample-grammar --name my_2d_grammar --alphabet-size 5 --k 3 --seed 42 --show-stats
-uv run analyze-grammar outputs/grammars/my_2d_grammar.json --max-length 7
+uv run sample-grammar --config my_2d_grammar
+uv run analyze-grammar my_2d_grammar --max-length 7
 uv run generate --config my_2d
 ```
 
 Finally, set `SCENARIO_NAME` in `visualization/inspect_scenario.ipynb` to
 `"my_2d"` and run the notebook.
 
-The current checked-in samples use `k = 3`. To run the older V1 convention
-described in `docs/implementation/README.md` (`k = 2` while still rejecting
-words shorter than length 3), sample with `--k 2 --min-word-length 3`.
+The current checked-in samples use `k = 3`. To run the older V1 convention,
+set `k: 2` and `min_word_length: 3` in the grammar YAML.
 
-### 4. Run a scenario against an LLM
+### 5. Run a scenario against an LLM
 
-Pick a generated scenario file and a transition index. The board is replayed up to that transition, and the model is asked to place a valid word using the rack from that step. Because the CSP solver found a solution at every step, a valid move is guaranteed to exist.
-
-```bash
-uv run run-scenario --scenario outputs/scenarios/generator_v1.json --transition 20 --model my_model
-```
-
-The model name must match a profile in `config/model_configs.yaml`. The run log (prompts, raw response, and evaluation) is written to `outputs/llm-runs/`.
-
-Key flags:
-
-```
---scenario PATH              Scenario JSON file produced by the generate step
---transition INT             Transition index N (0-indexed); board is populated with transitions 0..N-1
---model TEXT                 Model name from config/model_configs.yaml (not required with --dry-run)
---output-dir PATH            Output directory for run logs (default: outputs/llm-runs/)
---dry-run                    Build the prompt but skip the LLM call and do not write any output
---show-prompt                Print the system and user prompts before calling the LLM
---language-representer NAME  How to present the formal language (choices: forbidden-snippets [default], forbidden-snippets-production-rules, generic-production-rules)
---board-representer NAME     How to present the board (choices: coordinates-json [default])
---rack-representer NAME      How to present the rack (choices: symbol-json [default])
-```
-
-The representer names logged under `representers` in every run log identify which formatting was used. Passing an invalid name is rejected at startup with the list of valid choices.
-
-To verify that scenario loading and prompt generation work without making an API call:
-
-```bash
-uv run run-scenario --scenario outputs/scenarios/generator_v1.json --transition 20 --dry-run
-uv run run-scenario --scenario outputs/scenarios/generator_v1.json --transition 20 --dry-run --show-prompt
-```
+Use `visualization/inspect_llm_run.ipynb` for individual scenario runs. Its
+configuration cell selects the scenario, transition, model profile, and
+`REASONING_EFFORT`. Prompt inspection happens before the explicit model-call
+cell. Completed logs are written to `outputs/llm-runs/`.
 
 The log file contains a granular evaluation breakdown:
 
@@ -163,6 +128,31 @@ The log file contains a granular evaluation breakdown:
 | `rack_symbols_used` | Count of new tiles drawn from the rack |
 | `rack_usage_ratio` | `rack_symbols_used / rack_size` |
 
+### 6. Prepare and run an evaluation
+
+Case-set configs define reproducible complexity tiers and sampling:
+
+```bash
+uv run prepare --config screening_v1
+```
+
+Run configs select model profiles with their respective prepared tiers,
+language representations, and the reasoning effort used for all calls:
+
+```bash
+uv run evaluate --config gpt5_mini_all
+uv run decompose --config gpt5_mini_all
+```
+
+`evaluate` uses an asynchronous global request window, retries transient
+failures with rate-limit-aware backoff, persists every completed attempt
+immediately, and resumes incomplete runs. `decompose` currently materializes
+failed-case requests through a stub adapter without making another LLM call.
+Prepare also writes portable JSON Schemas for the shared case and
+decomposition interfaces under the case-set output directory.
+
+The complete design is documented under [`docs/evaluation/`](docs/evaluation/README.md).
+
 ## Tests
 
 ```bash
@@ -173,12 +163,18 @@ uv run python -m unittest discover -s tests -q
 
 - `domain/`: Core data types — sparse board, moves, segments, templates, and witness types.
 - `formal/`: Strictly-local language definition, OR-Tools slot CSP, response parsing, and move validation.
-- `formal/grammar/`: SL grammar sampling, DFA construction, Perron analysis, serialization, and the `sample-grammar` / `analyze-grammar` CLI entry points.
+- `formal/grammar/`: Config-driven SL grammar sampling, DFA construction, Perron analysis, serialization, and CLI entry points.
 - `generator/`: Strict YAML config loader, candidate ranking, generation engine, scenario codec, file I/O, and board reconstruction.
+- `evaluation/`: Thin prepare/evaluate/decompose orchestrators with separate
+  modules for deterministic sampling, case snapshots, job execution,
+  manifests, run artifacts, and decomposition handoff.
+- `configuration.py`: Shared filename-based YAML loading; domain-specific
+  config schemas remain in their owning packages.
 - `benchmark/`: Board scoring helpers.
-- `llm/`: Prompt construction, model configuration from `.env` and `config/model_configs.yaml`, LiteLLM client, granular move evaluator (`evaluation.py`), and the `run-scenario` CLI entry point (`run_cli.py`).
+- `llm/`: Prompt construction, provider configuration from `.env` and `config/model_configs.yaml`, LiteLLM client, and granular move evaluation.
 - `tools/check_model.py`: Small CLI for validating individual or all model profiles.
 - `prompts/`: System and user prompt templates.
-- `config/grammar_configs.yaml`: Global defaults for SL grammar sampling.
-- `config/generation/`: Per-run generator configs (dimensions, grammar path, target witness count, scoring weights, etc.).
+- `config/grammars/`: Complete standalone grammar sampling configs.
+- `config/generation/`: Per-run generator configs (dimensions, grammar reference, target witness count, scoring weights, etc.).
+- `config/evaluation/`: Human-maintained case-set and run configs.
 - `config/model_configs.yaml`: Model matrix with LiteLLM model IDs and related config values.

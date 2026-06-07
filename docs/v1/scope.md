@@ -1,22 +1,37 @@
-# V1-Scope
+# V1 Scope
 
-Der V1-Prototyp ist ein Machbarkeitstest. Er soll zeigen, ob ein LLM eine Scrabble-artige Aufgabe in einem kontrollierten formalen Setting überhaupt lösen kann.
+V1 is a feasibility test for the complete benchmark pipeline.
 
-## Festlegungen
+## Included
 
-- Board-Dimensionalität ist per YAML auf `2` oder `3` konfigurierbar.
-- Evaluation ist binär: valider Zug oder ungültiger Zug.
-- Kein Scrabble-Punktwert.
-- Keine Optimierung über eine Lösungsmenge.
-- Keine vollständige Lösungsraumanalyse.
-- Keine Tokenizer-spezifischen Sub-Token-, Token- oder Supra-Token-Experimente.
-- V1 nutzt Platzhalteralphabete, sichtbar als Buchstaben.
-- V1 nutzt zunächst eine einzige einfache Strictly-Local-Sprache mit Alphabetgröße `6`.
-- Wörter der Länge `1` und `2` sind ungültig.
-- V1 akzeptiert nur Overlap-Verbindungen zwischen neuem Zug und bestehender Boardstruktur.
+- board dimensionality of two or three, configured through YAML,
+- one placeholder alphabet with six symbols,
+- one strictly local language,
+- minimum word length three,
+- overlap-only connected placements,
+- binary move validity,
+- one full move-generation task,
+- independent scenarios with fresh boards and racks.
 
-## Kernaufgabe
+The model receives:
 
-Das Modell erhält ein frisches zwei- oder dreidimensionales Board, ein Rack mit verfügbaren Symbolen und eine formale Sprachdefinition. Es soll genau eine vollständige Symbolsequenz auf dem Board platzieren.
+- the language rule,
+- the current board,
+- the rack,
+- the output schema.
 
-Evaluationsinstanzen sind voneinander unabhängig. Das Modell spielt keinen fortlaufenden Spielverlauf, sondern bekommt pro Instanz ein neues Board in einem arbiträren Zustand.
+It must place one complete valid sequence.
+
+## Excluded
+
+V1 does not include:
+
+- Scrabble-style point scoring,
+- optimization over valid moves,
+- exhaustive solution-space analysis,
+- explicit solvable-versus-unsolvable classification,
+- tokenizer-level alphabet experiments,
+- multiple language families,
+- adjacency-only placements.
+
+These exclusions keep the first implementation focused on validating generation, prompting, parsing, and deterministic evaluation.

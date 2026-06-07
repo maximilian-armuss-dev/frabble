@@ -1,36 +1,41 @@
-# Experimentelle Bedingungen
+# Experimental Conditions
 
-Diese Bedingungen gehören zum späteren Benchmark-Zielbild. V1 implementiert nur einen kleinen Full-Puzzle-Kern mit binärer Validierung; die sparse Board-Dimensionalität ist für beliebige Werte `dimensions >= 2` konfigurierbar.
+V1 implements only a small full-puzzle core with board dimensionality \(d \ge 2\). The following conditions describe the broader target experiment.
 
 ## E1: Membership
 
-Das Modell klassifiziert, ob eine gegebene Symbolfolge zur formalen Sprache gehört. Diese Bedingung testet reine Sprachkonformität ohne Board, Rack oder Platzierung.
+The model classifies whether a supplied sequence belongs to the language.
 
-Varianten:
+The language may be communicated through:
 
-- Grammatik oder Automat wird explizit gegeben.
-- Das Modell erhält nur Beispiele und muss die Sprache induzieren.
+- an explicit grammar or automaton description,
+- positive and negative examples.
 
-## E2.1: Generation mit induzierter Grammatik
+## E2.1: Generation from Examples
 
-Das Modell soll aus einem Rack eine gültige Symbolfolge erzeugen, erhält aber nur Beispiele statt einer expliziten Grammatik. Diese Bedingung kombiniert Induktion und constrained generation.
+The model receives examples and must generate a new valid sequence. This condition combines language induction with constrained generation.
 
-Die Performance kann als Kurve über die Anzahl der Beispiele berichtet werden.
+## E2.2: Generation from an Explicit Grammar
 
-## E2.2: Generation mit gegebener Grammatik
+The model receives the formal rule directly and must generate a valid sequence.
 
-Das Modell soll aus einem Rack eine gültige Symbolfolge erzeugen und erhält die Grammatik explizit. Diese Bedingung isoliert constrained generation stärker, weil die Induktionslast reduziert wird.
+The difference between E2.1 and E2.2 estimates the cost of inducing the language rather than merely following it.
 
-Der Abstand zwischen E2.1 und E2.2 kann als Induktionskosten interpretiert werden.
+## E3: Placement with Oracle Words
 
-## E3: Placement
+The model receives one or more sequences known to be valid and must place one legally on the board using the available rack.
 
-Das Modell erhält ein Board, Tiles und eine oracle-supplied Liste gültiger Wörter. Es muss nur die Platzierung lösen. Diese Bedingung isoliert räumliche Planung und Boardconstraints.
-
-Der Vergleich mit E2.2 zeigt, wie stark die Platzierungskomponente zusätzlich belastet.
+This isolates spatial and tile constraints from language generation.
 
 ## E4: Full Puzzle
 
-Das Modell erhält Board, Rack und die relevante Sprachinformation oder Beispiele, aber keine Oracle-Lösung. Es muss ein gültiges Wort erzeugen und korrekt platzieren.
+The model receives the language specification, board, rack, and output schema, then must produce one complete legal move.
 
-Diese Bedingung ist die Headline-Aufgabe. Sie wird gegen E1 bis E3 gelesen, damit ein Scheitern einer Teilfähigkeit zugeordnet werden kann.
+This is the headline condition because it combines:
+
+- formal-language understanding,
+- candidate generation,
+- rack accounting,
+- spatial placement,
+- cross-word validation,
+- structured output.

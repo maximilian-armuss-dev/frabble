@@ -1,12 +1,14 @@
 # Future Work
 
-Auf Basis des Papers kann eine spätere Benchmark-Variante die reine Zugproduktion mit einer Solvability-Entscheidung kombinieren.
+A later benchmark version may combine move production with an explicit solvability decision.
 
-Ein mögliches Szenario:
+## Balanced Solvability
 
-- Das Modell erhält weiterhin Board, Rack und Sprachdefinition.
-- Mit `50%` Wahrscheinlichkeit ist das Board lösbar.
-- Mit `50%` Wahrscheinlichkeit ist das Board unlösbar.
-- Das Output-Schema enthält zusätzlich eine Option, mit der das Modell angeben kann, dass kein valider Zug existiert.
+One possible design uses approximately:
 
-Damit würde nicht nur getestet, ob ein Modell einen gültigen Zug finden kann, sondern auch, ob es erkennt, wann die Constraints keine Lösung zulassen. Diese Variante benötigt eine zuverlässige Generator- oder Solver-Pipeline, die lösbare und unlösbare Instanzen kontrolliert erzeugen kann.
+- 50% solvable scenarios,
+- 50% unsolvable scenarios.
+
+For unsolvable scenarios, the output schema would permit the model to report that no legal move exists.
+
+This condition would measure both constructive search and reliable rejection. It requires a generator and solver capable of certifying solvability or unsolvability; heuristic failure to find a move is not sufficient.
