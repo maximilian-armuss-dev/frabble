@@ -60,9 +60,11 @@ scoring:
   template_new_cell_bonus_weight: 2.0
   template_local_density_penalty_weight: 1.0
   template_domain_slack_weight: 1.0
-additional_rack_noise: 1
+additional_rack_noise: 0
 include_search_logs: true
 ```
+
+`additional_rack_noise` is optional and defaults to `0`. When set above `0`, that many random alphabet symbols are added as filler to each rack on top of the symbols the witness move actually needs.
 
 `config_name` is omitted. `grammar` is an ID without a parent path or suffix and resolves to `outputs/grammars/<grammar>.json`. External files can instead be selected with `grammar_path`; both fields cannot be set simultaneously.
 
@@ -85,7 +87,6 @@ tiers:
   low:
     dimensions: 2
     board_depth: {min: 5, max: 53}
-    additional_rack_noise: {min: 0, max: 1}
     alphabet_size: 3
     forbidden_fraction: {min: 0.10, max: 0.20}
     k: 2
@@ -93,7 +94,6 @@ tiers:
   medium:
     dimensions: 3
     board_depth: {min: 54, max: 102}
-    additional_rack_noise: {min: 2, max: 3}
     alphabet_size: 4
     forbidden_fraction: {min: 0.20, max: 0.30}
     k: 2
@@ -101,7 +101,6 @@ tiers:
   high:
     dimensions: 4
     board_depth: {min: 103, max: 151}
-    additional_rack_noise: {min: 4, max: 5}
     alphabet_size: 5
     forbidden_fraction: {min: 0.30, max: 0.40}
     k: 3
@@ -109,7 +108,6 @@ tiers:
   stress:
     dimensions: 5
     board_depth: {min: 152, max: 200}
-    additional_rack_noise: {min: 6, max: 7}
     alphabet_size: 6
     forbidden_fraction: {min: 0.40, max: 0.50}
     k: 4
