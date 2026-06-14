@@ -212,6 +212,14 @@ def _aggregate_group(
                 item.get("evaluation", {}).get("rack_usage_ratio")
                 for item in completed
             ),
+            "main_word_length": _numeric_summary(
+                item.get("evaluation", {}).get("main_word_length")
+                for item in completed
+            ),
+            "overlap_count": _numeric_summary(
+                item.get("evaluation", {}).get("overlap_count")
+                for item in completed
+            ),
         },
         "grammars": grammar_groups,
     }
@@ -265,6 +273,14 @@ def _aggregate_grammar(
             ),
             "rack_usage_ratio": _numeric_summary(
                 item.get("evaluation", {}).get("rack_usage_ratio")
+                for item in attempts
+            ),
+            "main_word_length": _numeric_summary(
+                item.get("evaluation", {}).get("main_word_length")
+                for item in attempts
+            ),
+            "overlap_count": _numeric_summary(
+                item.get("evaluation", {}).get("overlap_count")
                 for item in attempts
             ),
         },

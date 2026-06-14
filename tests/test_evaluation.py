@@ -420,6 +420,27 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(summary["by_model"]["gpt-5-mini"]["total"], 2)
         self.assertEqual(len(summary["by_group"]), 2)
 
+    def test_aggregate_reports_word_length_and_overlap_quality_metrics(self):
+        attempts = [
+            _attempt(overall=True, grammar=0, main_word_length=3, overlap_count=1),
+            _attempt(overall=True, grammar=0, main_word_length=5, overlap_count=3),
+            _attempt(
+                overall=False,
+                grammar=0,
+                failure_type="word_extension",
+                no_word_extension=False,
+            ),
+        ]
+
+        aggregate = build_aggregate(attempts)
+
+        main_word_length = aggregate["overall"]["quality"]["main_word_length"]
+        overlap_count = aggregate["overall"]["quality"]["overlap_count"]
+        self.assertEqual(main_word_length["count"], 2)
+        self.assertEqual(main_word_length["mean"], 4.0)
+        self.assertEqual(overlap_count["count"], 2)
+        self.assertEqual(overlap_count["mean"], 2.0)
+
     def test_exhausted_transport_error_finishes_run(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             run_dir = Path(temp_dir) / "case-set" / "runs" / "run"
@@ -683,6 +704,8 @@ def _attempt(
     failure_type: str | None = None,
     no_word_extension: bool = True,
     cross_words_valid: bool = True,
+    main_word_length: int | None = None,
+    overlap_count: int | None = None,
 ) -> dict[str, object]:
     return {
         "status": "complete",
@@ -712,6 +735,8 @@ def _attempt(
             "no_word_extension": no_word_extension,
             "cross_words_valid": cross_words_valid,
             "rack_valid": True,
+            "main_word_length": main_word_length,
+            "overlap_count": overlap_count,
         },
     }
 

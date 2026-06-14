@@ -640,6 +640,24 @@ class V1Tests(unittest.TestCase):
         self.assertFalse(evaluation.overall)
         self.assertEqual(evaluation.failure_type, "word_extension")
         self.assertFalse(evaluation.no_word_extension)
+        self.assertIsNone(evaluation.main_word_length)
+        self.assertIsNone(evaluation.overlap_count)
+
+    def test_granular_evaluation_reports_word_length_and_overlap_for_valid_move(self):
+        sl = language()
+        board = Board.empty(2).place(Move(start=(-1, 0), axis=0, sequence=("A", "B", "C")))
+
+        evaluation = evaluate_granular(
+            board,
+            sl,
+            ("A", "C"),
+            SubmittedMove(start=(0, -1), axis=1, sequence=("A", "B", "C")),
+        )
+
+        self.assertTrue(evaluation.overall)
+        self.assertEqual(evaluation.rack_symbols_used, 2)
+        self.assertEqual(evaluation.main_word_length, 3)
+        self.assertEqual(evaluation.overlap_count, 1)
 
     def test_granular_evaluation_marks_cross_words_unchecked_after_conflict(self):
         sl = StrictlyLocalLanguage(
@@ -991,6 +1009,7 @@ class V1Tests(unittest.TestCase):
         )
 
         self.assertIn("every maximal contiguous line", user_prompt)
+        self.assertIn("## Scoring", user_prompt)
         self.assertIn('"occupied"', user_prompt)
         self.assertNotIn("JSON Schema", user_prompt)
         self.assertNotIn('"properties"', user_prompt)
