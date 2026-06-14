@@ -191,11 +191,10 @@ def plot_primary_failure_bars(
         ordered = sorted(
             groups,
             key=lambda group: (
-                str(group["model"]),
                 _tier_key(str(group["tier"])),
+                str(group["model"]),
             ),
         )
-        labels = [f"{group['model']} · {group['tier']}" for group in ordered]
         failure_types = sorted(
             {
                 failure
@@ -206,7 +205,7 @@ def plot_primary_failure_bars(
         palette = _failure_colors(failure_types)
         figure = go.Figure()
         shown_in_legend: set[str] = set()
-        for label, group in zip(labels, ordered, strict=True):
+        for group in ordered:
             failures = sorted(
                 group["primary_failures"].items(),
                 key=lambda item: (-int(item[1]), str(item[0])),
@@ -214,16 +213,27 @@ def plot_primary_failure_bars(
             for failure_type, count in failures:
                 figure.add_bar(
                     name=failure_type,
-                    x=[label],
+                    x=[
+                        [str(group["tier"])],
+                        [str(group["model"])],
+                    ],
                     y=[_rate(int(count), int(group["failed"]))],
-                    customdata=[int(count)],
+                    customdata=[
+                        [
+                            str(group["tier"]),
+                            str(group["model"]),
+                            int(count),
+                        ]
+                    ],
                     marker_color=palette[failure_type],
                     legendgroup=failure_type,
                     showlegend=failure_type not in shown_in_legend,
                     hovertemplate=(
-                        "%{x}<br>"
+                        "tier=%{customdata[0]}<br>"
+                        "model=%{customdata[1]}<br>"
                         + failure_type
-                        + ": %{customdata} (%{y:.1%} of failures)<extra></extra>"
+                        + ": %{customdata[2]} "
+                        "(%{y:.1%} of failures)<extra></extra>"
                     ),
                 )
                 shown_in_legend.add(failure_type)
@@ -232,14 +242,11 @@ def plot_primary_failure_bars(
             figure,
             "Primary failure composition",
             metadata=_plot_metadata(representation, effort, groups),
-            x_title="model and tier",
+            x_title="tier and model",
             y_title="share of failed attempts",
         )
         figure.update_layout(legend={"traceorder": "reversed"})
-        figure.update_xaxes(
-            categoryorder="array",
-            categoryarray=labels,
-        )
+        figure.update_xaxes(type="multicategory")
         figure.update_yaxes(tickformat=".0%", range=[0, 1])
         figures.append(figure)
     return tuple(figures)
@@ -329,7 +336,13 @@ def plot_token_usage_bars(
     figures = []
     for representation, effort, groups in _group_slices(aggregate):
         ordered = _ordered_groups(groups)
-        labels = [_group_label(group) for group in ordered]
+        tiers = [str(group["tier"]) for group in ordered]
+        models = [str(group["model"]) for group in ordered]
+        categories = [tiers, models]
+        hover_data = [
+            [str(group["tier"]), str(group["model"])]
+            for group in ordered
+        ]
         prompt = [_usage_mean(group, "prompt_tokens") for group in ordered]
         reasoning = [_usage_mean(group, "reasoning_tokens") for group in ordered]
         visible = [
@@ -348,10 +361,14 @@ def plot_token_usage_bars(
         ):
             bar_options = {
                 "name": name,
-                "x": labels,
+                "x": categories,
                 "y": values,
+                "customdata": hover_data,
                 "hovertemplate": (
-                    "%{x}<br>" + name + ": %{y:,.0f}<extra></extra>"
+                    "tier=%{customdata[0]}<br>"
+                    "model=%{customdata[1]}<br>"
+                    + name
+                    + ": %{y:,.0f}<extra></extra>"
                 ),
             }
             if name == "visible output":
@@ -377,9 +394,10 @@ def plot_token_usage_bars(
             figure,
             "Average token usage per attempt",
             metadata=_plot_metadata(representation, effort, groups),
-            x_title="model and tier",
+            x_title="tier and model",
             y_title="average tokens",
         )
+        figure.update_xaxes(type="multicategory")
         figures.append(figure)
     return tuple(figures)
 
@@ -468,8 +486,8 @@ def _ordered_groups(
     return sorted(
         groups,
         key=lambda group: (
-            str(group["model"]),
             _tier_key(str(group["tier"])),
+            str(group["model"]),
         ),
     )
 
@@ -553,10 +571,6 @@ def _grammar_value(
         if _grammar_id(grammar) == grammar_id:
             return grammar.get("pass_rate")
     return None
-
-
-def _group_label(group: Mapping[str, Any]) -> str:
-    return f"{group['model']} · {group['tier']}"
 
 
 def _usage_mean(group: Mapping[str, Any], metric: str) -> float:
