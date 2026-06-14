@@ -183,6 +183,19 @@ class V1Tests(unittest.TestCase):
             SubmittedMove.model_json_schema(),
         )
 
+    def test_submitted_move_schema_avoids_unsupported_axis_minimum(self):
+        schema = SubmittedMove.model_json_schema()
+        axis_schema = schema["properties"]["axis"]
+        self.assertNotIn("minimum", axis_schema)
+        self.assertIn("non-negative", axis_schema["description"])
+        self.assertEqual(
+            schema["properties"]["sequence"]["minItems"],
+            1,
+        )
+
+        with self.assertRaisesRegex(ValidationError, "non-negative"):
+            SubmittedMove(start=(0, 0), axis=-1, sequence=("A",))
+
     def test_openrouter_model_profile_uses_default_endpoint(self):
         with patch.dict(
             "os.environ",
@@ -1134,13 +1147,15 @@ class V1Tests(unittest.TestCase):
         scenario_run = ScenarioGenerator(config).generate()
         sl = language()
 
-        _, user_prompt = build_prompt(
+        system_prompt, user_prompt = build_prompt(
             scenario_run.initial_board,
             scenario_run.transitions[0],
             sl,
             RepresenterConfig(),
         )
 
+        self.assertIn("JSON object", system_prompt)
+        self.assertIn("`start`, `axis`, and `sequence`", system_prompt)
         self.assertIn("every maximal contiguous line", user_prompt)
         self.assertIn('"occupied"', user_prompt)
         self.assertNotIn("JSON Schema", user_prompt)
