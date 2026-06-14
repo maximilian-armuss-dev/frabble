@@ -36,7 +36,7 @@ models:
     base_url_env: OPENROUTER_API_BASE
     provider: xai
 
-  - name: openrouter_deepseek-v4-pro
+  - name: or_deepseek-v4-pro
     model: openrouter/deepseek/deepseek-v4-pro
     api_key_env: OPENROUTER_API_KEY
     base_url_env: OPENROUTER_API_BASE
