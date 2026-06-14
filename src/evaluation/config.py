@@ -64,27 +64,18 @@ class TierConfig(BaseModel):
 
     dimensions: int | NumericRange
     board_depth: int | NumericRange
-    alphabet_size: int | NumericRange
     forbidden_fraction: float | NumericRange
-    k: int | NumericRange
 
     @model_validator(mode="after")
     def validate_axes(self) -> "TierConfig":
         _validate_axis_bounds(self.dimensions, "dimensions", minimum=2)
         _validate_axis_bounds(self.board_depth, "board_depth", minimum=0)
         _validate_axis_bounds(
-            self.alphabet_size,
-            "alphabet_size",
-            minimum=1,
-            maximum=26,
-        )
-        _validate_axis_bounds(
             self.forbidden_fraction,
             "forbidden_fraction",
             minimum=0,
             maximum=1,
         )
-        _validate_axis_bounds(self.k, "k", minimum=1)
         return self
 
 
