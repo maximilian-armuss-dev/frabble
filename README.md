@@ -6,7 +6,12 @@ A formal-language Scrabble-style LLM benchmark with strictly-local grammars, spa
 
 ```bash
 uv sync
+cp .env.example .env
 ```
+
+Set the provider key required by the model profiles you plan to use. OpenRouter
+profiles use `OPENROUTER_API_KEY`; `OPENROUTER_API_BASE` is optional and
+defaults to `https://openrouter.ai/api/v1`.
 
 ## Workflow
 
@@ -136,8 +141,16 @@ Case-set configs define reproducible complexity tiers and sampling:
 uv run prepare --config screening_v1
 ```
 
-Run configs select model profiles with their respective prepared tiers,
-language representations, and the reasoning effort used for all calls:
+Use `--clean` to delete the complete existing case-set output, including old
+evaluation runs, before preparing it again:
+
+```bash
+uv run prepare --config screening_v1 --clean
+```
+
+Run configs select model profiles with their respective prepared tiers and
+language representations. Evaluation calls always use the native `xhigh`
+reasoning effort:
 
 ```bash
 uv run evaluate --config gpt5_mini_all
@@ -176,5 +189,25 @@ uv run python -m unittest discover -s tests -q
 - `prompts/`: System and user prompt templates.
 - `config/grammars/`: Complete standalone grammar sampling configs.
 - `config/generation/`: Per-run generator configs (dimensions, grammar reference, target witness count, scoring weights, etc.).
-- `config/evaluation/`: Human-maintained case-set and run configs.
+- `config/evaluation/`: Human-maintained case-set, tier, and run configs.
+- `config/evaluation/tiers/`: Reusable tier sets that jointly define `low`,
+  `medium`, `high`, and `stress` for a particular experimental scale.
 - `config/model_configs.yaml`: Model matrix with LiteLLM model IDs and related config values.
+
+OpenRouter profiles are prefixed with `openrouter_`. They use the official
+OpenRouter Python SDK directly rather than LiteLLM, so no compatibility layer
+rewrites the request. Each profile pins a provider, disables fallbacks,
+and requires all request parameters. The YAML stores only the provider slug;
+the routing invariants are enforced by the adapter. Reasoning is not part of
+the model profile. A combined model target such as
+`openrouter/google/gemini-3.1-pro-preview` selects the OpenRouter backend; the
+remaining `google/gemini-3.1-pro-preview` is sent unchanged as the API model ID.
+Shared request settings such as temperature, completion-token limit, and
+timeout live once in the top-level `defaults` block. OpenRouter deliberately
+omits temperature from its requests; LiteLLM receives the configured default.
+
+The frontier run config is
+`config/evaluation/runs/openrouter_frontier_all.yaml`. Evaluation always
+sends the provider-native `xhigh` value and persists the exact routing and
+reasoning request settings in each attempt artifact. Interactive notebook
+calls pass their selected reasoning value directly to the active SDK.

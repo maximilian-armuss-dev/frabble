@@ -8,11 +8,16 @@ from time import perf_counter
 from typing import Any
 
 import litellm
+from openrouter import errors as openrouter_errors
 
 from ..formal.parsing import SubmittedMove, parse_submitted_move
 from ..llm.client import LLMCallResult
 from ..llm.env import ENV
 from ..llm.evaluation import evaluate_granular
+from ..llm.openrouter_client import (
+    openrouter_provider_preferences,
+    openrouter_reasoning,
+)
 from ..llm.prompting import build_prompt
 from ..llm.representers import LANGUAGE_REPRESENTERS, RepresenterConfig
 from .artifacts import content_sha256, read_json, utc_now
@@ -49,6 +54,7 @@ async def execute_with_retries(
     job: EvaluationJob,
     *,
     semaphore: asyncio.Semaphore,
+    model_semaphore: asyncio.Semaphore | None = None,
     max_retries: int,
     cooldowns: ModelCooldowns,
     call_llm: AsyncLLMCaller,
@@ -63,6 +69,7 @@ async def execute_with_retries(
                 job,
                 retry_index=retry_index,
                 semaphore=semaphore,
+                model_semaphore=model_semaphore,
                 cooldowns=cooldowns,
                 call_llm=call_llm,
             )
@@ -91,6 +98,7 @@ async def execute_with_retries(
                     "error_type": type(exc).__name__,
                     "error": str(exc),
                     "retryable": retryable,
+                    **exception_details(exc),
                 }
             )
             if not retryable or retry_index >= max_retries:
@@ -108,7 +116,13 @@ async def execute_with_retries(
                 return result
 
             delay = retry_delay(exc, retry_index)
-            if isinstance(exc, litellm.RateLimitError):
+            if isinstance(
+                exc,
+                (
+                    litellm.RateLimitError,
+                    openrouter_errors.TooManyRequestsResponseError,
+                ),
+            ):
                 await cooldowns.extend(job.model_name, delay)
             failed_attempts[-1]["retry_delay_seconds"] = delay
             retry_wait_seconds += delay
@@ -122,15 +136,47 @@ async def _execute_after_cooldown(
     *,
     retry_index: int,
     semaphore: asyncio.Semaphore,
+    model_semaphore: asyncio.Semaphore | None,
     cooldowns: ModelCooldowns,
     call_llm: AsyncLLMCaller,
 ) -> dict[str, Any]:
     while True:
         await cooldowns.wait(job.model_name)
-        async with semaphore:
-            if await cooldowns.remaining(job.model_name) > 0:
-                continue
-            return await execute_job(job, retry_index, call_llm=call_llm)
+        if model_semaphore is not None:
+            async with model_semaphore:
+                result = await _execute_with_global_semaphore(
+                    job,
+                    retry_index=retry_index,
+                    semaphore=semaphore,
+                    cooldowns=cooldowns,
+                    call_llm=call_llm,
+                )
+                if result is not None:
+                    return result
+            continue
+        result = await _execute_with_global_semaphore(
+            job,
+            retry_index=retry_index,
+            semaphore=semaphore,
+            cooldowns=cooldowns,
+            call_llm=call_llm,
+        )
+        if result is not None:
+            return result
+
+
+async def _execute_with_global_semaphore(
+    job: EvaluationJob,
+    *,
+    retry_index: int,
+    semaphore: asyncio.Semaphore,
+    cooldowns: ModelCooldowns,
+    call_llm: AsyncLLMCaller,
+) -> dict[str, Any] | None:
+    async with semaphore:
+        if await cooldowns.remaining(job.model_name) > 0:
+            return None
+        return await execute_job(job, retry_index, call_llm=call_llm)
 
 
 async def execute_job(
@@ -177,7 +223,6 @@ async def execute_job(
         submitted,
         parse_error,
     )
-    model_config = ENV.get_model_config(job.model_name)
     return {
         "schema_version": 1,
         "job_id": job.job_id,
@@ -189,13 +234,7 @@ async def execute_job(
         "board_sample_index": evaluation_case.board_sample_index,
         "model": job.model_name,
         "reasoning_effort": job.reasoning_effort,
-        "model_config": {
-            "model": model_config.model,
-            "reasoning_effort": job.reasoning_effort,
-            "max_completion_tokens": model_config.max_completion_tokens,
-            "timeout_seconds": model_config.timeout_seconds,
-            "provider_max_retries": 0,
-        },
+        "model_config": model_config_snapshot(job),
         "language_representation": job.language_representation,
         "status": "complete",
         "retry_count": retry_index,
@@ -234,17 +273,48 @@ def transport_error_result(
         "case_file": str(job.case_path),
         "model": job.model_name,
         "reasoning_effort": job.reasoning_effort,
+        "model_config": model_config_snapshot(job),
         "language_representation": job.language_representation,
         "status": "transport_error",
         "retryable": retryable,
         "retry_count": retry_count,
         "error_type": type(exc).__name__,
         "error": str(exc),
+        **exception_details(exc),
         "timestamp": utc_now(),
     }
 
 
+def model_config_snapshot(job: EvaluationJob) -> dict[str, Any]:
+    model_config = ENV.get_model_config(job.model_name)
+    is_openrouter = model_config.backend == "openrouter"
+    return {
+        "model": model_config.request_model,
+        "configured_model": model_config.model,
+        "backend": model_config.backend,
+        "reasoning_effort": job.reasoning_effort,
+        "reasoning": (
+            openrouter_reasoning(job.reasoning_effort)
+            if is_openrouter
+            else None
+        ),
+        "provider": (
+            openrouter_provider_preferences(model_config)
+            if is_openrouter
+            else None
+        ),
+        "max_completion_tokens": model_config.max_completion_tokens,
+        "request_max_tokens": (
+            model_config.max_completion_tokens if is_openrouter else None
+        ),
+        "timeout_seconds": model_config.timeout_seconds,
+        "provider_max_retries": 0,
+    }
+
+
 def is_retryable(exc: Exception) -> bool:
+    if isinstance(exc, openrouter_errors.OpenRouterError):
+        return exc.status_code in {408, 429} or exc.status_code >= 500
     return isinstance(
         exc,
         (
@@ -252,6 +322,7 @@ def is_retryable(exc: Exception) -> bool:
             litellm.Timeout,
             litellm.ServiceUnavailableError,
             litellm.InternalServerError,
+            openrouter_errors.NoResponseError,
         ),
     )
 
@@ -284,6 +355,25 @@ def exception_headers(exc: Exception) -> dict[str, str]:
         or {}
     )
     return {str(key).lower(): str(value) for key, value in raw_headers.items()}
+
+
+def exception_details(exc: Exception) -> dict[str, Any]:
+    details: dict[str, Any] = {}
+    status_code = getattr(exc, "status_code", None)
+    if isinstance(status_code, int):
+        details["http_status_code"] = status_code
+
+    body = getattr(exc, "body", None)
+    if body is None:
+        response = getattr(exc, "response", None)
+        body = getattr(response, "text", None)
+    if body:
+        details["error_body"] = str(body)[:10_000]
+
+    request_id = exception_headers(exc).get("x-request-id")
+    if request_id:
+        details["request_id"] = request_id
+    return details
 
 
 def parse_duration(value: str) -> float:

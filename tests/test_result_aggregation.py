@@ -6,14 +6,13 @@ import unittest
 from pathlib import Path
 from typing import Any
 
-from src.evaluation.artifacts import read_json, write_json_atomic
+from src.evaluation.artifacts import write_json_atomic
 from src.evaluation.result_aggregation import (
     build_aggregate,
     compact_summary,
     iter_result_rows,
     write_results_csv,
 )
-from src.evaluation.result_index import load_or_build_result_index
 
 
 class ResultAggregationTests(unittest.TestCase):
@@ -363,151 +362,6 @@ class ResultAggregationTests(unittest.TestCase):
         )
 
 
-class ResultIndexTests(unittest.TestCase):
-    def test_newer_transport_error_overwrites_older_success(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            case_root = Path(temp_dir) / "case-set"
-            older = _attempt(case_id="case-a")
-            newer = _transport_attempt(case_id="case-a")
-            newer["llm_elapsed_seconds_total"] = 600.0
-            _write_run(
-                case_root / "runs" / "older",
-                status="complete",
-                completed_at="2026-06-01T10:00:00+00:00",
-                attempts=[older],
-            )
-            _write_run(
-                case_root / "runs" / "newer",
-                status="complete",
-                completed_at="2026-06-02T10:00:00+00:00",
-                attempts=[newer],
-            )
-
-            index = load_or_build_result_index(case_root)
-
-        self.assertEqual(index["latest_completed_run_id"], "newer")
-        self.assertEqual(index["indexed_attempts"], 1)
-        self.assertEqual(index["aggregate"]["overall"]["completed"], 0)
-        self.assertEqual(index["aggregate"]["overall"]["transport_errors"], 1)
-        self.assertEqual(
-            index["aggregate"]["overall"]["timing"][
-                "request_elapsed_seconds"
-            ]["mean"],
-            600.0,
-        )
-
-    def test_index_separates_efforts_representations_and_ignores_incomplete_runs(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            case_root = Path(temp_dir) / "case-set"
-            case_file = case_root / "cases" / "shared-case.json"
-            write_json_atomic(
-                case_file,
-                {
-                    "tier": "low",
-                    "sampling_round": 0,
-                    "grammar_sample_index": 0,
-                    "board_sample_index": 0,
-                },
-            )
-            older_high = _attempt(
-                case_id=None,
-                overall=False,
-                failure_type="rack",
-                reasoning_effort=None,
-                model_config={"reasoning_effort": "high"},
-            )
-            older_high["case_file"] = str(case_file)
-            low = _attempt(
-                case_id=None,
-                reasoning_effort="low",
-            )
-            low["case_file"] = str(case_file)
-            alternate_representation = _attempt(
-                case_id=None,
-                representation="automaton",
-            )
-            alternate_representation["case_file"] = str(case_file)
-            _write_run(
-                case_root / "runs" / "older",
-                status="complete",
-                completed_at="2026-06-01T10:00:00+00:00",
-                attempts=[older_high, low, alternate_representation],
-            )
-            newer_high = _attempt(
-                case_id=None,
-                reasoning_effort="high",
-            )
-            newer_high["case_file"] = str(case_file)
-            _write_run(
-                case_root / "runs" / "newer",
-                status="complete",
-                completed_at="2026-06-02T10:00:00+00:00",
-                attempts=[newer_high],
-            )
-            _write_run(
-                case_root / "runs" / "incomplete",
-                status="incomplete",
-                completed_at=None,
-                attempts=[
-                    _attempt(
-                        case_id="ignored",
-                        model="ignored-model",
-                    )
-                ],
-            )
-
-            index = load_or_build_result_index(case_root)
-
-        self.assertEqual(index["source_attempts"], 4)
-        self.assertEqual(index["indexed_attempts"], 3)
-        self.assertEqual(index["overwritten_attempts"], 1)
-        self.assertEqual(len(index["source_runs"]), 2)
-        self.assertEqual(index["latest_completed_run_id"], "newer")
-        groups = index["aggregate"]["groups"]
-        self.assertEqual(
-            {
-                (group["language_representation"], group["reasoning_effort"])
-                for group in groups
-            },
-            {
-                ("forbidden-snippets", "high"),
-                ("forbidden-snippets", "low"),
-                ("automaton", "high"),
-            },
-        )
-        self.assertEqual(index["aggregate"]["overall"]["passed"], 3)
-        self.assertNotIn(
-            "ignored-model",
-            {group["model"] for group in groups},
-        )
-
-    def test_cached_index_rebuilds_when_completed_run_set_changes(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            case_root = Path(temp_dir) / "case-set"
-            _write_run(
-                case_root / "runs" / "first",
-                status="complete",
-                completed_at="2026-06-01T10:00:00+00:00",
-                attempts=[_attempt(case_id="case-a")],
-            )
-            first = load_or_build_result_index(case_root)
-            cached = load_or_build_result_index(case_root)
-            self.assertEqual(first["updated_at"], cached["updated_at"])
-
-            _write_run(
-                case_root / "runs" / "second",
-                status="complete",
-                completed_at="2026-06-02T10:00:00+00:00",
-                attempts=[_attempt(case_id="case-b")],
-            )
-            rebuilt = load_or_build_result_index(case_root)
-            persisted = read_json(case_root / "results-index.json")
-
-        self.assertEqual(rebuilt["indexed_attempts"], 2)
-        self.assertEqual(len(rebuilt["source_runs"]), 2)
-        self.assertEqual(persisted["source_runs"], rebuilt["source_runs"])
-
-
 def _attempt(
     *,
     case_id: str | None,
@@ -615,30 +469,6 @@ def _row(
             f"Expected one row for {(scope, category, name)}, got {matches}"
         )
     return matches[0]
-
-
-def _write_run(
-    run_dir: Path,
-    *,
-    status: str,
-    completed_at: str | None,
-    attempts: list[dict[str, Any]],
-) -> None:
-    write_json_atomic(
-        run_dir / "run-manifest.json",
-        {
-            "schema_version": 1,
-            "run_id": run_dir.name,
-            "config_hash": run_dir.name,
-            "status": status,
-            "completed_at": completed_at,
-        },
-    )
-    for index, attempt in enumerate(attempts):
-        write_json_atomic(
-            run_dir / "attempts" / f"attempt-{index}.json",
-            attempt,
-        )
 
 
 if __name__ == "__main__":

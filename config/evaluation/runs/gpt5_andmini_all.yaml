@@ -2,9 +2,9 @@ case_set: 2g_2b_all
 models:
   gpt-5: [all] # Here, "low" refers to the complexity tier, not reasoning eff!
   gpt-5-mini: [all]
-reasoning_effort: high
 language_representations:
   - forbidden-snippets
 execution:
   max_concurrency: 32
+  max_concurrency_per_model: 2
   max_retries: 0

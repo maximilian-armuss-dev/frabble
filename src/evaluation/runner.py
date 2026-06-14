@@ -39,6 +39,13 @@ async def evaluate_run(
         progress_callback(progress["finished"], progress["total"])
 
     semaphore = asyncio.Semaphore(config.execution.max_concurrency)
+    model_semaphores = {
+        model_name: asyncio.Semaphore(
+            config.execution.max_concurrency_per_model
+        )
+        for model_name in config.models
+        if config.execution.max_concurrency_per_model is not None
+    }
     cooldowns = ModelCooldowns()
     manifest_lock = asyncio.Lock()
     await asyncio.gather(
@@ -46,6 +53,7 @@ async def evaluate_run(
             _run_and_persist(
                 job=job,
                 semaphore=semaphore,
+                model_semaphore=model_semaphores.get(job.model_name),
                 cooldowns=cooldowns,
                 max_retries=config.execution.max_retries,
                 call_llm=acall_llm_detailed,
@@ -67,6 +75,7 @@ async def _run_and_persist(
     *,
     job: EvaluationJob,
     semaphore: asyncio.Semaphore,
+    model_semaphore: asyncio.Semaphore | None,
     cooldowns: ModelCooldowns,
     max_retries: int,
     call_llm: AsyncLLMCaller,
@@ -79,6 +88,7 @@ async def _run_and_persist(
     result = await execute_with_retries(
         job,
         semaphore=semaphore,
+        model_semaphore=model_semaphore,
         max_retries=max_retries,
         cooldowns=cooldowns,
         call_llm=call_llm,

@@ -57,7 +57,7 @@ def main() -> None:
 
     for model_name in iter_selected_models(args, registered_model_names):
         config = ENV.get_model_config(model_name)
-        print(f"[{model_name}] calling {config.model}")
+        print(f"[{model_name}] calling {config.request_model}")
         try:
             response = call_llm(
                 CHECK_SYSTEM_PROMPT,

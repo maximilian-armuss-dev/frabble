@@ -70,23 +70,17 @@ The default output is `outputs/scenarios/<generation-id>.json`. `output_path` re
 
 ## Case-Set Configs
 
-Case-set configs live under `config/evaluation/case_sets/`.
+Tier-set definitions live under `config/evaluation/tiers/`. Each file owns a
+complete, internally consistent set of named tiers:
 
 ```yaml
-generation_config: evaluation_base
-grammar_config: evaluation_base
-root_seed: 42
-
-sampling_rounds: 1
-grammar_samples_per_tier: 3
-boards_per_grammar: 10
-
+# config/evaluation/tiers/default.yaml
 tiers:
   low:
     dimensions: 2
     board_depth: {min: 5, max: 53}
     additional_rack_noise: {min: 0, max: 1}
-    alphabet_size: 3
+    alphabet_size: 4
     forbidden_fraction: {min: 0.10, max: 0.20}
     k: 2
 
@@ -94,28 +88,35 @@ tiers:
     dimensions: 3
     board_depth: {min: 54, max: 102}
     additional_rack_noise: {min: 2, max: 3}
-    alphabet_size: 4
+    alphabet_size: 6
     forbidden_fraction: {min: 0.20, max: 0.30}
     k: 2
-
-  high:
-    dimensions: 4
-    board_depth: {min: 103, max: 151}
-    additional_rack_noise: {min: 4, max: 5}
-    alphabet_size: 5
-    forbidden_fraction: {min: 0.30, max: 0.40}
-    k: 3
-
-  stress:
-    dimensions: 5
-    board_depth: {min: 152, max: 200}
-    additional_rack_noise: {min: 6, max: 7}
-    alphabet_size: 6
-    forbidden_fraction: {min: 0.40, max: 0.50}
-    k: 4
 ```
 
-`generation_config` and `grammar_config` reference complete standalone configs. The case set overrides only IDs, seeds, outputs, and experimentally scaled axes.
+Case-set configs live under `config/evaluation/case_sets/` and select tiers
+from one tier set:
+
+```yaml
+generation_config: evaluation_base
+grammar_config: evaluation_base
+tier_config: default
+root_seed: 42
+sampling_rounds: 1
+grammar_samples_per_tier: 3
+boards_per_grammar: 10
+tiers:
+  - low
+  - medium
+  - high
+  - stress
+```
+
+`generation_config`, `grammar_config`, and `tier_config` reference complete
+standalone configs. Tier IDs are resolved within the selected tier set when
+the case set is loaded. A second tier-set file can redefine `low`, `medium`,
+`high`, and `stress` for another experimental scale without changing case-set
+or run semantics. The selected tier-set ID and fully resolved values are
+included in the case-set hash.
 
 An axis value can be either a fixed scalar or an interval with `min` and `max`. Intervals are sampled with a bounded normal distribution:
 
@@ -143,16 +144,43 @@ language_representations:
   - forbidden-snippets
   - generic-production-rules
 
-reasoning_effort: low
-
 execution:
   max_concurrency: 10
+  max_concurrency_per_model: 2
   max_retries: 5
 ```
 
 `models` maps each model profile from `config/model_configs.yaml` to the complexity tiers it should process. `[all]` selects every prepared tier for that model.
 
-`language_representations` accepts a list or `all`. `reasoning_effort` applies to every model call in the run, is passed explicitly to LiteLLM, and is part of the run-config hash. Model profiles therefore do not contain a reasoning setting.
+`language_representations` accepts a list or `all`.
+Every evaluation call uses the native `xhigh` reasoning effort value,
+which is persisted in the job and attempt artifacts.
+Interactive notebook calls pass their selected provider-native effort value
+directly through LiteLLM or the OpenRouter SDK.
+
+`max_concurrency` limits all active provider calls. The optional
+`max_concurrency_per_model` additionally limits active calls sharing one model
+profile. This is useful for OpenRouter runs because upstream capacity and rate
+limits remain model-specific.
+
+Model targets use a backend-qualified API ID. For example,
+`openrouter/google/gemini-3.1-pro-preview` selects the direct OpenRouter SDK
+and sends `google/gemini-3.1-pro-preview` as its model ID. No separate backend
+or manually maintained model revision is configured.
+
+`config/model_configs.yaml` defines shared request settings once:
+
+```yaml
+defaults:
+  temperature: 1
+  max_completion_tokens: 32384
+  timeout_seconds: 900
+```
+
+Profiles inherit these values. OpenRouter omits temperature at the adapter
+boundary and sends the shared completion limit as `max_tokens`, while LiteLLM
+receives `temperature` and `max_completion_tokens` directly. OpenRouter
+profiles pin a provider that supports every requested parameter.
 
 Board and rack representations do not appear in the run config while only one implementation exists for each. Every allowed case-tier, model-profile, and language-representation combination becomes a separate job.
 

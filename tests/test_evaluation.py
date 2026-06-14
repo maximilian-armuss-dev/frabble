@@ -9,19 +9,32 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import litellm
+from openrouter import errors as openrouter_errors
 from pydantic import BaseModel
 
 from src.configuration import NamedYamlConfigSource
 from src.evaluation.artifacts import read_json, write_json_atomic
-from src.evaluation.config import CaseSetConfig, RunConfig
+from src.evaluation.config import (
+    CaseSetConfig,
+    RunConfig,
+    load_case_set_config,
+    load_tier_set_config,
+)
 from src.evaluation.decomposition import decompose_run
 from src.evaluation.job_execution import (
     ModelCooldowns,
+    _execute_after_cooldown,
     execute_with_retries,
+    exception_details,
+    is_retryable,
     parse_duration,
     retry_delay,
+    transport_error_result,
 )
-from src.evaluation.jobs import build_evaluation_jobs
+from src.evaluation.jobs import (
+    EVALUATION_REASONING_EFFORT,
+    build_evaluation_jobs,
+)
 from src.evaluation.prepare import prepare_case_set
 from src.evaluation.result_aggregation import build_aggregate
 from src.evaluation.runner import _pending_jobs, evaluate_run
@@ -36,7 +49,6 @@ from src.generator.config import (
 from src.llm.client import LLMCallResult
 from src.llm.env import ENV
 from visualization.evaluation_figures import (
-    latest_completed_case_set,
     load_evaluation_results,
     plot_grammar_pass_rates,
     plot_latency_tables,
@@ -57,6 +69,7 @@ def tiny_case_set(*, boards: int = 1) -> CaseSetConfig:
             "config_name": "tiny",
             "generation_config": "evaluation_base",
             "grammar_config": "evaluation_base",
+            "tier_config": "inline-test",
             "root_seed": 7,
             "sampling_rounds": 1,
             "grammar_samples_per_tier": 1,
@@ -75,7 +88,11 @@ def tiny_case_set(*, boards: int = 1) -> CaseSetConfig:
     )
 
 
-def tiny_run(*, concurrency: int = 2) -> RunConfig:
+def tiny_run(
+    *,
+    concurrency: int = 2,
+    concurrency_per_model: int | None = None,
+) -> RunConfig:
     model_name = ENV.get_registered_model_names()[0]
     return RunConfig.model_validate(
         {
@@ -83,9 +100,9 @@ def tiny_run(*, concurrency: int = 2) -> RunConfig:
             "case_set": "tiny",
             "models": {model_name: ["low"]},
             "language_representations": ["forbidden-snippets"],
-            "reasoning_effort": "low",
             "execution": {
                 "max_concurrency": concurrency,
+                "max_concurrency_per_model": concurrency_per_model,
                 "max_retries": 0,
             },
         }
@@ -93,6 +110,43 @@ def tiny_run(*, concurrency: int = 2) -> RunConfig:
 
 
 class EvaluationConfigTests(unittest.TestCase):
+    def test_case_set_resolves_named_tier_files(self):
+        config = load_case_set_config("screening_v1")
+
+        self.assertEqual(list(config.tiers), ["low", "medium", "high"])
+        self.assertEqual(config.tiers["low"].dimensions, 2)
+        self.assertEqual(config.tiers["medium"].alphabet_size, 6)
+        self.assertEqual(config.tiers["high"].k, 3)
+        self.assertIn(
+            "board_depth",
+            config.model_dump(mode="json")["tiers"]["low"],
+        )
+
+    def test_tier_set_config_loads_all_tiers_by_filename(self):
+        tier_set = load_tier_set_config("default")
+
+        self.assertEqual(
+            list(tier_set.tiers),
+            ["low", "medium", "high", "stress"],
+        )
+        self.assertEqual(tier_set.tiers["stress"].dimensions, 5)
+        self.assertEqual(tier_set.tiers["stress"].alphabet_size, 10)
+        self.assertEqual(tier_set.tiers["stress"].k, 4)
+
+    def test_unknown_tier_set_config_fails_before_preparation(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            "Tier config does not exist",
+        ):
+            load_tier_set_config("unknown")
+
+    def test_evaluation_rejects_obsolete_reasoning_config(self):
+        payload = tiny_run().model_dump(mode="json")
+        payload["reasoning_effort"] = "high"
+
+        with self.assertRaisesRegex(ValueError, "Extra inputs are not permitted"):
+            RunConfig.model_validate(payload)
+
     def test_evaluation_plots_sort_failures_and_expose_resources(self):
         aggregate = _plot_aggregate()
 
@@ -158,15 +212,15 @@ class EvaluationConfigTests(unittest.TestCase):
         latency_figure = plot_latency_tables(aggregate)[0]
         self.assertEqual(
             list(latency_figure.data[0].cells.values[0]),
-            ["GPT-5 Nano", "GPT-5 Mini", "GPT-5", "test-model"],
+            ["test-model"],
         )
         self.assertEqual(
             list(latency_figure.data[0].cells.values[1]),
-            ["-", "-", "-", "12.50 s"],
+            ["12.50 s"],
         )
         self.assertEqual(len(plot_latency_tables(aggregate)), 1)
 
-    def test_pooled_result_index_keeps_distinct_cells_and_uses_latest_attempt(self):
+    def test_case_set_loads_latest_run_and_run_id_loads_exact_run(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             project_root = Path(temp_dir)
             case_root = (
@@ -214,28 +268,23 @@ class EvaluationConfigTests(unittest.TestCase):
                 "tiny",
                 project_root=project_root,
             )
-            index = read_json(source)
             run_source, older_aggregate = load_evaluation_results(
-                "tiny",
-                "older",
+                None,
+                run_id="older",
                 project_root=project_root,
             )
 
-        self.assertEqual(source.name, "results-index.json")
+        self.assertEqual(source.name, "newer")
         self.assertEqual(run_source.name, "older")
-        self.assertEqual(index["source_attempts"], 3)
-        self.assertEqual(index["indexed_attempts"], 2)
-        self.assertEqual(index["overwritten_attempts"], 1)
-        self.assertEqual(index["latest_completed_run_id"], "newer")
-        self.assertEqual(aggregate["overall"]["passed"], 2)
+        self.assertEqual(aggregate["overall"]["passed"], 1)
         self.assertEqual(
             {group["model"] for group in aggregate["groups"]},
-            {"gpt-5-mini", "gpt-5"},
+            {"gpt-5-mini"},
         )
         self.assertEqual(older_aggregate["overall"]["passed"], 1)
         self.assertEqual(older_aggregate["overall"]["failed"], 1)
 
-    def test_evaluation_plots_include_all_models_and_tiers_in_pool(self):
+    def test_evaluation_plots_include_only_models_in_selected_run(self):
         aggregate = _multi_group_plot_aggregate()
 
         pass_figure = plot_pass_rate_heatmaps(aggregate)[0]
@@ -296,61 +345,51 @@ class EvaluationConfigTests(unittest.TestCase):
         runtime_figure = plot_latency_tables(aggregate)[0]
         self.assertEqual(
             list(runtime_figure.data[0].cells.values[0]),
-            ["GPT-5 Nano", "GPT-5 Mini", "GPT-5"],
+            ["gpt-5", "gpt-5-mini"],
         )
         self.assertEqual(
             list(runtime_figure.data[0].cells.values[1]),
-            ["-", "10.00 s", "-"],
+            ["-", "10.00 s"],
         )
         self.assertEqual(
             list(runtime_figure.data[0].cells.values[2]),
-            ["-", "20.00 s", "25.00 s"],
+            ["25.00 s", "20.00 s"],
         )
         self.assertEqual(
             list(runtime_figure.data[0].cells.values[3]),
-            ["-", "30.00 s", "-"],
+            ["-", "30.00 s"],
         )
 
-    def test_none_case_set_selects_newest_completed_run_and_ignores_in_progress(self):
+    def test_case_set_ignores_newer_in_progress_run(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             project_root = Path(temp_dir)
-            older_root = (
-                project_root / "outputs" / "evaluation" / "older"
-            )
-            newer_root = (
-                project_root / "outputs" / "evaluation" / "newer"
-            )
-            incomplete_root = (
-                project_root / "outputs" / "evaluation" / "incomplete"
-            )
+            case_root = project_root / "outputs" / "evaluation" / "tiny"
             _write_completed_run(
-                older_root / "runs" / "run-a",
+                case_root / "runs" / "run-a",
                 completed_at="2026-06-01T10:00:00+00:00",
                 attempts=[_attempt(overall=True, grammar=0)],
-                case_set="older",
-            )
-            _write_completed_run(
-                newer_root / "runs" / "run-b",
-                completed_at="2026-06-02T10:00:00+00:00",
-                attempts=[_attempt(overall=True, grammar=0)],
-                case_set="newer",
+                case_set="tiny",
             )
             _write_run_manifest(
-                incomplete_root / "runs" / "run-c",
-                case_set="incomplete",
+                case_root / "runs" / "run-b",
+                case_set="tiny",
                 status="in_progress",
                 completed_at=None,
             )
 
-            selected = latest_completed_case_set(project_root=project_root)
             source, aggregate = load_evaluation_results(
-                None,
+                "tiny",
                 project_root=project_root,
             )
 
-        self.assertEqual(selected, "newer")
-        self.assertEqual(source.parent.name, "newer")
+        self.assertEqual(source.name, "run-a")
         self.assertEqual(aggregate["overall"]["completed"], 1)
+
+    def test_evaluation_result_selection_requires_exactly_one_selector(self):
+        with self.assertRaisesRegex(ValueError, "exactly one"):
+            load_evaluation_results(None, None)
+        with self.assertRaisesRegex(ValueError, "exactly one"):
+            load_evaluation_results("tiny", "run-a")
 
     def test_model_specific_tiers_expand_to_expected_jobs(self):
         model_names = ENV.get_registered_model_names()
@@ -363,7 +402,6 @@ class EvaluationConfigTests(unittest.TestCase):
                     model_names[1]: ["high"],
                 },
                 "language_representations": ["forbidden-snippets"],
-                "reasoning_effort": "high",
             }
         )
         jobs = build_evaluation_jobs(
@@ -390,7 +428,10 @@ class EvaluationConfigTests(unittest.TestCase):
             },
         )
         self.assertTrue(
-            all(job.reasoning_effort == "high" for job in jobs)
+            all(
+                job.reasoning_effort == EVALUATION_REASONING_EFFORT
+                for job in jobs
+            )
         )
 
     def test_summary_groups_models_tiers_failures_and_constraints(self):
@@ -499,6 +540,77 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(parse_duration("1m2s"), 62)
         self.assertEqual(retry_delay(exception, retry_index=0), 62)
 
+    def test_openrouter_transport_errors_use_evaluation_retry_policy(self):
+        response = SimpleNamespace(
+            status_code=429,
+            text="rate limited",
+            headers={"retry-after": "2.5"},
+        )
+        rate_limit = openrouter_errors.OpenRouterError(
+            "rate limited",
+            raw_response=response,
+        )
+        unavailable = openrouter_errors.OpenRouterError(
+            "unavailable",
+            raw_response=SimpleNamespace(
+                status_code=503,
+                text="unavailable",
+                headers={},
+            ),
+        )
+
+        self.assertTrue(is_retryable(rate_limit))
+        self.assertTrue(is_retryable(openrouter_errors.NoResponseError("timeout")))
+        self.assertTrue(is_retryable(unavailable))
+        self.assertEqual(retry_delay(rate_limit, retry_index=0), 2.5)
+
+    def test_openrouter_transport_error_persists_request_configuration(self):
+        model_name = "openrouter_deepseek-v4-pro"
+        job = SimpleNamespace(
+            job_id="job",
+            case_path=Path("case.json"),
+            model_name=model_name,
+            reasoning_effort=EVALUATION_REASONING_EFFORT,
+            language_representation="forbidden-snippets",
+        )
+
+        result = transport_error_result(
+            job,
+            RuntimeError("failed"),
+            retry_count=0,
+            retryable=False,
+        )
+
+        self.assertEqual(
+            result["model_config"]["provider"]["only"],
+            ["alibaba"],
+        )
+        self.assertEqual(
+            result["model_config"]["request_max_tokens"],
+            32384,
+        )
+
+    def test_openrouter_error_details_preserve_provider_response(self):
+        error = openrouter_errors.OpenRouterError(
+            "Provider returned error",
+            raw_response=SimpleNamespace(
+                status_code=400,
+                text='{"error":{"metadata":{"raw":"invalid reasoning"}}}',
+                headers={"x-request-id": "request-123"},
+            ),
+        )
+
+        self.assertEqual(
+            exception_details(error),
+            {
+                "http_status_code": 400,
+                "error_body": (
+                    '{"error":{"metadata":{"raw":"invalid reasoning"}}}'
+                ),
+                "request_id": "request-123",
+            },
+        )
+
     def test_prepare_materializes_snapshot_and_manifest(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -519,8 +631,58 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertIn("rack", case)
         self.assertIn("grammar_sha256", case["provenance"])
 
+    def test_clean_prepare_removes_existing_case_set_output(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            case_root = root / "tiny"
+            stale_run = case_root / "runs" / "stale" / "attempt.json"
+            stale_run.parent.mkdir(parents=True)
+            stale_run.write_text("stale", encoding="utf-8")
+
+            with patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", root):
+                manifest = prepare_case_set(tiny_case_set(), clean=True)
+
+            self.assertFalse(stale_run.exists())
+            self.assertEqual(manifest["status"], "complete")
+            self.assertTrue((case_root / "prepare-manifest.json").exists())
+
 
 class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
+    async def test_per_model_semaphore_limits_same_model_calls(self):
+        active = 0
+        peak = 0
+
+        async def fake_execute_job(*_args, **_kwargs):
+            nonlocal active, peak
+            active += 1
+            peak = max(peak, active)
+            await asyncio.sleep(0.01)
+            active -= 1
+            return {}
+
+        job = SimpleNamespace(model_name="same-model")
+        global_semaphore = asyncio.Semaphore(3)
+        model_semaphore = asyncio.Semaphore(1)
+        with patch(
+            "src.evaluation.job_execution.execute_job",
+            side_effect=fake_execute_job,
+        ):
+            await asyncio.gather(
+                *(
+                    _execute_after_cooldown(
+                        job,
+                        retry_index=0,
+                        semaphore=global_semaphore,
+                        model_semaphore=model_semaphore,
+                        cooldowns=ModelCooldowns(),
+                        call_llm=SimpleNamespace(),
+                    )
+                    for _ in range(3)
+                )
+            )
+
+        self.assertEqual(peak, 1)
+
     async def test_evaluate_limits_global_concurrency_and_decomposes_failures(self):
         active = 0
         peak = 0
@@ -580,14 +742,20 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(len(attempts), 3)
         self.assertEqual(result["summary"]["completed"], 3)
-        self.assertEqual(observed_reasoning_efforts, ["low", "low", "low"])
+        self.assertEqual(
+            observed_reasoning_efforts,
+            [EVALUATION_REASONING_EFFORT] * 3,
+        )
         self.assertEqual(len(set(observed_prompts)), 3)
         self.assertEqual(
             progress_updates,
             [(0, 3), (1, 3), (2, 3), (3, 3)],
         )
         self.assertTrue(
-            all(item["reasoning_effort"] == "low" for item in attempt_data)
+            all(
+                item["reasoning_effort"] == EVALUATION_REASONING_EFFORT
+                for item in attempt_data
+            )
         )
         self.assertTrue(
             all(item["request_attempt_count"] == 1 for item in attempt_data)

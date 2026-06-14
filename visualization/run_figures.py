@@ -184,10 +184,11 @@ def call_prepared_llm_transition(
         reasoning_effort=prepared.reasoning_effort,
     )
     elapsed = perf_counter() - started_at
+    model_config = ENV.get_model_config(prepared.model_name)
     metadata = {
         **result.metadata,
         "configured_model": prepared.model_name,
-        "backend": "litellm",
+        "backend": result.metadata.get("backend", model_config.backend),
         "reasoning_effort": prepared.reasoning_effort,
     }
     return TimedLLMResponse(
@@ -237,7 +238,8 @@ def finalize_llm_transition(
         "transition_index": prepared.transition_index,
         "model": prepared.model_name,
         "model_config": {
-            "model": model_config.model,
+            "model": model_config.request_model,
+            "configured_model": model_config.model,
             "reasoning_effort": prepared.reasoning_effort,
             "max_completion_tokens": model_config.max_completion_tokens,
             "structured_output": True,

@@ -10,10 +10,6 @@ from typing import Any, Literal, Mapping
 from src.domain.board import Board
 from src.domain.models import Move
 from src.evaluation.models import EvaluationCase
-from src.evaluation.result_index import (
-    INDEX_FILENAME,
-    load_or_build_result_index,
-)
 from src.formal.language import StrictlyLocalLanguage
 
 from .board_figures import PROJECT_ROOT, plot_board_axis_pairs
@@ -32,20 +28,27 @@ from .run_figures import (
 )
 
 TIER_ORDER = ("low", "medium", "high", "stress")
-MODEL_ORDER = ("gpt-5-nano", "gpt-5-mini", "gpt-5")
 
 
 def resolve_evaluation_run(
-    case_set: str,
+    case_set: str | None,
     run_id: str,
     *,
     project_root: str | Path = PROJECT_ROOT,
 ) -> Path:
-    runs_dir = Path(project_root) / "outputs" / "evaluation" / case_set / "runs"
-    run_dir = runs_dir / run_id
-    if not run_dir.exists():
-        raise FileNotFoundError(f"Evaluation run not found: {run_dir}")
-    return run_dir
+    evaluation_root = Path(project_root) / "outputs" / "evaluation"
+    if case_set is not None:
+        candidates = [evaluation_root / case_set / "runs" / run_id]
+    else:
+        candidates = list(evaluation_root.glob(f"*/runs/{run_id}"))
+    existing = [path for path in candidates if path.is_dir()]
+    if not existing:
+        raise FileNotFoundError(f"Evaluation run not found: {run_id}")
+    if len(existing) > 1:
+        raise ValueError(
+            f"Evaluation run ID is ambiguous across case sets: {run_id}"
+        )
+    return existing[0]
 
 
 def load_evaluation_aggregate(run_dir: str | Path) -> dict[str, Any]:
@@ -62,48 +65,52 @@ def load_evaluation_results(
     *,
     project_root: str | Path = PROJECT_ROOT,
 ) -> tuple[Path, dict[str, Any]]:
-    resolved_case_set = case_set or latest_completed_case_set(
-        project_root=project_root
-    )
+    if (case_set is None) == (run_id is None):
+        raise ValueError("Set exactly one of case_set or run_id.")
     if run_id is not None:
         run_dir = resolve_evaluation_run(
-            resolved_case_set,
+            case_set,
             run_id,
             project_root=project_root,
         )
         return run_dir, load_evaluation_aggregate(run_dir)
+    assert case_set is not None
+    run_dir = latest_completed_evaluation_run(
+        case_set,
+        project_root=project_root,
+    )
+    return run_dir, load_evaluation_aggregate(run_dir)
 
-    case_root = (
+
+def latest_completed_evaluation_run(
+    case_set: str,
+    *,
+    project_root: str | Path = PROJECT_ROOT,
+) -> Path:
+    runs_dir = (
         Path(project_root)
         / "outputs"
         / "evaluation"
-        / resolved_case_set
+        / case_set
+        / "runs"
     )
-    index = load_or_build_result_index(case_root)
-    return case_root / INDEX_FILENAME, dict(index["aggregate"])
-
-
-def latest_completed_case_set(
-    *,
-    project_root: str | Path = PROJECT_ROOT,
-) -> str:
-    evaluation_root = Path(project_root) / "outputs" / "evaluation"
     completed = []
-    for manifest_path in evaluation_root.glob("*/runs/*/run-manifest.json"):
+    for manifest_path in runs_dir.glob("*/run-manifest.json"):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if manifest.get("status") != "complete":
             continue
         completed.append(
             (
                 str(manifest.get("completed_at") or ""),
-                str(manifest.get("case_set") or manifest_path.parents[2].name),
+                manifest_path.parent.name,
+                manifest_path.parent,
             )
         )
     if not completed:
         raise FileNotFoundError(
-            f"No completed evaluation run found under {evaluation_root}"
+            f"No completed evaluation run found under {runs_dir}"
         )
-    return max(completed)[1]
+    return max(completed)[2]
 
 
 def plot_pass_rate_heatmaps(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
@@ -387,9 +394,7 @@ def plot_latency_tables(
         present_tiers = set(_ordered_tiers(groups))
         tiers = list(TIER_ORDER)
         tiers.extend(sorted(present_tiers - set(tiers)))
-        present_models = {str(group["model"]) for group in groups}
-        models = list(MODEL_ORDER)
-        models.extend(sorted(present_models - set(models)))
+        models = sorted({str(group["model"]) for group in groups})
         runtime_columns = [
             [
                 _format_seconds(
@@ -416,7 +421,7 @@ def plot_latency_tables(
                 },
                 cells={
                     "values": [
-                        [_display_model(model) for model in models],
+                        models,
                         *runtime_columns,
                     ],
                     "align": ["left", *(["right"] * len(tiers))],
@@ -585,15 +590,6 @@ def _plot_metadata(
 
 def _format_seconds(value: float | None) -> str:
     return "-" if value is None else f"{value:.2f} s"
-
-
-def _display_model(model: str) -> str:
-    labels = {
-        "gpt-5-nano": "GPT-5 Nano",
-        "gpt-5-mini": "GPT-5 Mini",
-        "gpt-5": "GPT-5",
-    }
-    return labels.get(model, model)
 
 
 def _failure_colors(failure_types: list[str]) -> dict[str, str]:
