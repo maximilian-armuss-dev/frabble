@@ -78,7 +78,6 @@ def tiny_case_set(*, boards: int = 1) -> CaseSetConfig:
                 "low": {
                     "dimensions": 2,
                     "board_depth": {"min": 0, "max": 1},
-                    "additional_rack_noise": 0,
                     "alphabet_size": 3,
                     "forbidden_fraction": 0.15,
                     "k": 2,

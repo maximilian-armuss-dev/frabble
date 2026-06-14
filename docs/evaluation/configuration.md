@@ -60,9 +60,11 @@ scoring:
   template_new_cell_bonus_weight: 2.0
   template_local_density_penalty_weight: 1.0
   template_domain_slack_weight: 1.0
-additional_rack_noise: 1
+additional_rack_noise: 0
 include_search_logs: true
 ```
+
+`additional_rack_noise` is optional and defaults to `0`. When set above `0`, that many random alphabet symbols are added as filler to each rack on top of the symbols the witness move actually needs.
 
 `config_name` is omitted. `grammar` is an ID without a parent path or suffix and resolves to `outputs/grammars/<grammar>.json`. External files can instead be selected with `grammar_path`; both fields cannot be set simultaneously.
 

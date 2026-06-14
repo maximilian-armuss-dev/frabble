@@ -64,7 +64,6 @@ class TierConfig(BaseModel):
 
     dimensions: int | NumericRange
     board_depth: int | NumericRange
-    additional_rack_noise: int | NumericRange
     alphabet_size: int | NumericRange
     forbidden_fraction: float | NumericRange
     k: int | NumericRange
@@ -73,11 +72,6 @@ class TierConfig(BaseModel):
     def validate_axes(self) -> "TierConfig":
         _validate_axis_bounds(self.dimensions, "dimensions", minimum=2)
         _validate_axis_bounds(self.board_depth, "board_depth", minimum=0)
-        _validate_axis_bounds(
-            self.additional_rack_noise,
-            "additional_rack_noise",
-            minimum=0,
-        )
         _validate_axis_bounds(
             self.alphabet_size,
             "alphabet_size",
