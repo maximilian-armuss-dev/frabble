@@ -1,7 +1,7 @@
 case_set: 1g_1b_lmh
 models:
-  openai_gpt-5: [high] # Here, "low" refers to the complexity tier, not reasoning eff!
-  anthropic_claude-opus-4-8: [high]
+  openai_gpt-5: [all] # Here, "low" refers to the complexity tier, not reasoning eff!
+  anthropic_claude-opus-4-8: [all]
 language_representations:
   - forbidden-snippets
 execution:
