@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List
 from pathlib import Path
-from dotenv import load_dotenv
+from typing import List
 
 import os
 import yaml
+from dotenv import load_dotenv
 
 
-CONFIG_DIR = Path(__file__).resolve().parents[2] / "config"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+CONFIG_DIR = PROJECT_ROOT / "config"
 MODEL_CONFIGS_PATH = CONFIG_DIR / "model_configs.yaml"
-ENV_PATH = CONFIG_DIR / ".env"
+ENV_PATH = PROJECT_ROOT / ".env"
 
 load_dotenv(dotenv_path=ENV_PATH, override=False)
 
@@ -22,9 +23,20 @@ class ModelConfig:
     model: str
     api_key: str
     temperature: float
-    max_completion_tokens: int | None = None
+    max_completion_tokens: int
+    timeout_seconds: float
     base_url: str | None = None
-    timeout_seconds: float | None = None
+    provider: str | None = None
+
+    @property
+    def backend(self) -> str:
+        return "openrouter" if self.model.startswith("openrouter/") else "litellm"
+
+    @property
+    def request_model(self) -> str:
+        if self.backend == "openrouter":
+            return self.model.removeprefix("openrouter/")
+        return self.model
 
 
 class Environment:
@@ -37,36 +49,68 @@ class Environment:
 
     def _load_env(self) -> dict[str, str]:
         return {
-            "TEMPERATURE_DEFAULT": self._optional_env("TEMPERATURE_DEFAULT"),
             "OPENAI_API_KEY": self._optional_env("OPENAI_API_KEY"),
             "OPENAI_BASE_URL": self._optional_env("OPENAI_BASE_URL"),
+            "ANTHROPIC_API_KEY": self._optional_env("ANTHROPIC_API_KEY"),
             "GEMINI_API_KEY": self._optional_env("GEMINI_API_KEY"),
             "GEMINI_BASE_URL": self._optional_env("GEMINI_BASE_URL"),
+            "OPENROUTER_API_KEY": self._optional_env("OPENROUTER_API_KEY"),
+            "OPENROUTER_API_BASE": self._optional_env("OPENROUTER_API_BASE"),
         }
 
     def _load_model_configs(self) -> dict[str, ModelConfig]:
         data = yaml.safe_load(MODEL_CONFIGS_PATH.read_text(encoding="utf-8"))
+        defaults = data.get("defaults")
+        if not isinstance(defaults, dict):
+            raise RuntimeError("Model config must define a 'defaults' mapping.")
         raw_models = data.get("models")
+        if not isinstance(raw_models, list):
+            raise RuntimeError("Model config must define a 'models' list.")
         configs: dict[str, ModelConfig] = {}
         for raw_model in raw_models:
+            if not isinstance(raw_model, dict):
+                raise RuntimeError("Each model config must be a mapping.")
             # Required values
             name = self._required_config_value(raw_model, "name")
             model = self._required_config_value(raw_model, "model")
             api_key_env = self._required_config_value(raw_model, "api_key_env")
-            api_key = self.env_vars.get(api_key_env, "")
-            temperature_str = raw_model.get("temperature")
-            if temperature_str is None:
-                temperature_str = self.get_env("TEMPERATURE_DEFAULT")
-            temperature = max(float(temperature_str), 1e-6)
-            # Optional values
-            max_completion_tokens = self._optional_int_config_value(
-                raw_model, "max_completion_tokens"
+            api_key = self._config_env(api_key_env)
+            backend = (
+                "openrouter" if model.startswith("openrouter/") else "litellm"
+            )
+            if backend == "openrouter" and model == "openrouter/":
+                raise RuntimeError(
+                    f"OpenRouter model profile '{name}' has no request model."
+                )
+            temperature = self._float_config_value(
+                raw_model,
+                defaults,
+                "temperature",
+                minimum=0,
+            )
+            max_completion_tokens = self._int_config_value(
+                raw_model,
+                defaults,
+                "max_completion_tokens",
             )
             base_url_env = self._optional_config_value(raw_model, "base_url_env")
-            base_url = self.env_vars.get(base_url_env, "") if base_url_env else None
-            timeout_seconds = self._optional_float_config_value(
-                raw_model, "timeout_seconds"
+            base_url = (
+                self._config_env(base_url_env) or None
+                if base_url_env
+                else None
             )
+            timeout_seconds = self._float_config_value(
+                raw_model,
+                defaults,
+                "timeout_seconds",
+                minimum=0,
+                inclusive=False,
+            )
+            provider = self._optional_config_value(raw_model, "provider")
+            if backend == "openrouter" and provider is None:
+                raise RuntimeError(
+                    f"OpenRouter model profile '{name}' must configure provider."
+                )
             configs[name] = ModelConfig(
                 name=name,
                 model=model,
@@ -75,29 +119,47 @@ class Environment:
                 max_completion_tokens=max_completion_tokens,
                 base_url=base_url,
                 timeout_seconds=timeout_seconds,
+                provider=provider,
             )
         return configs
 
-    def _optional_int_config_value(
-        self, raw_model: dict[str, object], key: str
-    ) -> int | None:
-        value = raw_model.get(key)
+    def _config_env(self, name: str) -> str:
+        value = self._optional_env(name)
+        self.env_vars[name] = value
+        return value
+
+    def _int_config_value(
+        self,
+        raw_model: dict[str, object],
+        defaults: dict[str, object],
+        key: str,
+    ) -> int:
+        value = raw_model.get(key, defaults.get(key))
         if value is None:
-            return None
+            raise RuntimeError(f"Model config is missing default value '{key}'.")
         parsed = int(value)
         if parsed <= 0:
             raise RuntimeError(f"Model config value '{key}' must be positive.")
         return parsed
 
-    def _optional_float_config_value(
-        self, raw_model: dict[str, object], key: str
-    ) -> float | None:
-        value = raw_model.get(key)
+    def _float_config_value(
+        self,
+        raw_model: dict[str, object],
+        defaults: dict[str, object],
+        key: str,
+        *,
+        minimum: float,
+        inclusive: bool = True,
+    ) -> float:
+        value = raw_model.get(key, defaults.get(key))
         if value is None:
-            return None
+            raise RuntimeError(f"Model config is missing default value '{key}'.")
         parsed = float(value)
-        if parsed <= 0:
-            raise RuntimeError(f"Model config value '{key}' must be positive.")
+        if parsed < minimum or (not inclusive and parsed == minimum):
+            operator = ">=" if inclusive else ">"
+            raise RuntimeError(
+                f"Model config value '{key}' must be {operator} {minimum}."
+            )
         return parsed
 
     def _optional_config_value(

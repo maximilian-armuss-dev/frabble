@@ -63,7 +63,7 @@ class GeneratorConfig(BaseModel):
     top_template_count: int = Field(gt=0)
     target_witness_count: int = Field(gt=0)
     scoring: ScoringConfig
-    additional_rack_noise: int = Field(ge=0)
+    additional_rack_noise: int = Field(default=0, ge=0)
     output_path: str | None = None
     include_search_logs: bool
 

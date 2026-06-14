@@ -10,6 +10,8 @@ from ..llm.env import ENV
 from ..llm.representers import LANGUAGE_REPRESENTERS
 from .config import RunConfig
 
+EVALUATION_REASONING_EFFORT = "xhigh"
+
 
 @dataclass(frozen=True)
 class EvaluationJob:
@@ -53,14 +55,14 @@ def build_evaluation_jobs(
                             (
                                 safe_id(case_id),
                                 safe_id(model_name),
-                                safe_id(config.reasoning_effort),
+                                EVALUATION_REASONING_EFFORT,
                                 safe_id(representation),
                             )
                         ),
                         case_path=case_path,
                         model_name=model_name,
                         language_representation=representation,
-                        reasoning_effort=config.reasoning_effort,
+                        reasoning_effort=EVALUATION_REASONING_EFFORT,
                     )
                 )
     return jobs

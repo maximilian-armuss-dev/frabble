@@ -3,8 +3,8 @@ grammar_config: evaluation_base
 tier_config: default
 root_seed: 42
 sampling_rounds: 1
-grammar_samples_per_tier: 3
-boards_per_grammar: 3
+grammar_samples_per_tier: 1
+boards_per_grammar: 1
 tiers:
   - low
   - medium

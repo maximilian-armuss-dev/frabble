@@ -17,6 +17,7 @@ from ..llm.representers import LANGUAGE_REPRESENTERS
 EVALUATION_CONFIG_DIR = PROJECT_ROOT / "config" / "evaluation"
 CASE_SET_CONFIG_DIR = EVALUATION_CONFIG_DIR / "case_sets"
 RUN_CONFIG_DIR = EVALUATION_CONFIG_DIR / "runs"
+TIER_CONFIG_DIR = EVALUATION_CONFIG_DIR / "tiers"
 
 
 class EvaluationConfigError(ValueError):
@@ -31,6 +32,11 @@ CASE_SET_CONFIG_SOURCE = NamedYamlConfigSource(
 RUN_CONFIG_SOURCE = NamedYamlConfigSource(
     directory=RUN_CONFIG_DIR,
     kind="run",
+    error_type=EvaluationConfigError,
+)
+TIER_CONFIG_SOURCE = NamedYamlConfigSource(
+    directory=TIER_CONFIG_DIR,
+    kind="tier",
     error_type=EvaluationConfigError,
 )
 
@@ -58,7 +64,6 @@ class TierConfig(BaseModel):
 
     dimensions: int | NumericRange
     board_depth: int | NumericRange
-    additional_rack_noise: int | NumericRange
     alphabet_size: int | NumericRange
     forbidden_fraction: float | NumericRange
     k: int | NumericRange
@@ -67,11 +72,6 @@ class TierConfig(BaseModel):
     def validate_axes(self) -> "TierConfig":
         _validate_axis_bounds(self.dimensions, "dimensions", minimum=2)
         _validate_axis_bounds(self.board_depth, "board_depth", minimum=0)
-        _validate_axis_bounds(
-            self.additional_rack_noise,
-            "additional_rack_noise",
-            minimum=0,
-        )
         _validate_axis_bounds(
             self.alphabet_size,
             "alphabet_size",
@@ -88,16 +88,54 @@ class TierConfig(BaseModel):
         return self
 
 
-class CaseSetConfig(BaseModel):
+class TierSetConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    config_name: str
+    tiers: dict[str, TierConfig]
+
+    @field_validator("tiers")
+    @classmethod
+    def validate_tiers(cls, value: dict[str, TierConfig]) -> dict[str, TierConfig]:
+        if not value:
+            raise ValueError("At least one tier must be configured.")
+        for name in value:
+            _validate_identifier(name, field="tier")
+        return value
+
+
+class CaseSetBaseConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     config_name: str
     generation_config: str
     grammar_config: str
+    tier_config: str
     root_seed: int
     sampling_rounds: int = Field(default=1, gt=0)
     grammar_samples_per_tier: int = Field(default=3, gt=0)
     boards_per_grammar: int = Field(default=10, gt=0)
+
+
+class CaseSetFileConfig(CaseSetBaseConfig):
+    tiers: list[str]
+
+    @field_validator("tiers")
+    @classmethod
+    def validate_tier_ids(cls, value: list[str]) -> list[str]:
+        if not value:
+            raise ValueError("At least one tier must be configured.")
+        normalized = [name.strip() for name in value]
+        if any(not name for name in normalized):
+            raise ValueError("Tier names must not be empty.")
+        if len(normalized) != len(set(normalized)):
+            raise ValueError("Tier names must not contain duplicates.")
+        for name in normalized:
+            _validate_identifier(name, field="tier")
+        return normalized
+
+
+class CaseSetConfig(CaseSetBaseConfig):
     tiers: dict[str, TierConfig]
 
     @field_validator("tiers")
@@ -114,6 +152,7 @@ class ExecutionConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     max_concurrency: int = Field(default=10, gt=0)
+    max_concurrency_per_model: int | None = Field(default=None, gt=0)
     max_retries: int = Field(default=5, ge=0)
 
 
@@ -124,7 +163,6 @@ class RunConfig(BaseModel):
     case_set: str
     models: dict[str, list[str]]
     language_representations: list[str] | str
-    reasoning_effort: str
     execution: ExecutionConfig = Field(default_factory=ExecutionConfig)
 
     @field_validator("language_representations")
@@ -180,17 +218,26 @@ class RunConfig(BaseModel):
             raise ValueError(f"Unknown language representations: {unknown}")
         return value
 
-    @field_validator("reasoning_effort")
-    @classmethod
-    def validate_reasoning_effort(cls, value: str) -> str:
-        normalized = value.strip()
-        if not normalized:
-            raise ValueError("reasoning_effort must not be empty.")
-        return normalized
-
 
 def load_case_set_config(config_name: str) -> CaseSetConfig:
-    return CASE_SET_CONFIG_SOURCE.load(config_name, CaseSetConfig)
+    file_config = CASE_SET_CONFIG_SOURCE.load(config_name, CaseSetFileConfig)
+    tier_set = load_tier_set_config(file_config.tier_config)
+    unknown = sorted(set(file_config.tiers) - set(tier_set.tiers))
+    if unknown:
+        raise EvaluationConfigError(
+            f"Unknown tiers {unknown} in tier config "
+            f"'{file_config.tier_config}'. Available: {sorted(tier_set.tiers)}"
+        )
+    data = file_config.model_dump(mode="json", exclude={"tiers"})
+    data["tiers"] = {
+        tier_name: tier_set.tiers[tier_name]
+        for tier_name in file_config.tiers
+    }
+    return CaseSetConfig.model_validate(data)
+
+
+def load_tier_set_config(config_name: str) -> TierSetConfig:
+    return TIER_CONFIG_SOURCE.load(config_name, TierSetConfig)
 
 
 def load_run_config(config_name: str) -> RunConfig:

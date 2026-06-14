@@ -17,7 +17,7 @@ scoring:
   template_new_cell_bonus_weight: 2.0
   template_local_density_penalty_weight: 1.0
   template_domain_slack_weight: 1.0
-additional_rack_noise: 1 #
+additional_rack_noise: 0
 include_search_logs: true
 # alphabet size
 # forbidden fraction

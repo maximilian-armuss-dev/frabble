@@ -2,11 +2,15 @@
 
 ## Concurrency Window
 
-Evaluate creates asynchronous tasks for pending jobs and limits concurrent provider calls with a global semaphore. `max_concurrency` determines the size of this window; the default is ten.
+Evaluate creates asynchronous tasks for pending jobs and limits concurrent provider calls with a global semaphore. `max_concurrency` determines the size of this window; the default is ten. If `max_concurrency_per_model` is set, a second semaphore limits calls for each model profile independently.
 
-As soon as an active call finishes, the next waiting job occupies the free slot. The limit applies across all model profiles rather than separately per model.
+As soon as an active call finishes, the next waiting job occupies the free
+slot. The global limit applies across all model profiles; the optional
+per-model limit is enforced in addition to it.
 
-Tasks use LiteLLM's asynchronous interface. Backoff and cooldown waits happen outside the semaphore and do not occupy a concurrency slot.
+LiteLLM profiles use LiteLLM's asynchronous interface. OpenRouter profiles use
+the official OpenRouter Python SDK directly. Backoff and cooldown waits happen
+outside the semaphore and do not occupy a concurrency slot.
 
 The orchestration lives in `runner.py`. `job_execution.py` owns semaphore usage, cooldowns, retry policy, provider calls, parsing, and evaluation.
 
@@ -41,7 +45,7 @@ Each final attempt artifact stores:
 - runtime for the final LLM call and all request attempts,
 - retry number,
 - failed attempts and retry wait times,
-- the configured reasoning effort,
+- the fixed native `xhigh` reasoning effort and exact request object,
 - provider and model metadata,
 - hashes of the prompts actually sent,
 - usage data,

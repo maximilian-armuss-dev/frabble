@@ -12,7 +12,13 @@ from .runner import evaluate_run
 
 
 def cmd_prepare() -> None:
-    args = _config_parser("Prepare an evaluation case set.").parse_args()
+    parser = _config_parser("Prepare an evaluation case set.")
+    parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="Delete the existing case-set output before preparing.",
+    )
+    args = parser.parse_args()
     try:
         config = load_case_set_config(args.config)
         total = (
@@ -24,6 +30,7 @@ def cmd_prepare() -> None:
         with tqdm(total=total, desc="cases", unit="case") as progress:
             manifest = prepare_case_set(
                 config,
+                clean=args.clean,
                 progress_callback=progress.update,
             )
     except (EvaluationConfigError, ValueError) as exc:

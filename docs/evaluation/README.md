@@ -18,7 +18,8 @@ config/
 ├── generation/
 ├── evaluation/
 │   ├── case_sets/
-│   └── runs/
+│   ├── runs/
+│   └── tiers/
 └── model_configs.yaml
 ```
 
@@ -27,7 +28,6 @@ All generated JSON files live under `outputs/`:
 ```text
 outputs/evaluation/<case-set>/
 ├── prepare-manifest.json
-├── results-index.json
 ├── grammars/
 ├── scenarios/
 ├── cases/
@@ -45,11 +45,14 @@ outputs/evaluation/<case-set>/
 
 `visualization/inspect_evaluation.ipynb` visualizes pass rates, primary failure classes, robustness across grammar samples, average token usage, and LLM runtime. Pass rate measures the formal validity of a move; `rack_usage_ratio` is aggregated separately as solution quality. Average request runtime includes final transport failures and timeouts.
 
-`results-index.json` is the persistent cross-run result pool for a case set. It is updated after completed runs and, when necessary, when the notebook loads it. For each combination of case, model, language representation, and reasoning effort, the attempt from the newest completed run is retained. With `RUN_ID = None`, the notebook uses this pool; a concrete run ID loads only that run. The notebook displays the ID and completion time of the newest run in the pool.
+The notebook accepts either a case-set name or a concrete run ID. A case-set
+name selects its newest completed run. A run ID selects exactly that run,
+independently of its case set. Cross-run aggregation is intentionally left to
+explicit post-processing.
 
 Overlapping constraint failures remain available as diagnostic values in `aggregate.json`.
 
-A case-set config defines the stable experiment matrix and reproducible sampling. A run config maps model profiles to tiers and selects language representations and the shared reasoning effort.
+A case-set config defines the stable experiment matrix and reproducible sampling. A run config maps model profiles to tiers and selects language representations. Evaluation reasoning is fixed to native `xhigh`.
 
 ## Core Terms
 

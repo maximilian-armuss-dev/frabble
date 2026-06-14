@@ -14,7 +14,6 @@ class SampledBoardParameters:
     seed: int
     dimensions: int
     board_depth: int
-    additional_rack_noise: int
 
 
 @dataclass(frozen=True)
@@ -42,11 +41,6 @@ def sample_board_parameters(
         seed=board_seed,
         dimensions=_sample_integer(tier.dimensions, board_seed, "dimensions"),
         board_depth=_sample_integer(tier.board_depth, board_seed, "board_depth"),
-        additional_rack_noise=_sample_integer(
-            tier.additional_rack_noise,
-            board_seed,
-            "rack_noise",
-        ),
     )
 
 
@@ -108,7 +102,6 @@ def resolve_generation_config(
             "grammar": None,
             "grammar_path": str(grammar_path),
             "target_witness_count": parameters.board_depth + 1,
-            "additional_rack_noise": parameters.additional_rack_noise,
             "output_path": str(output_path),
         }
     )
