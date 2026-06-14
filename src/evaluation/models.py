@@ -39,6 +39,12 @@ class EvaluationCase(BaseModel):
                 for snippet in self.grammar["forbidden"]
             ),
             min_word_length=int(self.grammar["min_word_length"]),
+            letter_scores=tuple(
+                sorted(
+                    (str(symbol), int(score))
+                    for symbol, score in self.grammar.get("letter_scores", {}).items()
+                )
+            ),
             seed=int(self.grammar["seed"]) if self.grammar.get("seed") is not None else None,
         )
 

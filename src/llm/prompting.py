@@ -36,5 +36,6 @@ def build_prompt(
         formal_language=representers.language.represent(language),
         board=representers.board.represent(board),
         rack=representers.rack.represent(transition.rack),
+        letter_scores=language.describe_letter_scores(),
     )
     return system_prompt, user_prompt

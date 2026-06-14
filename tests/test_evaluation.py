@@ -462,8 +462,20 @@ class EvaluationConfigTests(unittest.TestCase):
 
     def test_aggregate_reports_word_length_and_overlap_quality_metrics(self):
         attempts = [
-            _attempt(overall=True, grammar=0, main_word_length=3, overlap_count=1),
-            _attempt(overall=True, grammar=0, main_word_length=5, overlap_count=3),
+            _attempt(
+                overall=True,
+                grammar=0,
+                main_word_length=3,
+                overlap_count=1,
+                letter_score_total=4,
+            ),
+            _attempt(
+                overall=True,
+                grammar=0,
+                main_word_length=5,
+                overlap_count=3,
+                letter_score_total=8,
+            ),
             _attempt(
                 overall=False,
                 grammar=0,
@@ -476,10 +488,13 @@ class EvaluationConfigTests(unittest.TestCase):
 
         main_word_length = aggregate["overall"]["quality"]["main_word_length"]
         overlap_count = aggregate["overall"]["quality"]["overlap_count"]
+        letter_score_total = aggregate["overall"]["quality"]["letter_score_total"]
         self.assertEqual(main_word_length["count"], 2)
         self.assertEqual(main_word_length["mean"], 4.0)
         self.assertEqual(overlap_count["count"], 2)
         self.assertEqual(overlap_count["mean"], 2.0)
+        self.assertEqual(letter_score_total["count"], 2)
+        self.assertEqual(letter_score_total["mean"], 6.0)
 
     def test_exhausted_transport_error_finishes_run(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -873,6 +888,7 @@ def _attempt(
     cross_words_valid: bool = True,
     main_word_length: int | None = None,
     overlap_count: int | None = None,
+    letter_score_total: int | None = None,
 ) -> dict[str, object]:
     return {
         "status": "complete",
@@ -904,6 +920,7 @@ def _attempt(
             "rack_valid": True,
             "main_word_length": main_word_length,
             "overlap_count": overlap_count,
+            "letter_score_total": letter_score_total,
         },
     }
 

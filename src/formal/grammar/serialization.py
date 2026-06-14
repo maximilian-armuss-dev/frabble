@@ -6,7 +6,7 @@ from pathlib import Path
 from ...formal.language import StrictlyLocalLanguage
 from .config import AutoResampleConfig, SLSamplingConfig
 
-_SCHEMA_VERSION = 1
+_SCHEMA_VERSION = 2
 
 
 def save_grammar(
@@ -23,6 +23,7 @@ def save_grammar(
         "k": grammar.k,
         "forbidden": sorted("".join(s) for s in grammar.forbidden_snippets),
         "min_word_length": grammar.min_word_length,
+        "letter_scores": {symbol: score for symbol, score in grammar.letter_scores},
         "seed": grammar.seed,
         "sampling_config": {
             "alphabet_size": len(grammar.alphabet),
@@ -62,12 +63,19 @@ def load_grammar(path: str | Path) -> tuple[StrictlyLocalLanguage, SLSamplingCon
         ),
     )
     forbidden_snippets = tuple(tuple(s) for s in data["forbidden"])
+    letter_scores = tuple(
+        sorted(
+            (str(symbol), int(score))
+            for symbol, score in data.get("letter_scores", {}).items()
+        )
+    )
     grammar = StrictlyLocalLanguage(
         language_id=str(data["name"]),
         alphabet=tuple(data["alphabet"]),
         k=int(data["k"]),
         forbidden_snippets=forbidden_snippets,
         min_word_length=int(data["min_word_length"]),
+        letter_scores=letter_scores,
         seed=data.get("seed"),
     )
     return grammar, config, str(data["name"])

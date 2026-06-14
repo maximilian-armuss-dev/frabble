@@ -220,6 +220,10 @@ def _aggregate_group(
                 item.get("evaluation", {}).get("overlap_count")
                 for item in completed
             ),
+            "letter_score_total": _numeric_summary(
+                item.get("evaluation", {}).get("letter_score_total")
+                for item in completed
+            ),
         },
         "grammars": grammar_groups,
     }
@@ -281,6 +285,10 @@ def _aggregate_grammar(
             ),
             "overlap_count": _numeric_summary(
                 item.get("evaluation", {}).get("overlap_count")
+                for item in attempts
+            ),
+            "letter_score_total": _numeric_summary(
+                item.get("evaluation", {}).get("letter_score_total")
                 for item in attempts
             ),
         },

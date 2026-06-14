@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "type": "sl",
   "name": "generator_v1_grammar",
   "alphabet": [
@@ -61,6 +61,13 @@
     "XXX"
   ],
   "min_word_length": 3,
+  "letter_scores": {
+    "A": 1,
+    "D": 1,
+    "I": 4,
+    "U": 3,
+    "X": 3
+  },
   "seed": 42,
   "sampling_config": {
     "alphabet_size": 5,

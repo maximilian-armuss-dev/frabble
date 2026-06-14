@@ -25,6 +25,7 @@ class GranularEvaluation:
     rack_usage_ratio: float
     main_word_length: int | None
     overlap_count: int | None
+    letter_score_total: int | None
     failure_type: str | None
     message: str
 
@@ -44,6 +45,7 @@ class GranularEvaluation:
             "rack_usage_ratio": self.rack_usage_ratio,
             "main_word_length": self.main_word_length,
             "overlap_count": self.overlap_count,
+            "letter_score_total": self.letter_score_total,
             "failure_type": self.failure_type,
             "message": self.message,
         }
@@ -85,6 +87,11 @@ def evaluate_granular(
         overlap_count=(
             len(move.sequence) - report.rack_symbols_used if report.overall else None
         ),
+        letter_score_total=(
+            sum(language.letter_score_map().get(symbol, 0) for symbol in move.sequence)
+            if report.overall
+            else None
+        ),
         failure_type=report.failure_type,
         message=report.message,
     )
@@ -106,6 +113,7 @@ def _parse_failed(parse_error: str | None) -> GranularEvaluation:
         rack_usage_ratio=0.0,
         main_word_length=None,
         overlap_count=None,
+        letter_score_total=None,
         failure_type="parse",
         message=parse_error or "Failed to parse model response.",
     )
