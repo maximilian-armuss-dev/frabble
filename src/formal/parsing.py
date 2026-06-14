@@ -12,8 +12,17 @@ class SubmittedMove(BaseModel):
     start: tuple[int, ...] = Field(
         description="Start vector for the first symbol in the submitted sequence."
     )
-    axis: int = Field(ge=0, description="Board axis along which the sequence runs.")
+    axis: int = Field(
+        description="Board axis along which the sequence runs. Must be non-negative."
+    )
     sequence: tuple[str, ...] = Field(min_length=1)
+
+    @field_validator("axis")
+    @classmethod
+    def validate_axis(cls, value: int) -> int:
+        if value < 0:
+            raise ValueError("axis must be non-negative.")
+        return value
 
     @field_validator("sequence", mode="before")
     @classmethod

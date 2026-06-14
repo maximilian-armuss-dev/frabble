@@ -11,7 +11,6 @@ from .result_aggregation import (
     compact_summary,
     write_results_csv,
 )
-from .result_index import build_result_index
 
 
 def select_or_create_run(
@@ -93,8 +92,6 @@ def finalize_run(
     write_json_atomic(run_dir / "summary.json", summary)
     write_json_atomic(run_dir / "aggregate.json", aggregate)
     write_results_csv(run_dir / "results.csv", aggregate)
-    if manifest["status"] == "complete":
-        build_result_index(run_dir.parent.parent)
     return summary
 
 

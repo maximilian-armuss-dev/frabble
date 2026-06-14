@@ -10,10 +10,6 @@ from typing import Any, Literal, Mapping
 from src.domain.board import Board
 from src.domain.models import Move
 from src.evaluation.models import EvaluationCase
-from src.evaluation.result_index import (
-    INDEX_FILENAME,
-    load_or_build_result_index,
-)
 from src.formal.language import StrictlyLocalLanguage
 
 from .board_figures import PROJECT_ROOT, plot_board_axis_pairs
@@ -32,20 +28,27 @@ from .run_figures import (
 )
 
 TIER_ORDER = ("low", "medium", "high", "stress")
-MODEL_ORDER = ("gpt-5-nano", "gpt-5-mini", "gpt-5")
 
 
 def resolve_evaluation_run(
-    case_set: str,
+    case_set: str | None,
     run_id: str,
     *,
     project_root: str | Path = PROJECT_ROOT,
 ) -> Path:
-    runs_dir = Path(project_root) / "outputs" / "evaluation" / case_set / "runs"
-    run_dir = runs_dir / run_id
-    if not run_dir.exists():
-        raise FileNotFoundError(f"Evaluation run not found: {run_dir}")
-    return run_dir
+    evaluation_root = Path(project_root) / "outputs" / "evaluation"
+    if case_set is not None:
+        candidates = [evaluation_root / case_set / "runs" / run_id]
+    else:
+        candidates = list(evaluation_root.glob(f"*/runs/{run_id}"))
+    existing = [path for path in candidates if path.is_dir()]
+    if not existing:
+        raise FileNotFoundError(f"Evaluation run not found: {run_id}")
+    if len(existing) > 1:
+        raise ValueError(
+            f"Evaluation run ID is ambiguous across case sets: {run_id}"
+        )
+    return existing[0]
 
 
 def load_evaluation_aggregate(run_dir: str | Path) -> dict[str, Any]:
@@ -62,48 +65,52 @@ def load_evaluation_results(
     *,
     project_root: str | Path = PROJECT_ROOT,
 ) -> tuple[Path, dict[str, Any]]:
-    resolved_case_set = case_set or latest_completed_case_set(
-        project_root=project_root
-    )
+    if (case_set is None) == (run_id is None):
+        raise ValueError("Set exactly one of case_set or run_id.")
     if run_id is not None:
         run_dir = resolve_evaluation_run(
-            resolved_case_set,
+            case_set,
             run_id,
             project_root=project_root,
         )
         return run_dir, load_evaluation_aggregate(run_dir)
+    assert case_set is not None
+    run_dir = latest_completed_evaluation_run(
+        case_set,
+        project_root=project_root,
+    )
+    return run_dir, load_evaluation_aggregate(run_dir)
 
-    case_root = (
+
+def latest_completed_evaluation_run(
+    case_set: str,
+    *,
+    project_root: str | Path = PROJECT_ROOT,
+) -> Path:
+    runs_dir = (
         Path(project_root)
         / "outputs"
         / "evaluation"
-        / resolved_case_set
+        / case_set
+        / "runs"
     )
-    index = load_or_build_result_index(case_root)
-    return case_root / INDEX_FILENAME, dict(index["aggregate"])
-
-
-def latest_completed_case_set(
-    *,
-    project_root: str | Path = PROJECT_ROOT,
-) -> str:
-    evaluation_root = Path(project_root) / "outputs" / "evaluation"
     completed = []
-    for manifest_path in evaluation_root.glob("*/runs/*/run-manifest.json"):
+    for manifest_path in runs_dir.glob("*/run-manifest.json"):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if manifest.get("status") != "complete":
             continue
         completed.append(
             (
                 str(manifest.get("completed_at") or ""),
-                str(manifest.get("case_set") or manifest_path.parents[2].name),
+                manifest_path.parent.name,
+                manifest_path.parent,
             )
         )
     if not completed:
         raise FileNotFoundError(
-            f"No completed evaluation run found under {evaluation_root}"
+            f"No completed evaluation run found under {runs_dir}"
         )
-    return max(completed)[1]
+    return max(completed)[2]
 
 
 def plot_pass_rate_heatmaps(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
@@ -184,11 +191,10 @@ def plot_primary_failure_bars(
         ordered = sorted(
             groups,
             key=lambda group: (
-                str(group["model"]),
                 _tier_key(str(group["tier"])),
+                str(group["model"]),
             ),
         )
-        labels = [f"{group['model']} · {group['tier']}" for group in ordered]
         failure_types = sorted(
             {
                 failure
@@ -199,7 +205,7 @@ def plot_primary_failure_bars(
         palette = _failure_colors(failure_types)
         figure = go.Figure()
         shown_in_legend: set[str] = set()
-        for label, group in zip(labels, ordered, strict=True):
+        for group in ordered:
             failures = sorted(
                 group["primary_failures"].items(),
                 key=lambda item: (-int(item[1]), str(item[0])),
@@ -207,16 +213,27 @@ def plot_primary_failure_bars(
             for failure_type, count in failures:
                 figure.add_bar(
                     name=failure_type,
-                    x=[label],
+                    x=[
+                        [str(group["tier"])],
+                        [str(group["model"])],
+                    ],
                     y=[_rate(int(count), int(group["failed"]))],
-                    customdata=[int(count)],
+                    customdata=[
+                        [
+                            str(group["tier"]),
+                            str(group["model"]),
+                            int(count),
+                        ]
+                    ],
                     marker_color=palette[failure_type],
                     legendgroup=failure_type,
                     showlegend=failure_type not in shown_in_legend,
                     hovertemplate=(
-                        "%{x}<br>"
+                        "tier=%{customdata[0]}<br>"
+                        "model=%{customdata[1]}<br>"
                         + failure_type
-                        + ": %{customdata} (%{y:.1%} of failures)<extra></extra>"
+                        + ": %{customdata[2]} "
+                        "(%{y:.1%} of failures)<extra></extra>"
                     ),
                 )
                 shown_in_legend.add(failure_type)
@@ -225,14 +242,11 @@ def plot_primary_failure_bars(
             figure,
             "Primary failure composition",
             metadata=_plot_metadata(representation, effort, groups),
-            x_title="model and tier",
+            x_title="tier and model",
             y_title="share of failed attempts",
         )
         figure.update_layout(legend={"traceorder": "reversed"})
-        figure.update_xaxes(
-            categoryorder="array",
-            categoryarray=labels,
-        )
+        figure.update_xaxes(type="multicategory")
         figure.update_yaxes(tickformat=".0%", range=[0, 1])
         figures.append(figure)
     return tuple(figures)
@@ -322,7 +336,13 @@ def plot_token_usage_bars(
     figures = []
     for representation, effort, groups in _group_slices(aggregate):
         ordered = _ordered_groups(groups)
-        labels = [_group_label(group) for group in ordered]
+        tiers = [str(group["tier"]) for group in ordered]
+        models = [str(group["model"]) for group in ordered]
+        categories = [tiers, models]
+        hover_data = [
+            [str(group["tier"]), str(group["model"])]
+            for group in ordered
+        ]
         prompt = [_usage_mean(group, "prompt_tokens") for group in ordered]
         reasoning = [_usage_mean(group, "reasoning_tokens") for group in ordered]
         visible = [
@@ -341,10 +361,14 @@ def plot_token_usage_bars(
         ):
             bar_options = {
                 "name": name,
-                "x": labels,
+                "x": categories,
                 "y": values,
+                "customdata": hover_data,
                 "hovertemplate": (
-                    "%{x}<br>" + name + ": %{y:,.0f}<extra></extra>"
+                    "tier=%{customdata[0]}<br>"
+                    "model=%{customdata[1]}<br>"
+                    + name
+                    + ": %{y:,.0f}<extra></extra>"
                 ),
             }
             if name == "visible output":
@@ -370,9 +394,10 @@ def plot_token_usage_bars(
             figure,
             "Average token usage per attempt",
             metadata=_plot_metadata(representation, effort, groups),
-            x_title="model and tier",
+            x_title="tier and model",
             y_title="average tokens",
         )
+        figure.update_xaxes(type="multicategory")
         figures.append(figure)
     return tuple(figures)
 
@@ -387,9 +412,7 @@ def plot_latency_tables(
         present_tiers = set(_ordered_tiers(groups))
         tiers = list(TIER_ORDER)
         tiers.extend(sorted(present_tiers - set(tiers)))
-        present_models = {str(group["model"]) for group in groups}
-        models = list(MODEL_ORDER)
-        models.extend(sorted(present_models - set(models)))
+        models = sorted({str(group["model"]) for group in groups})
         runtime_columns = [
             [
                 _format_seconds(
@@ -416,7 +439,7 @@ def plot_latency_tables(
                 },
                 cells={
                     "values": [
-                        [_display_model(model) for model in models],
+                        models,
                         *runtime_columns,
                     ],
                     "align": ["left", *(["right"] * len(tiers))],
@@ -463,8 +486,8 @@ def _ordered_groups(
     return sorted(
         groups,
         key=lambda group: (
-            str(group["model"]),
             _tier_key(str(group["tier"])),
+            str(group["model"]),
         ),
     )
 
@@ -550,10 +573,6 @@ def _grammar_value(
     return None
 
 
-def _group_label(group: Mapping[str, Any]) -> str:
-    return f"{group['model']} · {group['tier']}"
-
-
 def _usage_mean(group: Mapping[str, Any], metric: str) -> float:
     return _summary_mean(group, family="usage", metric=metric)
 
@@ -585,15 +604,6 @@ def _plot_metadata(
 
 def _format_seconds(value: float | None) -> str:
     return "-" if value is None else f"{value:.2f} s"
-
-
-def _display_model(model: str) -> str:
-    labels = {
-        "gpt-5-nano": "GPT-5 Nano",
-        "gpt-5-mini": "GPT-5 Mini",
-        "gpt-5": "GPT-5",
-    }
-    return labels.get(model, model)
 
 
 def _failure_colors(failure_types: list[str]) -> dict[str, str]:

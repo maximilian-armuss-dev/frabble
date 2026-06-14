@@ -6,6 +6,10 @@
 uv run prepare --config screening_v1
 ```
 
+`--clean` deletes `outputs/evaluation/<case-set>/` before preparation. This
+also removes runs and aggregate artifacts for that case set, preventing old
+results from referencing newly overwritten case files.
+
 Prepare:
 
 1. Loads and validates the case set.

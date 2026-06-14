@@ -1,26 +1,56 @@
-models:
-  - name: gpt-5-mini
-    model: openai/gpt-5-mini
-    api_key_env: OPENAI_API_KEY
-    temperature: 1
-    max_completion_tokens: 32384
-    timeout_seconds: 900
+defaults:
+  temperature: 1
+  max_completion_tokens: 32384
+  timeout_seconds: 900
 
-  - name: gpt-5
+models:
+  - name: openai_gpt-5
     model: openai/gpt-5
     api_key_env: OPENAI_API_KEY
-    temperature: 1
-    max_completion_tokens: 32384
-    timeout_seconds: 900
 
-  - name: anthropic_claude-sonnet-4-6
-    model: anthropic/claude-sonnet-4-6
-    api_key_env: ANTHROPIC_API_KEY
-    temperature: 1
-    timeout_seconds: 900
-  
   - name: anthropic_claude-opus-4-8
     model: anthropic/claude-opus-4-8
     api_key_env: ANTHROPIC_API_KEY
-    temperature: 1
-    timeout_seconds: 900
+
+  - name: or_gpt-5-5
+    model: openrouter/openai/gpt-5.5
+    api_key_env: OPENROUTER_API_KEY
+    base_url_env: OPENROUTER_API_BASE
+    provider: openai
+
+  - name: or_claude-opus-4-8
+    model: openrouter/anthropic/claude-opus-4.8
+    api_key_env: OPENROUTER_API_KEY
+    base_url_env: OPENROUTER_API_BASE
+    provider: anthropic
+
+  - name: or_gemini-3-1-pro
+    model: openrouter/google/gemini-3.1-pro-preview
+    api_key_env: OPENROUTER_API_KEY
+    base_url_env: OPENROUTER_API_BASE
+    provider: google-ai-studio
+
+  - name: or_grok-4-3
+    model: openrouter/x-ai/grok-4.3
+    api_key_env: OPENROUTER_API_KEY
+    base_url_env: OPENROUTER_API_BASE
+    provider: xai
+
+  - name: or_deepseek-v4-pro
+    model: openrouter/deepseek/deepseek-v4-pro
+    api_key_env: OPENROUTER_API_KEY
+    base_url_env: OPENROUTER_API_BASE
+    # DeepSeek's own endpoint currently lacks strict structured outputs.
+    provider: alibaba
+
+  - name: or_kimi-k2-6
+    model: openrouter/moonshotai/kimi-k2.6
+    api_key_env: OPENROUTER_API_KEY
+    base_url_env: OPENROUTER_API_BASE
+    provider: moonshotai/int4
+
+  - name: or_qwen3-7-max
+    model: openrouter/qwen/qwen3.7-max
+    api_key_env: OPENROUTER_API_KEY
+    base_url_env: OPENROUTER_API_BASE
+    provider: alibaba

@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Mapping
 
 from litellm import acompletion, completion
 
 from ..formal.parsing import SubmittedMove
 from .env import ENV, ModelConfig
-
-
-@dataclass(frozen=True)
-class LLMCallResult:
-    content: str
-    usage: Mapping[str, object]
-    metadata: Mapping[str, object]
+from .openrouter_client import (
+    acall_openrouter_detailed,
+    call_openrouter_detailed,
+)
+from .result import LLMCallResult
 
 
 def call_llm(
@@ -39,6 +36,13 @@ def call_llm_detailed(
     reasoning_effort: str | None = None,
 ) -> LLMCallResult:
     config = ENV.get_model_config(model_name)
+    if config.backend == "openrouter":
+        return call_openrouter_detailed(
+            config,
+            system_prompt,
+            user_prompt,
+            reasoning_effort=reasoning_effort,
+        )
     response = completion(
         **_completion_kwargs(
             config,
@@ -58,6 +62,13 @@ async def acall_llm_detailed(
     reasoning_effort: str | None = None,
 ) -> LLMCallResult:
     config = ENV.get_model_config(model_name)
+    if config.backend == "openrouter":
+        return await acall_openrouter_detailed(
+            config,
+            system_prompt,
+            user_prompt,
+            reasoning_effort=reasoning_effort,
+        )
     response = await acompletion(
         **_completion_kwargs(
             config,
@@ -124,7 +135,7 @@ def _completion_kwargs(
     reasoning_effort: str | None,
 ) -> dict[str, object]:
     kwargs: dict[str, object] = {
-        "model": config.model,
+        "model": config.request_model,
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
