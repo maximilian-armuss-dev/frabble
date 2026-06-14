@@ -32,6 +32,12 @@ show_stats: true
 
 The default output is `outputs/grammars/<grammar-id>.json`. An optional `output_path` allows standalone experiments to use another location.
 
+For case sets, `alphabet_size` and `k` are fixed globally by the
+`grammar_config` referenced from the case set (e.g.
+`config/grammars/evaluation_base.yaml`). They are not configurable per tier:
+every grammar sampled for a case set shares the same `alphabet_size` and `k`,
+isolating `forbidden_fraction` as the per-tier axis under study.
+
 ## Standalone Generation Configs
 
 Generation configs remain complete, independently executable generator descriptions:
@@ -81,18 +87,12 @@ tiers:
   low:
     dimensions: 2
     board_depth: {min: 5, max: 53}
-    additional_rack_noise: {min: 0, max: 1}
-    alphabet_size: 4
     forbidden_fraction: {min: 0.10, max: 0.20}
-    k: 2
 
   medium:
     dimensions: 3
     board_depth: {min: 54, max: 102}
-    additional_rack_noise: {min: 2, max: 3}
-    alphabet_size: 6
     forbidden_fraction: {min: 0.20, max: 0.30}
-    k: 2
 ```
 
 Case-set configs live under `config/evaluation/case_sets/` and select tiers

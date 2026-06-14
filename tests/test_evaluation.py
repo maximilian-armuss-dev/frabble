@@ -78,9 +78,7 @@ def tiny_case_set(*, boards: int = 1) -> CaseSetConfig:
                 "low": {
                     "dimensions": 2,
                     "board_depth": {"min": 0, "max": 1},
-                    "alphabet_size": 3,
                     "forbidden_fraction": 0.15,
-                    "k": 2,
                 }
             },
         }
@@ -114,8 +112,7 @@ class EvaluationConfigTests(unittest.TestCase):
 
         self.assertEqual(list(config.tiers), ["low", "medium", "high"])
         self.assertEqual(config.tiers["low"].dimensions, 2)
-        self.assertEqual(config.tiers["medium"].alphabet_size, 6)
-        self.assertEqual(config.tiers["high"].k, 3)
+        self.assertEqual(config.tiers["medium"].dimensions, 3)
         self.assertIn(
             "board_depth",
             config.model_dump(mode="json")["tiers"]["low"],
@@ -129,8 +126,6 @@ class EvaluationConfigTests(unittest.TestCase):
             ["low", "medium", "high", "stress"],
         )
         self.assertEqual(tier_set.tiers["stress"].dimensions, 5)
-        self.assertEqual(tier_set.tiers["stress"].alphabet_size, 10)
-        self.assertEqual(tier_set.tiers["stress"].k, 4)
 
     def test_unknown_tier_set_config_fails_before_preparation(self):
         with self.assertRaisesRegex(
