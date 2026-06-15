@@ -1,5 +1,5 @@
 generation_config: evaluation_base
-grammar_config: evaluation_base
+grammar_config: evaluation_base_grammar
 tier_config: default
 root_seed: 42
 sampling_rounds: 1

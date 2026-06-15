@@ -57,8 +57,7 @@ grammar: generator_v1_grammar
 ```
 
 ```bash
-uv run generate --config generator_v1
-uv run generate --config generator_3d
+uv run generate --config evaluation_base
 ```
 
 `--config generator_v1` loads `config/generation/generator_v1.yaml` and writes
@@ -138,14 +137,14 @@ The log file contains a granular evaluation breakdown:
 Case-set configs define reproducible complexity tiers and sampling:
 
 ```bash
-uv run prepare --config screening_v1
+uv run prepare --config 1g_1b_lmh
 ```
 
 Use `--clean` to delete the complete existing case-set output, including old
 evaluation runs, before preparing it again:
 
 ```bash
-uv run prepare --config screening_v1 --clean
+uv run prepare --config 1g_1b_lmh --clean
 ```
 
 Run configs select model profiles with their respective prepared tiers and
@@ -153,8 +152,8 @@ language representations. Evaluation calls always use the native `xhigh`
 reasoning effort:
 
 ```bash
-uv run evaluate --config gpt5_mini_all
-uv run decompose --config gpt5_mini_all
+uv run evaluate --config or_all_lmh
+uv run decompose --config or_all_lmh
 ```
 
 `evaluate` uses an asynchronous global request window, retries transient

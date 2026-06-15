@@ -68,7 +68,7 @@ def tiny_case_set(*, boards: int = 1) -> CaseSetConfig:
         {
             "config_name": "tiny",
             "generation_config": "evaluation_base",
-            "grammar_config": "evaluation_base",
+            "grammar_config": "evaluation_base_grammar",
             "tier_config": "inline-test",
             "root_seed": 7,
             "sampling_rounds": 1,

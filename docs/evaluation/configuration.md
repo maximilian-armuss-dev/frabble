@@ -34,7 +34,7 @@ The default output is `outputs/grammars/<grammar-id>.json`. An optional `output_
 
 For case sets, `alphabet_size` and `k` are fixed globally by the
 `grammar_config` referenced from the case set (e.g.
-`config/grammars/evaluation_base.yaml`). They are not configurable per tier:
+`config/grammars/evaluation_base_grammar.yaml`). They are not configurable per tier:
 every grammar sampled for a case set shares the same `alphabet_size` and `k`,
 isolating `forbidden_fraction` as the per-tier axis under study.
 
@@ -100,7 +100,7 @@ from one tier set:
 
 ```yaml
 generation_config: evaluation_base
-grammar_config: evaluation_base
+grammar_config: evaluation_base_grammar
 tier_config: default
 root_seed: 42
 sampling_rounds: 1
