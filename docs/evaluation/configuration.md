@@ -136,7 +136,7 @@ Grammar parameters are drawn per grammar sample. Board parameters are drawn per 
 Run configs live under `config/evaluation/runs/`:
 
 ```yaml
-case_set: screening_v1
+case_set: 3g_3b_lmh
 
 models:
   gpt-5-mini: [low, medium]

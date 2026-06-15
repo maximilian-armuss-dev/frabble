@@ -108,7 +108,7 @@ def tiny_run(
 
 class EvaluationConfigTests(unittest.TestCase):
     def test_case_set_resolves_named_tier_files(self):
-        config = load_case_set_config("screening_v1")
+        config = load_case_set_config("3g_3b_lmh")
 
         self.assertEqual(list(config.tiers), ["low", "medium", "high"])
         self.assertEqual(config.tiers["low"].dimensions, 2)

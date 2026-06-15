@@ -9,8 +9,8 @@ Conceptual structure:
 ```json
 {
   "schema_version": 1,
-  "case_id": "screening_v1.low.r00.g00.b00",
-  "case_set": "screening_v1",
+  "case_id": "3g_3b_lmh.low.r00.g00.b00",
+  "case_set": "3g_3b_lmh",
   "tier": "low",
   "sampling_round": 0,
   "grammar_sample_index": 0,

@@ -3,7 +3,7 @@
 ## Prepare
 
 ```bash
-uv run prepare --config screening_v1
+uv run prepare --config 3g_3b_lmh
 ```
 
 `--clean` deletes `outputs/evaluation/<case-set>/` before preparation. This
