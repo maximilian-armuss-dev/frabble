@@ -112,7 +112,7 @@ def config_dict(output_path: str, *, dimensions: int = 2) -> dict[str, object]:
         "config_name": "unit",
         "dimensions": dimensions,
         "seed": 11,
-        "grammar_path": "outputs/grammars/generator_v1_grammar.json",
+        "grammar_path": "outputs/grammars/evaluation_base_grammar.json",
         "initial_word_axis": 0,
         "initial_word_length": 5,
         "length_distribution": {"start": 5, "end": 5},
@@ -408,7 +408,7 @@ class V1Tests(unittest.TestCase):
     def test_llm_transition_phases_isolate_the_timed_client_call(self):
         with patch("visualization.run_figures.call_llm_detailed") as mocked_call:
             prepared = prepare_llm_transition(
-                scenario_name="generator_v1",
+                scenario_name="evaluation_base",
                 transition_index=0,
                 model_name="openai_gpt-5",
                 reasoning_effort="minimal",
@@ -1076,10 +1076,10 @@ class V1Tests(unittest.TestCase):
             parse_move('{"start": [0, -1], "axis": 1, "sequence": "ABC"}')
 
     def test_config_loader_requires_explicit_known_keys(self):
-        config = load_generator_config("generator_v1")
+        config = load_generator_config("evaluation_base")
 
-        self.assertEqual(config.config_name, "generator_v1")
-        self.assertEqual(resolve_config_path("generator_v1").parent.name, "generation")
+        self.assertEqual(config.config_name, "evaluation_base")
+        self.assertEqual(resolve_config_path("evaluation_base").parent.name, "generation")
         invalid = config_dict("unused.json")
         invalid.pop("top_template_count")
         with self.assertRaises(ValidationError):
@@ -1089,8 +1089,8 @@ class V1Tests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             GeneratorConfig.model_validate(invalid)
 
-    def test_generator_v1_config_uses_word_length_range(self):
-        config = load_generator_config("generator_v1")
+    def test_evaluation_base_config_uses_word_length_range(self):
+        config = load_generator_config("evaluation_base")
 
         self.assertEqual(config.length_distribution.start, 3)
         self.assertGreater(config.length_distribution.end, config.length_distribution.start)
@@ -1242,9 +1242,9 @@ class V1Tests(unittest.TestCase):
         self.assertNotIn("Token scores", user_prompt)
 
     def test_cli_parser_requires_config_only(self):
-        args = build_parser().parse_args(["--config", "generator_v1"])
+        args = build_parser().parse_args(["--config", "evaluation_base"])
 
-        self.assertEqual(args.config, "generator_v1")
+        self.assertEqual(args.config, "evaluation_base")
 
     def test_clip_preview_truncates_long_model_output(self):
         preview = clip_preview("Pong " * 30, max_length=20)

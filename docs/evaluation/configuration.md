@@ -9,7 +9,7 @@ A config ID is always a name without a parent path or `.yaml` suffix. `config_na
 Grammar configs live under `config/grammars/`. The filename without `.yaml` determines the grammar ID:
 
 ```bash
-uv run sample-grammar --config generator_v1_grammar
+uv run sample-grammar --config evaluation_base_grammar
 ```
 
 ```yaml
@@ -43,13 +43,13 @@ isolating `forbidden_fraction` as the per-tier axis under study.
 Generation configs remain complete, independently executable generator descriptions:
 
 ```bash
-uv run generate --config generator_v1
+uv run generate --config evaluation_base
 ```
 
 ```yaml
 dimensions: 2
 seed: 71
-grammar: generator_v1_grammar
+grammar: evaluation_base_grammar
 initial_word_axis: 0
 initial_word_length: 5
 length_distribution:

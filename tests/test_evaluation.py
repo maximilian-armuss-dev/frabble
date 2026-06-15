@@ -530,17 +530,17 @@ class EvaluationConfigTests(unittest.TestCase):
                 source.load("valid.yaml", ExampleConfig)
 
     def test_standalone_config_ids_resolve_paths_without_yaml_fields(self):
-        grammar = load_grammar_config("generator_v1_grammar")
-        generation = load_generator_config("generator_v1")
+        grammar = load_grammar_config("evaluation_base_grammar")
+        generation = load_generator_config("evaluation_base")
 
-        self.assertEqual(grammar.config_name, "generator_v1_grammar")
-        self.assertEqual(generation.config_name, "generator_v1")
-        self.assertEqual(generation.grammar, "generator_v1_grammar")
+        self.assertEqual(grammar.config_name, "evaluation_base_grammar")
+        self.assertEqual(generation.config_name, "evaluation_base")
+        self.assertEqual(generation.grammar, "evaluation_base_grammar")
         self.assertTrue(str(resolve_grammar_path(generation)).endswith(
-            "outputs/grammars/generator_v1_grammar.json"
+            "outputs/grammars/evaluation_base_grammar.json"
         ))
         self.assertTrue(str(resolve_output_path(generation)).endswith(
-            "outputs/scenarios/generator_v1.json"
+            "outputs/scenarios/evaluation_base.json"
         ))
 
     def test_truncated_normal_sampling_is_deterministic_and_bounded(self):

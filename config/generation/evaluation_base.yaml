@@ -1,6 +1,6 @@
 dimensions: 2
 seed: 71
-grammar: generator_v1_grammar
+grammar: evaluation_base_grammar
 initial_word_axis: 0
 initial_word_length: 5
 length_distribution:

@@ -27,12 +27,12 @@ There are three configuration layers:
 Sample a random strictly-local (SL_k) grammar and save it to `outputs/grammars/<name>.json`:
 
 ```bash
-uv run sample-grammar --config generator_v1_grammar
+uv run sample-grammar --config evaluation_base_grammar
 ```
 
 The filename stem is the grammar ID and the default output name. For example,
-`config/grammars/generator_v1_grammar.yaml` produces
-`outputs/grammars/generator_v1_grammar.json`. The YAML contains all alphabet,
+`config/grammars/evaluation_base_grammar.yaml` produces
+`outputs/grammars/evaluation_base_grammar.json`. The YAML contains all alphabet,
 SL_k, seed, forbidden-fraction, and auto-resampling parameters. An optional
 `output_path` overrides the conventional output location.
 
@@ -41,7 +41,7 @@ SL_k, seed, forbidden-fraction, and auto-resampling parameters. An optional
 Inspect the Perron eigenvalue (language growth rate) and the exact word count at each length:
 
 ```bash
-uv run analyze-grammar generator_v1_grammar --max-length 10
+uv run analyze-grammar evaluation_base_grammar --max-length 10
 ```
 
 An explicit JSON path is also accepted.
@@ -53,15 +53,15 @@ Generator configurations live under `config/generation/`. The YAML file is the s
 Each config references a pre-sampled grammar by ID:
 
 ```yaml
-grammar: generator_v1_grammar
+grammar: evaluation_base_grammar
 ```
 
 ```bash
 uv run generate --config evaluation_base
 ```
 
-`--config generator_v1` loads `config/generation/generator_v1.yaml` and writes
-`outputs/scenarios/generator_v1.json` by convention. `config_name` is derived
+`--config evaluation_base` loads `config/generation/evaluation_base.yaml` and writes
+`outputs/scenarios/evaluation_base.json` by convention. `config_name` is derived
 from the filename. All generator budgets, length ranges, scoring weights, rack
 noise, and search-log settings remain explicit YAML fields. `output_path` and
 an external `grammar_path` are optional overrides.
@@ -71,11 +71,11 @@ an external `grammar_path` are optional overrides.
 The scenario notebook animates a generated 2D scenario JSON:
 
 ```bash
-uv run generate --config generator_v1
+uv run generate --config evaluation_base
 ```
 
 Then run `visualization/inspect_scenario.ipynb`, which loads
-`outputs/scenarios/generator_v1.json` by default.
+`outputs/scenarios/evaluation_base.json` by default.
 
 Move inspection is always rendered as 2D axis-pair plots. In
 `visualization/inspect_llm_run.ipynb`, a move along axis `a` produces one plot
