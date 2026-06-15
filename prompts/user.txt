@@ -15,6 +15,12 @@ Place exactly one contiguous sequence. Maximize the number of newly placed rack 
 - A newly placed cell must not extend an already-valid word on any perpendicular axis.
 - After placement, every maximal contiguous line of length greater than one that touches the move, on every axis, must be accepted by the formal language.
 
+## Scoring
+- Each alphabet symbol has a point value, listed below. A valid move scores the sum of the point values of every symbol in its placed sequence, counting both newly placed and reused (overlapping) symbols. Higher-value symbols and longer valid sequences score more.
+- An invalid move scores 0.
+
+{letter_scores}
+
 Formal language:
 {formal_language}
 

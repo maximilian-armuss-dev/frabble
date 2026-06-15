@@ -14,6 +14,7 @@ class StrictlyLocalLanguage:
     k: int
     forbidden_snippets: tuple[tuple[Symbol, ...], ...]
     min_word_length: int
+    letter_scores: tuple[tuple[Symbol, int], ...]
     seed: int | None = None
 
     def accepts(self, sequence: Sequence[Symbol]) -> bool:
@@ -41,6 +42,13 @@ class StrictlyLocalLanguage:
                 f"A sequence is valid iff it has the minimum length of {self.min_word_length} and contains no forbidden snippet.",
             ]
         )
+
+    def letter_score_map(self) -> dict[Symbol, int]:
+        return dict(self.letter_scores)
+
+    def describe_letter_scores(self) -> str:
+        lines = [f"  {symbol}: {score}" for symbol, score in self.letter_scores]
+        return "\n".join(["Letter scores:"] + lines)
 
     def to_dfa(self) -> DFA:
         return _build_phase_dfa(self)

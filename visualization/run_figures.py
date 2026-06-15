@@ -475,6 +475,9 @@ def llm_run_summary(context: LLMRunContext) -> dict[str, object]:
         "missing_rack_symbols": missing_rack_symbols,
         "rack_symbols_used": evaluation.get("rack_symbols_used"),
         "rack_size": len(context.rack),
+        "main_word_length": evaluation.get("main_word_length"),
+        "overlap_count": evaluation.get("overlap_count"),
+        "letter_score_total": evaluation.get("letter_score_total"),
         "parsed_move": parsed_move.to_json() if parsed_move is not None else None,
         "ground_truth_move": context.ground_truth_move.to_json(),
         "revalidated_failure_type": None
@@ -512,6 +515,25 @@ def display_llm_run_summary(context: LLMRunContext) -> object:
         """
         for label, value in checks
     )
+    scores = [
+        ("word length", summary["main_word_length"]),
+        ("overlap count", summary["overlap_count"]),
+        ("letter score", summary["letter_score_total"]),
+    ]
+    score_rows = "\n".join(
+        f"""
+        <tr>
+          <td style="text-align:left;padding:3px 12px 3px 0;">
+            {html.escape(label)}
+          </td>
+          <td style="text-align:right;padding:3px 0 3px 12px;
+                     font-weight:700;color:#111827;">
+            {html.escape(_display_value(value))}
+          </td>
+        </tr>
+        """
+        for label, value in scores
+    )
     move_markup = _move_markup(summary.get("parsed_move"))
     rack_markup = _rack_markup(summary)
     markup = f"""
@@ -546,6 +568,11 @@ def display_llm_run_summary(context: LLMRunContext) -> object:
                       font-weight:700;margin-bottom:6px;">failure classes</div>
           <table style="border-collapse:collapse;width:100%;font-size:14px;">
             <tbody>{check_rows}</tbody>
+          </table>
+          <div style="font-size:12px;text-transform:uppercase;color:#6b7280;
+                      font-weight:700;margin:14px 0 6px;">scores</div>
+          <table style="border-collapse:collapse;width:100%;font-size:14px;">
+            <tbody>{score_rows}</tbody>
           </table>
         </div>
       </div>
@@ -659,7 +686,9 @@ def _move_markup(move_data: object) -> str:
                    gap:12px;padding:8px 0;border-top:1px solid #e5e7eb;">
           <span style="font-size:12px;text-transform:uppercase;color:#6b7280;
                        font-weight:700;">{html.escape(label)}</span>
-          <code style="color:#111827;font-weight:600;overflow-wrap:anywhere;">
+          <code style="color:#111827;font-weight:600;overflow-wrap:anywhere;
+                       background:#f3f4f6;border-radius:4px;padding:4px 8px;
+                       display:inline-block;">
             {html.escape(value)}
           </code>
         </li>

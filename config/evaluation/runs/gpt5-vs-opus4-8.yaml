@@ -1,0 +1,10 @@
+case_set: 1g_1b_lmh
+models:
+  openai_gpt-5: [all] # Here, "low" refers to the complexity tier, not reasoning eff!
+  anthropic_claude-opus-4-8: [all]
+language_representations:
+  - forbidden-snippets
+execution:
+  max_concurrency: 32
+  max_concurrency_per_model: 1
+  max_retries: 0

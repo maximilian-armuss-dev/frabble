@@ -78,9 +78,7 @@ def tiny_case_set(*, boards: int = 1) -> CaseSetConfig:
                 "low": {
                     "dimensions": 2,
                     "board_depth": {"min": 0, "max": 1},
-                    "alphabet_size": 3,
                     "forbidden_fraction": 0.15,
-                    "k": 2,
                 }
             },
         }
@@ -114,8 +112,7 @@ class EvaluationConfigTests(unittest.TestCase):
 
         self.assertEqual(list(config.tiers), ["low", "medium", "high"])
         self.assertEqual(config.tiers["low"].dimensions, 2)
-        self.assertEqual(config.tiers["medium"].alphabet_size, 6)
-        self.assertEqual(config.tiers["high"].k, 3)
+        self.assertEqual(config.tiers["medium"].dimensions, 3)
         self.assertIn(
             "board_depth",
             config.model_dump(mode="json")["tiers"]["low"],
@@ -129,8 +126,6 @@ class EvaluationConfigTests(unittest.TestCase):
             ["low", "medium", "high", "stress"],
         )
         self.assertEqual(tier_set.tiers["stress"].dimensions, 5)
-        self.assertEqual(tier_set.tiers["stress"].alphabet_size, 10)
-        self.assertEqual(tier_set.tiers["stress"].k, 4)
 
     def test_unknown_tier_set_config_fails_before_preparation(self):
         with self.assertRaisesRegex(
@@ -459,6 +454,42 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(summary["by_tier"]["low"]["total"], 3)
         self.assertEqual(summary["by_model"]["gpt-5-mini"]["total"], 2)
         self.assertEqual(len(summary["by_group"]), 2)
+
+    def test_aggregate_reports_word_length_and_overlap_quality_metrics(self):
+        attempts = [
+            _attempt(
+                overall=True,
+                grammar=0,
+                main_word_length=3,
+                overlap_count=1,
+                letter_score_total=4,
+            ),
+            _attempt(
+                overall=True,
+                grammar=0,
+                main_word_length=5,
+                overlap_count=3,
+                letter_score_total=8,
+            ),
+            _attempt(
+                overall=False,
+                grammar=0,
+                failure_type="word_extension",
+                no_word_extension=False,
+            ),
+        ]
+
+        aggregate = build_aggregate(attempts)
+
+        main_word_length = aggregate["overall"]["quality"]["main_word_length"]
+        overlap_count = aggregate["overall"]["quality"]["overlap_count"]
+        letter_score_total = aggregate["overall"]["quality"]["letter_score_total"]
+        self.assertEqual(main_word_length["count"], 2)
+        self.assertEqual(main_word_length["mean"], 4.0)
+        self.assertEqual(overlap_count["count"], 2)
+        self.assertEqual(overlap_count["mean"], 2.0)
+        self.assertEqual(letter_score_total["count"], 2)
+        self.assertEqual(letter_score_total["mean"], 6.0)
 
     def test_exhausted_transport_error_finishes_run(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -850,6 +881,9 @@ def _attempt(
     failure_type: str | None = None,
     no_word_extension: bool = True,
     cross_words_valid: bool = True,
+    main_word_length: int | None = None,
+    overlap_count: int | None = None,
+    letter_score_total: int | None = None,
 ) -> dict[str, object]:
     return {
         "status": "complete",
@@ -879,6 +913,9 @@ def _attempt(
             "no_word_extension": no_word_extension,
             "cross_words_valid": cross_words_valid,
             "rack_valid": True,
+            "main_word_length": main_word_length,
+            "overlap_count": overlap_count,
+            "letter_score_total": letter_score_total,
         },
     }
 

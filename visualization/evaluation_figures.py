@@ -18,6 +18,7 @@ from .run_figures import (
     _board_with_move_overlay,
     _check_class,
     _check_symbol,
+    _display_value,
     _move_conflict_coords,
     _move_from_object,
     _move_markup,
@@ -400,6 +401,64 @@ def plot_token_usage_bars(
         figure.update_xaxes(type="multicategory")
         figures.append(figure)
     return tuple(figures)
+
+
+QUALITY_METRICS: tuple[tuple[str, str, str], ...] = (
+    ("main_word_length", "Average main word length", "main word length"),
+    ("overlap_count", "Average overlap count", "overlap count"),
+    ("letter_score_total", "Average letter score", "letter score"),
+)
+
+
+def plot_quality_score_bars(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
+    """Compare average word length, overlap count, and letter score (passing attempts)."""
+    import plotly.graph_objects as go
+
+    figures = []
+    for representation, effort, groups in _group_slices(aggregate):
+        ordered = _ordered_groups(groups)
+        categories = [
+            [str(group["tier"]) for group in ordered],
+            [str(group["model"]) for group in ordered],
+        ]
+        hover_data = [
+            [str(group["tier"]), str(group["model"])] for group in ordered
+        ]
+        for metric, title, hover_label in QUALITY_METRICS:
+            values = [_quality_mean(group, metric) for group in ordered]
+            figure = go.Figure(
+                go.Bar(
+                    x=categories,
+                    y=values,
+                    customdata=hover_data,
+                    marker_color="#2563eb",
+                    text=[
+                        "" if value is None else f"{value:.1f}"
+                        for value in values
+                    ],
+                    textposition="outside",
+                    hovertemplate=(
+                        "tier=%{customdata[0]}<br>"
+                        "model=%{customdata[1]}<br>"
+                        f"{hover_label}: %{{y:.2f}}<extra></extra>"
+                    ),
+                )
+            )
+            _style_figure(
+                figure,
+                title,
+                metadata=_plot_metadata(representation, effort, groups),
+                x_title="tier and model",
+                y_title=title.removeprefix("Average ").title(),
+            )
+            figure.update_xaxes(type="multicategory")
+            figures.append(figure)
+    return tuple(figures)
+
+
+def _quality_mean(group: Mapping[str, Any], metric: str) -> float | None:
+    value = group.get("quality", {}).get(metric, {}).get("mean")
+    return float(value) if value is not None else None
 
 
 def plot_latency_tables(
@@ -806,6 +865,21 @@ def display_attempt_summary(context: EvaluationAttemptContext) -> object:
         """
         for label, value in checks
     )
+    scores = [
+        ("word length", evaluation.get("main_word_length")),
+        ("overlap count", evaluation.get("overlap_count")),
+        ("letter score", evaluation.get("letter_score_total")),
+    ]
+    score_rows = "\n".join(
+        f"""
+        <tr>
+          <td style="text-align:left;padding:3px 12px 3px 0;">{html.escape(label)}</td>
+          <td style="text-align:right;padding:3px 0 3px 12px;
+                     font-weight:700;color:#111827;">{html.escape(_display_value(value))}</td>
+        </tr>
+        """
+        for label, value in scores
+    )
     move_markup = _move_markup(attempt.get("parsed_move"))
     needed: Counter[str] = Counter()
     if context.parsed_move is not None:
@@ -868,6 +942,11 @@ def display_attempt_summary(context: EvaluationAttemptContext) -> object:
                       font-weight:700;margin-bottom:6px;">failure classes</div>
           <table style="border-collapse:collapse;width:100%;font-size:14px;">
             <tbody>{check_rows}</tbody>
+          </table>
+          <div style="font-size:12px;text-transform:uppercase;color:#6b7280;
+                      font-weight:700;margin:14px 0 6px;">scores</div>
+          <table style="border-collapse:collapse;width:100%;font-size:14px;">
+            <tbody>{score_rows}</tbody>
           </table>
         </div>
       </div>

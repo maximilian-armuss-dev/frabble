@@ -12,6 +12,17 @@ class GrammarSamplingError(Exception):
     pass
 
 
+LETTER_SCORE_VALUES: tuple[int, ...] = (1, 2, 3, 4, 5)
+LETTER_SCORE_WEIGHTS: tuple[int, ...] = (16, 8, 4, 2, 1)
+
+
+def sample_letter_scores(
+    alphabet: tuple[Symbol, ...], rng: random.Random
+) -> tuple[tuple[Symbol, int], ...]:
+    scores = rng.choices(LETTER_SCORE_VALUES, weights=LETTER_SCORE_WEIGHTS, k=len(alphabet))
+    return tuple(sorted(zip(alphabet, scores)))
+
+
 def sample_grammar_from_config(
     config: GrammarConfig,
     *,
@@ -60,12 +71,14 @@ def sample_sl_grammar(
     forbidden_snippets = tuple(
         g for g in iproduct(alphabet, repeat=k) if rng.random() < forbidden_fraction
     )
+    letter_scores = sample_letter_scores(alphabet, rng)
     return StrictlyLocalLanguage(
         language_id=language_id,
         alphabet=alphabet,
         k=k,
         forbidden_snippets=forbidden_snippets,
         min_word_length=min_word_length,
+        letter_scores=letter_scores,
         seed=seed,
     )
 

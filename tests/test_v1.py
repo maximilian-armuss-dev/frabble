@@ -13,6 +13,9 @@ from src.benchmark.scoring import BoardScoring
 from src.cli import build_parser
 from src.domain.board import Board
 from src.domain.models import AnchorCandidate, Move, SlotTemplate, TemplateCandidate
+from src.formal.grammar.config import AutoResampleConfig, SLSamplingConfig
+from src.formal.grammar.sampler import sample_letter_scores, sample_sl_grammar
+from src.formal.grammar.serialization import load_grammar, save_grammar
 from src.formal.language import StrictlyLocalLanguage
 from src.formal.parsing import SubmittedMove, parse_move
 from src.formal.slot_csp import SlotCSP
@@ -78,6 +81,14 @@ def language() -> StrictlyLocalLanguage:
             ("F", "F"),
         ),
         min_word_length=3,
+        letter_scores=(
+            ("A", 1),
+            ("B", 2),
+            ("C", 3),
+            ("D", 1),
+            ("E", 2),
+            ("F", 1),
+        ),
     )
 
 
@@ -804,6 +815,71 @@ class V1Tests(unittest.TestCase):
         self.assertFalse(evaluation.overall)
         self.assertEqual(evaluation.failure_type, "word_extension")
         self.assertFalse(evaluation.no_word_extension)
+        self.assertIsNone(evaluation.main_word_length)
+        self.assertIsNone(evaluation.overlap_count)
+        self.assertIsNone(evaluation.letter_score_total)
+
+    def test_granular_evaluation_reports_word_length_and_overlap_for_valid_move(self):
+        sl = language()
+        board = Board.empty(2).place(Move(start=(-1, 0), axis=0, sequence=("A", "B", "C")))
+
+        evaluation = evaluate_granular(
+            board,
+            sl,
+            ("A", "C"),
+            SubmittedMove(start=(0, -1), axis=1, sequence=("A", "B", "C")),
+        )
+
+        self.assertTrue(evaluation.overall)
+        self.assertEqual(evaluation.rack_symbols_used, 2)
+        self.assertEqual(evaluation.main_word_length, 3)
+        self.assertEqual(evaluation.overlap_count, 1)
+        self.assertEqual(evaluation.letter_score_total, 6)
+
+    def test_sample_letter_scores_is_deterministic_covers_alphabet_and_in_range(self):
+        alphabet = ("A", "B", "C", "D", "E")
+
+        first = sample_letter_scores(alphabet, random.Random(7))
+        second = sample_letter_scores(alphabet, random.Random(7))
+
+        self.assertEqual(first, second)
+        self.assertEqual(tuple(symbol for symbol, _ in first), alphabet)
+        self.assertTrue(all(1 <= score <= 5 for _, score in first))
+
+    def test_save_and_load_grammar_round_trips_letter_scores(self):
+        grammar = sample_sl_grammar(
+            alphabet=("A", "B", "C", "D", "E"),
+            k=2,
+            forbidden_fraction=0.1,
+            min_word_length=3,
+            seed=42,
+            language_id="roundtrip",
+        )
+        config = SLSamplingConfig(
+            alphabet_case="upper",
+            forbidden_fraction=0.1,
+            auto_resample=AutoResampleConfig(
+                enabled=False,
+                max_attempts=1,
+                perron_min=0,
+                perron_max=10,
+                resample_length_min=1,
+                resample_length_max=1,
+                min_word_count=0,
+            ),
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "grammar.json"
+            save_grammar(grammar, config, path, "roundtrip")
+            loaded, _, _ = load_grammar(path)
+
+        self.assertTrue(grammar.letter_scores)
+        self.assertEqual(
+            {symbol for symbol, _ in grammar.letter_scores}, set(grammar.alphabet)
+        )
+        self.assertTrue(all(1 <= score <= 5 for _, score in grammar.letter_scores))
+        self.assertEqual(loaded.letter_scores, grammar.letter_scores)
 
     def test_granular_evaluation_marks_cross_words_unchecked_after_conflict(self):
         sl = StrictlyLocalLanguage(
@@ -812,6 +888,7 @@ class V1Tests(unittest.TestCase):
             k=2,
             forbidden_snippets=(),
             min_word_length=3,
+            letter_scores=(),
         )
         board = Board.empty(2).place(
             Move(start=(-1, 0), axis=0, sequence=("A", "I", "D"))
@@ -1157,6 +1234,8 @@ class V1Tests(unittest.TestCase):
         self.assertIn("JSON object", system_prompt)
         self.assertIn("`start`, `axis`, and `sequence`", system_prompt)
         self.assertIn("every maximal contiguous line", user_prompt)
+        self.assertIn("## Scoring", user_prompt)
+        self.assertIn("Letter scores:", user_prompt)
         self.assertIn('"occupied"', user_prompt)
         self.assertNotIn("JSON Schema", user_prompt)
         self.assertNotIn('"properties"', user_prompt)

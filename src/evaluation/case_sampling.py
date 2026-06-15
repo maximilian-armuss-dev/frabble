@@ -65,11 +65,6 @@ def resolve_grammar_config(
         {
             "config_name": grammar_id,
             "seed": seed,
-            "alphabet_size": _sample_integer(
-                tier.alphabet_size,
-                seed,
-                "alphabet_size",
-            ),
             "forbidden_fraction": float(
                 sample_axis(
                     tier.forbidden_fraction,
@@ -77,7 +72,6 @@ def resolve_grammar_config(
                     integer=False,
                 )
             ),
-            "k": _sample_integer(tier.k, seed, "k"),
             "output_path": None,
             "show_stats": False,
         }
