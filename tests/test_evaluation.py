@@ -294,23 +294,19 @@ class EvaluationConfigTests(unittest.TestCase):
 
         failure_figure = plot_primary_failure_bars(aggregate)[0]
         self.assertEqual(
-            sorted({value for trace in failure_figure.data for value in trace.x}),
+            list(
+                dict.fromkeys(
+                    (trace.x[0][0], trace.x[1][0]) for trace in failure_figure.data
+                )
+            ),
             [
-                "gpt-5 · medium",
-                "gpt-5-mini · high",
-                "gpt-5-mini · low",
-                "gpt-5-mini · medium",
+                ("low", "gpt-5-mini"),
+                ("medium", "gpt-5"),
+                ("medium", "gpt-5-mini"),
+                ("high", "gpt-5-mini"),
             ],
         )
-        self.assertEqual(
-            list(failure_figure.layout.xaxis.categoryarray),
-            [
-                "gpt-5 · medium",
-                "gpt-5-mini · low",
-                "gpt-5-mini · medium",
-                "gpt-5-mini · high",
-            ],
-        )
+        self.assertEqual(failure_figure.layout.xaxis.type, "multicategory")
 
         grammar_figures = plot_grammar_pass_rates(aggregate)
         self.assertEqual(len(grammar_figures), 3)
@@ -327,12 +323,12 @@ class EvaluationConfigTests(unittest.TestCase):
 
         token_figure = plot_token_usage_bars(aggregate)[0]
         self.assertEqual(
-            list(token_figure.data[0].x),
+            list(zip(*token_figure.data[0].x)),
             [
-                "gpt-5 · medium",
-                "gpt-5-mini · low",
-                "gpt-5-mini · medium",
-                "gpt-5-mini · high",
+                ("low", "gpt-5-mini"),
+                ("medium", "gpt-5"),
+                ("medium", "gpt-5-mini"),
+                ("high", "gpt-5-mini"),
             ],
         )
 
@@ -595,7 +591,7 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(retry_delay(rate_limit, retry_index=0), 2.5)
 
     def test_openrouter_transport_error_persists_request_configuration(self):
-        model_name = "openrouter_deepseek-v4-pro"
+        model_name = "or_deepseek-v4-pro"
         job = SimpleNamespace(
             job_id="job",
             case_path=Path("case.json"),

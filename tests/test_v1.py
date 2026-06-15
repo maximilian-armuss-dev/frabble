@@ -156,7 +156,7 @@ class V1Tests(unittest.TestCase):
                 "OPENROUTER_API_BASE": "https://openrouter.example/api/v1",
             },
         ):
-            config = Environment().get_model_config("openrouter_gpt-5-5")
+            config = Environment().get_model_config("or_gpt-5-5")
 
         request = _request_kwargs(
             config,
@@ -213,7 +213,7 @@ class V1Tests(unittest.TestCase):
             {"OPENROUTER_API_KEY": "test-openrouter-key"},
             clear=True,
         ):
-            config = Environment().get_model_config("openrouter_gpt-5-5")
+            config = Environment().get_model_config("or_gpt-5-5")
 
         self.assertIsNone(config.base_url)
 
@@ -259,7 +259,7 @@ class V1Tests(unittest.TestCase):
         )
 
     def test_openrouter_passes_native_reasoning_effort_without_mapping(self):
-        config = ENV.get_model_config("openrouter_gpt-5-5")
+        config = ENV.get_model_config("or_gpt-5-5")
 
         request = _request_kwargs(
             config,
@@ -286,7 +286,7 @@ class V1Tests(unittest.TestCase):
             result = call_llm_detailed(
                 "system",
                 "user",
-                "openrouter_gpt-5-5",
+                "or_gpt-5-5",
                 reasoning_effort="high",
             )
 
