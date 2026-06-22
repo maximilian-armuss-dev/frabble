@@ -1,0 +1,15 @@
+alphabet_size: 2
+k: 2
+min_word_length: 2
+seed: 176
+alphabet_case: upper
+forbidden_fraction: 0.75
+auto_resample:
+  enabled: false
+  max_attempts: 1
+  perron_min: 0.0
+  perron_max: 2.0
+  resample_length_min: 2
+  resample_length_max: 4
+  min_word_count: 0
+show_stats: false

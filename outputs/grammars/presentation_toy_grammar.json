@@ -1,0 +1,35 @@
+{
+  "schema_version": 2,
+  "type": "sl",
+  "name": "presentation_toy_grammar",
+  "alphabet": [
+    "A",
+    "B"
+  ],
+  "k": 2,
+  "forbidden": [
+    "AA",
+    "BA",
+    "BB"
+  ],
+  "min_word_length": 2,
+  "letter_scores": {
+    "A": 3,
+    "B": 2
+  },
+  "seed": 176,
+  "sampling_config": {
+    "alphabet_size": 2,
+    "forbidden_fraction": 0.75,
+    "alphabet_case": "upper",
+    "auto_resample": {
+      "enabled": false,
+      "max_attempts": 1,
+      "perron_min": 0.0,
+      "perron_max": 2.0,
+      "resample_length_min": 2,
+      "resample_length_max": 4,
+      "min_word_count": 0
+    }
+  }
+}
