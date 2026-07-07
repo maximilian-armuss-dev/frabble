@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import sys
+from collections.abc import Callable
+from contextlib import contextmanager
 
 from tqdm import tqdm
 
@@ -21,13 +24,11 @@ def cmd_prepare() -> None:
     args = parser.parse_args()
     try:
         config = load_case_set_config(args.config)
-        total = len(config.board_sizes) * config.sampling_rounds
-        with tqdm(total=total, desc="cases", unit="case") as progress:
-            manifest = prepare_case_set(
-                config,
-                clean=args.clean,
-                progress_callback=progress.update,
-            )
+        manifest = prepare_case_set(
+            config,
+            clean=args.clean,
+            generation_progress_factory=_generation_progress,
+        )
     except (EvaluationConfigError, ValueError) as exc:
         print(f"prepare failed: {exc}")
         raise SystemExit(1) from exc
@@ -35,6 +36,20 @@ def cmd_prepare() -> None:
         f"prepared {len(manifest['cases'])} cases for "
         f"{manifest['case_set']!r}"
     )
+
+
+@contextmanager
+def _generation_progress(
+    scenario_id: str,
+    total: int,
+) -> Callable[[int], None]:
+    with tqdm(
+        total=total,
+        desc=scenario_id,
+        unit="witness",
+        disable=not sys.stderr.isatty(),
+    ) as progress:
+        yield progress.update
 
 
 def cmd_evaluate() -> None:

@@ -4,6 +4,7 @@ import asyncio
 import csv
 import tempfile
 import unittest
+from contextlib import contextmanager
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -645,6 +646,30 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertIn("board", case)
         self.assertIn("rack", case)
         self.assertIn("grammar_sha256", case["provenance"])
+
+    def test_prepare_reports_generation_progress_per_witness(self):
+        starts: list[tuple[str, int]] = []
+        updates: list[tuple[str, int]] = []
+
+        @contextmanager
+        def progress_factory(scenario_id: str, total: int):
+            starts.append((scenario_id, total))
+
+            def update(amount: int) -> None:
+                updates.append((scenario_id, amount))
+
+            yield update
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            with patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", root):
+                prepare_case_set(
+                    tiny_case_set(),
+                    generation_progress_factory=progress_factory,
+                )
+
+        self.assertEqual(starts, [("tiny.b000.r00", 1)])
+        self.assertEqual(updates, [("tiny.b000.r00", 1)])
 
     def test_clean_prepare_removes_existing_case_set_output(self):
         with tempfile.TemporaryDirectory() as temp_dir:

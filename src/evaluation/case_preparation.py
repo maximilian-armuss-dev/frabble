@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 from collections.abc import Callable
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -36,7 +37,13 @@ class CaseSetPreparer:
     root: Path
     config_hash: str
     manifest: PreparationManifest
-    progress_callback: Callable[[int], None] | None = None
+    generation_progress_factory: (
+        Callable[
+            [str, int],
+            AbstractContextManager[Callable[[int], None]],
+        ]
+        | None
+    ) = None
 
     def prepare(self) -> None:
         git_revision = _git_revision()
@@ -52,8 +59,6 @@ class CaseSetPreparer:
                     grammar=grammar,
                     git_revision=git_revision,
                 )
-                if self.progress_callback is not None:
-                    self.progress_callback(1)
 
     def _prepare_grammar(
         self,
@@ -172,7 +177,17 @@ class CaseSetPreparer:
             scenario_path,
         ):
             generator = ScenarioGenerator(generation_config)
-            generator.write(generator.generate())
+            if self.generation_progress_factory is None:
+                scenario_run = generator.generate()
+            else:
+                with self.generation_progress_factory(
+                    scenario_id,
+                    generation_config.target_witness_count,
+                ) as update_progress:
+                    scenario_run = generator.generate(
+                        progress_callback=update_progress,
+                    )
+            generator.write(scenario_run)
             self.manifest.record_artifact(
                 "scenarios",
                 scenario_id,
