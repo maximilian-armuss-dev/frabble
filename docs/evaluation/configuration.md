@@ -129,8 +129,9 @@ sizes it should process. `[all]` selects every prepared board size for that
 model.
 
 The language representation is fixed to `forbidden-snippets`.
-Every evaluation call uses the native `xhigh` reasoning effort value,
-which is persisted in the job and attempt artifacts.
+Every evaluation call uses the highest configured native reasoning effort for
+the selected backend (`high` for LiteLLM/OpenAI, `xhigh` for OpenRouter), which
+is persisted in the job and attempt artifacts.
 Interactive notebook calls pass their selected provider-native effort value
 directly through LiteLLM or the OpenRouter SDK.
 

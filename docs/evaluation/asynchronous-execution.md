@@ -45,7 +45,7 @@ Each final attempt artifact stores:
 - runtime for the final LLM call and all request attempts,
 - retry number,
 - failed attempts and retry wait times,
-- the fixed native `xhigh` reasoning effort and exact request object,
+- the backend-specific native reasoning effort and exact request object,
 - provider and model metadata,
 - hashes of the prompts actually sent,
 - usage data,

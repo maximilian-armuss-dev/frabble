@@ -51,7 +51,7 @@ explicit post-processing.
 
 Overlapping constraint failures remain available as diagnostic values in `aggregate.json`.
 
-A case-set config defines the stable experiment matrix and reproducible sampling. A run config maps model profiles to board sizes. Evaluation reasoning is fixed to native `xhigh`, and the language representation is fixed to `forbidden-snippets`.
+A case-set config defines the stable experiment matrix and reproducible sampling. A run config maps model profiles to board sizes. Evaluation reasoning uses the highest configured native effort for the selected backend (`high` for LiteLLM/OpenAI, `xhigh` for OpenRouter), and the language representation is fixed to `forbidden-snippets`.
 
 ## Core Terms
 

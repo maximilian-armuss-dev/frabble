@@ -9,7 +9,8 @@ from ..generator.config import PROJECT_ROOT
 from ..llm.env import ENV
 from .config import DEFAULT_LANGUAGE_REPRESENTATION, RunConfig
 
-EVALUATION_REASONING_EFFORT = "xhigh"
+EVALUATION_REASONING_EFFORT = "high"
+EVALUATION_OPENROUTER_REASONING_EFFORT = "xhigh"
 
 
 @dataclass(frozen=True)
@@ -43,23 +44,31 @@ def build_evaluation_jobs(
         for model_name, board_sizes in model_board_sizes.items():
             if board_size not in board_sizes:
                 continue
+            reasoning_effort = evaluation_reasoning_effort(model_name)
             jobs.append(
                 EvaluationJob(
                     job_id="__".join(
                         (
                             safe_id(case_id),
                             safe_id(model_name),
-                            EVALUATION_REASONING_EFFORT,
+                            reasoning_effort,
                             safe_id(DEFAULT_LANGUAGE_REPRESENTATION),
                         )
                     ),
                     case_path=case_path,
                     model_name=model_name,
                     language_representation=DEFAULT_LANGUAGE_REPRESENTATION,
-                    reasoning_effort=EVALUATION_REASONING_EFFORT,
+                    reasoning_effort=reasoning_effort,
                 )
             )
     return jobs
+
+
+def evaluation_reasoning_effort(model_name: str) -> str:
+    model_config = ENV.get_model_config(model_name)
+    if model_config.backend == "openrouter":
+        return EVALUATION_OPENROUTER_REASONING_EFFORT
+    return EVALUATION_REASONING_EFFORT
 
 
 def resolve_model_board_sizes(

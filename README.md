@@ -148,8 +148,8 @@ uv run prepare --config 1r_10-50-150-400 --clean
 ```
 
 Run configs select model profiles with their respective prepared board sizes.
-Evaluation calls always use the native `xhigh` reasoning effort and the fixed
-`forbidden-snippets` language representation:
+Evaluation calls always use the highest configured native reasoning effort for
+the backend and the fixed `forbidden-snippets` language representation:
 
 ```bash
 uv run evaluate --config or_all_10-50-150
@@ -204,7 +204,6 @@ timeout live once in the top-level `defaults` block. OpenRouter deliberately
 omits temperature from its requests; LiteLLM receives the configured default.
 
 The frontier run config is
-`config/evaluation/runs/or_all_10-50-150.yaml`. Evaluation always
-sends the provider-native `xhigh` value and persists the exact routing and
-reasoning request settings in each attempt artifact. Interactive notebook
-calls pass their selected reasoning value directly to the active SDK.
+`config/evaluation/runs/or_all_10-50-150.yaml`. Evaluation persists the exact
+routing and reasoning request settings in each attempt artifact. Interactive
+notebook calls pass their selected reasoning value directly to the active SDK.

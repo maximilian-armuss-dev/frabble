@@ -34,6 +34,7 @@ from src.evaluation.job_execution import (
 from src.evaluation.jobs import (
     EVALUATION_REASONING_EFFORT,
     build_evaluation_jobs,
+    evaluation_reasoning_effort,
 )
 from src.evaluation.prepare import prepare_case_set
 from src.evaluation.result_aggregation import build_aggregate
@@ -407,6 +408,10 @@ class EvaluationConfigTests(unittest.TestCase):
                 for job in jobs
             )
         )
+
+    def test_reasoning_effort_is_backend_specific(self):
+        self.assertEqual(evaluation_reasoning_effort("openai_gpt-5"), "high")
+        self.assertEqual(evaluation_reasoning_effort("or_gpt-5-5"), "xhigh")
 
     def test_summary_groups_models_board_sizes_failures_and_constraints(self):
         attempts = [
