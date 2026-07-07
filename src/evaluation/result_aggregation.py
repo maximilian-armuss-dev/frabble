@@ -20,19 +20,18 @@ CONSTRAINT_FIELDS = (
     "rack_valid",
 )
 GROUP_FIELDS = (
-    "tier",
+    "board_size",
     "model",
     "language_representation",
     "reasoning_effort",
 )
 CSV_FIELDS = (
     "scope",
-    "tier",
+    "board_size",
     "model",
     "language_representation",
     "reasoning_effort",
     "sampling_round",
-    "grammar_sample_index",
     "metric_category",
     "metric_name",
     "count",
@@ -62,10 +61,10 @@ def build_aggregate(attempts: list[dict[str, Any]]) -> dict[str, Any]:
 def compact_summary(aggregate: Mapping[str, Any]) -> dict[str, Any]:
     overall = dict(aggregate["overall"])
     groups = list(aggregate["groups"])
-    by_tier: dict[str, dict[str, int | float | None]] = {}
+    by_board_size: dict[str, dict[str, int | float | None]] = {}
     by_model: dict[str, dict[str, int | float | None]] = {}
     for group in groups:
-        _merge_compact_bucket(by_tier, str(group["tier"]), group)
+        _merge_compact_bucket(by_board_size, str(group["board_size"]), group)
         _merge_compact_bucket(by_model, str(group["model"]), group)
 
     return {
@@ -78,7 +77,7 @@ def compact_summary(aggregate: Mapping[str, Any]) -> dict[str, Any]:
         "transport_errors": overall["transport_errors"],
         "primary_failures": overall["primary_failures"],
         "failed_constraints": overall["failed_constraints"],
-        "by_tier": by_tier,
+        "by_board_size": by_board_size,
         "by_model": by_model,
         "by_group": [
             {
@@ -116,7 +115,6 @@ def iter_result_rows(aggregate: Mapping[str, Any]) -> Iterable[dict[str, Any]]:
             grammar_dimensions = {
                 **dimensions,
                 "sampling_round": grammar["sampling_round"],
-                "grammar_sample_index": grammar["grammar_sample_index"],
             }
             yield from _metric_rows("grammar", grammar, grammar_dimensions)
 
@@ -150,9 +148,9 @@ def _aggregate_group(
         _aggregate_grammar(items, key)
         for key, items in _group_by(
             completed,
-            ("sampling_round", "grammar_sample_index"),
+            ("sampling_round",),
         )
-        if all(value is not None for value in key)
+        if key[0] is not None
     ]
     return {
         **dimensions,
@@ -241,7 +239,6 @@ def _aggregate_grammar(
     )
     return {
         "sampling_round": key[0],
-        "grammar_sample_index": key[1],
         "total_attempts": len(attempts),
         "completed": len(attempts),
         "passed": passed_count,
@@ -416,10 +413,8 @@ def _enrich_coordinates(attempt: dict[str, Any]) -> dict[str, Any]:
             model_config.get("reasoning_depth"),
         )
     required = (
-        "tier",
+        "board_size",
         "sampling_round",
-        "grammar_sample_index",
-        "board_sample_index",
     )
     if all(enriched.get(field) is not None for field in required):
         return enriched

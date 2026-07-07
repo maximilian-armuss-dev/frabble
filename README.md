@@ -134,26 +134,26 @@ The log file contains a granular evaluation breakdown:
 
 ### 6. Prepare and run an evaluation
 
-Case-set configs define reproducible complexity tiers and sampling:
+Case-set configs define reproducible board sizes and sampling rounds:
 
 ```bash
-uv run prepare --config 1g_1b_lmh
+uv run prepare --config 1r_10-50-150-400
 ```
 
 Use `--clean` to delete the complete existing case-set output, including old
 evaluation runs, before preparing it again:
 
 ```bash
-uv run prepare --config 1g_1b_lmh --clean
+uv run prepare --config 1r_10-50-150-400 --clean
 ```
 
-Run configs select model profiles with their respective prepared tiers and
-language representations. Evaluation calls always use the native `xhigh`
-reasoning effort:
+Run configs select model profiles with their respective prepared board sizes.
+Evaluation calls always use the native `xhigh` reasoning effort and the fixed
+`forbidden-snippets` language representation:
 
 ```bash
-uv run evaluate --config or_all_lmh
-uv run decompose --config or_all_lmh
+uv run evaluate --config or_all_10-50-150
+uv run decompose --config or_all_10-50-150
 ```
 
 `evaluate` uses an asynchronous global request window, retries transient
@@ -188,9 +188,7 @@ uv run python -m unittest discover -s tests -q
 - `prompts/`: System and user prompt templates.
 - `config/grammars/`: Complete standalone grammar sampling configs.
 - `config/generation/`: Per-run generator configs (dimensions, grammar reference, target witness count, scoring weights, etc.).
-- `config/evaluation/`: Human-maintained case-set, tier, and run configs.
-- `config/evaluation/tiers/`: Reusable tier sets that jointly define `low`,
-  `medium`, `high`, and `stress` for a particular experimental scale.
+- `config/evaluation/`: Human-maintained case-set and run configs.
 - `config/model_configs.yaml`: Model matrix with LiteLLM model IDs and related config values.
 
 OpenRouter profiles are prefixed with `openrouter_`. They use the official
@@ -206,7 +204,7 @@ timeout live once in the top-level `defaults` block. OpenRouter deliberately
 omits temperature from its requests; LiteLLM receives the configured default.
 
 The frontier run config is
-`config/evaluation/runs/openrouter_frontier_all.yaml`. Evaluation always
+`config/evaluation/runs/or_all_10-50-150.yaml`. Evaluation always
 sends the provider-native `xhigh` value and persists the exact routing and
 reasoning request settings in each attempt artifact. Interactive notebook
 calls pass their selected reasoning value directly to the active SDK.

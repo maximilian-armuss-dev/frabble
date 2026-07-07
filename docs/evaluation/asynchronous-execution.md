@@ -59,4 +59,4 @@ After a successful provider call, the same job is not sent again even if the mod
 
 ## Deterministic Order
 
-Before execution, the job list is shuffled deterministically with a seed derived from the run config. This prevents complexity tiers and models from being placed in systematic time blocks that might correlate with provider load or time-of-day effects.
+Before execution, the job list is shuffled deterministically with a seed derived from the run config. This prevents board sizes and models from being placed in systematic time blocks that might correlate with provider load or time-of-day effects.

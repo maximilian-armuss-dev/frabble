@@ -9,12 +9,10 @@ Conceptual structure:
 ```json
 {
   "schema_version": 1,
-  "case_id": "3g_3b_lmh.low.r00.g00.b00",
-  "case_set": "3g_3b_lmh",
-  "tier": "low",
+  "case_id": "5r_10-50-150-400.b050.r00",
+  "case_set": "5r_10-50-150-400",
+  "board_size": 50,
   "sampling_round": 0,
-  "grammar_sample_index": 0,
-  "board_sample_index": 0,
   "seeds": {
     "grammar_requested": 123,
     "grammar_used": 124,
@@ -23,7 +21,7 @@ Conceptual structure:
   "parameters": {
     "grammar": {},
     "generation": {},
-    "board_depth": 20
+    "board_depth": 50
   },
   "grammar": {},
   "board": {},
@@ -47,10 +45,9 @@ The board and rack describe the exact input before the ground-truth move. The gr
 The full-puzzle runner combines the case with:
 
 - a model profile,
-- a language representation,
 - the fixed board and rack representations.
 
-It produces the prompt, provider response, parsed move, and granular evaluation. The case itself remains unchanged.
+It uses the fixed `forbidden-snippets` language representation and produces the prompt, provider response, parsed move, and granular evaluation. The case itself remains unchanged.
 
 ## DecompositionRequest
 

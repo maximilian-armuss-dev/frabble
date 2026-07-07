@@ -9,7 +9,7 @@ length_distribution:
 top_anchor_count: 40
 max_anchor_count: null
 top_template_count: 200
-target_witness_count: 20
+target_witness_count: 350
 scoring:
   anchor_centroid_weight: 1.0
   anchor_free_span_weight: 1.0
@@ -17,6 +17,6 @@ scoring:
   template_new_cell_bonus_weight: 2.0
   template_local_density_penalty_weight: 1.0
   template_domain_slack_weight: 1.0
-# Fixed global value applied across all tiers; kept at 0 for now.
+# Fixed global value applied across all evaluation cases; kept at 0 for now.
 additional_rack_noise: 0
 include_search_logs: false

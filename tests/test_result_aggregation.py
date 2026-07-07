@@ -22,10 +22,8 @@ class ResultAggregationTests(unittest.TestCase):
             write_json_atomic(
                 case_path,
                 {
-                    "tier": "medium",
+                    "board_size": 50,
                     "sampling_round": 2,
-                    "grammar_sample_index": 3,
-                    "board_sample_index": 4,
                 },
             )
             attempt = _attempt(
@@ -35,26 +33,21 @@ class ResultAggregationTests(unittest.TestCase):
             )
             attempt["case_file"] = str(case_path)
             for field in (
-                "tier",
+                "board_size",
                 "sampling_round",
-                "grammar_sample_index",
-                "board_sample_index",
             ):
                 attempt.pop(field)
 
             aggregate = build_aggregate([attempt])
 
         group = aggregate["groups"][0]
-        self.assertEqual(group["tier"], "medium")
+        self.assertEqual(group["board_size"], 50)
         self.assertEqual(group["reasoning_effort"], "high")
         self.assertEqual(
-            (
-                group["grammars"][0]["sampling_round"],
-                group["grammars"][0]["grammar_sample_index"],
-            ),
-            (2, 3),
+            group["grammars"][0]["sampling_round"],
+            2,
         )
-        self.assertNotIn("tier", attempt)
+        self.assertNotIn("board_size", attempt)
         self.assertIsNone(attempt["reasoning_effort"])
 
     def test_outcomes_constraints_retries_and_resources_use_correct_attempts(self):
@@ -160,21 +153,17 @@ class ResultAggregationTests(unittest.TestCase):
         self.assertEqual(overall["usage"]["reasoning_tokens"]["sum"], 5.0)
         self.assertEqual(overall["usage"]["total_tokens"]["count"], 2)
 
-    def test_grammar_aggregation_keeps_rounds_separate_and_counts_boards(self):
+    def test_grammar_aggregation_keeps_rounds_separate(self):
         attempts = [
-            _attempt(case_id="r0-g0-b0", board=0),
+            _attempt(case_id="r0-a"),
             _attempt(
-                case_id="r0-g0-b1",
-                board=1,
+                case_id="r0-b",
                 overall=False,
                 failure_type="rack",
             ),
-            _attempt(case_id="r0-g1-b0", grammar=1, board=0),
-            _attempt(case_id="r0-g1-b1", grammar=1, board=1),
             _attempt(
-                case_id="r1-g0-b0",
+                case_id="r1",
                 sampling_round=1,
-                board=0,
                 overall=False,
                 failure_type="word_extension",
             ),
@@ -186,21 +175,19 @@ class ResultAggregationTests(unittest.TestCase):
             [
                 (
                     grammar["sampling_round"],
-                    grammar["grammar_sample_index"],
                     grammar["total_attempts"],
                     grammar["pass_rate"],
                 )
                 for grammar in grammars
             ],
             [
-                (0, 0, 2, 0.5),
-                (0, 1, 2, 1.0),
-                (1, 0, 1, 0.0),
+                (0, 2, 0.5),
+                (1, 1, 0.0),
             ],
         )
         self.assertEqual(grammars[0]["primary_failures"], {"rack": 1})
         self.assertEqual(
-            grammars[2]["primary_failures"],
+            grammars[1]["primary_failures"],
             {"word_extension": 1},
         )
 
@@ -250,10 +237,16 @@ class ResultAggregationTests(unittest.TestCase):
 
         self.assertEqual(summary["completed"], 3)
         self.assertEqual(summary["transport_errors"], 1)
-        self.assertEqual(summary["by_tier"]["low"]["total"], 3)
-        self.assertEqual(summary["by_tier"]["low"]["passed"], 1)
-        self.assertAlmostEqual(summary["by_tier"]["low"]["pass_rate"], 1 / 3)
-        self.assertEqual(summary["by_tier"]["low"]["transport_errors"], 1)
+        self.assertEqual(summary["by_board_size"]["50"]["total"], 3)
+        self.assertEqual(summary["by_board_size"]["50"]["passed"], 1)
+        self.assertAlmostEqual(
+            summary["by_board_size"]["50"]["pass_rate"],
+            1 / 3,
+        )
+        self.assertEqual(
+            summary["by_board_size"]["50"]["transport_errors"],
+            1,
+        )
         self.assertEqual(summary["by_model"]["model-b"]["total"], 2)
         self.assertEqual(summary["by_model"]["model-b"]["transport_errors"], 1)
 
@@ -306,7 +299,6 @@ class ResultAggregationTests(unittest.TestCase):
             (1, 2, 0.5),
         )
         self.assertEqual(grammar["sampling_round"], 0)
-        self.assertEqual(grammar["grammar_sample_index"], 0)
         self.assertEqual(grammar["reasoning_effort"], "high")
         self.assertEqual(group_timing["value"], 1.0)
 
@@ -382,8 +374,6 @@ def _attempt(
     rack_symbols_used: Any = 2,
     rack_usage_ratio: Any = 0.5,
     sampling_round: int = 0,
-    grammar: int = 0,
-    board: int = 0,
 ) -> dict[str, Any]:
     constraints = {
         "parse_ok": True,
@@ -399,10 +389,8 @@ def _attempt(
         constraints[constraint] = False
     attempt = {
         "status": "complete",
-        "tier": "low",
+        "board_size": 50,
         "sampling_round": sampling_round,
-        "grammar_sample_index": grammar,
-        "board_sample_index": board,
         "model": model,
         "language_representation": representation,
         "reasoning_effort": reasoning_effort,
@@ -440,10 +428,8 @@ def _transport_attempt(
     return {
         "case_id": case_id,
         "status": "transport_error",
-        "tier": "low",
+        "board_size": 50,
         "sampling_round": 0,
-        "grammar_sample_index": 0,
-        "board_sample_index": 0,
         "model": model,
         "language_representation": "forbidden-snippets",
         "reasoning_effort": "high",

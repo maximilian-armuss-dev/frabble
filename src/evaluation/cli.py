@@ -21,12 +21,7 @@ def cmd_prepare() -> None:
     args = parser.parse_args()
     try:
         config = load_case_set_config(args.config)
-        total = (
-            len(config.tiers)
-            * config.sampling_rounds
-            * config.grammar_samples_per_tier
-            * config.boards_per_grammar
-        )
+        total = len(config.board_sizes) * config.sampling_rounds
         with tqdm(total=total, desc="cases", unit="case") as progress:
             manifest = prepare_case_set(
                 config,

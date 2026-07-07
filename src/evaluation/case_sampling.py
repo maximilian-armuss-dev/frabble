@@ -5,8 +5,8 @@ from pathlib import Path
 
 from ..formal.grammar.config import GrammarConfig
 from ..generator.config import GeneratorConfig
-from .config import CaseSetConfig, NumericAxis, TierConfig
-from .sampling import derive_seed, sample_axis
+from .config import CaseSetConfig
+from .sampling import derive_seed
 
 
 @dataclass(frozen=True)
@@ -18,46 +18,39 @@ class SampledBoardParameters:
 
 @dataclass(frozen=True)
 class CaseCoordinates:
-    tier_name: str
+    board_size: int
     round_index: int
-    grammar_index: int
-    board_index: int
 
 
 def sample_board_parameters(
     config: CaseSetConfig,
-    tier: TierConfig,
     coordinates: CaseCoordinates,
+    base_generation: GeneratorConfig,
 ) -> SampledBoardParameters:
     board_seed = derive_seed(
         config.root_seed,
-        coordinates.tier_name,
+        coordinates.board_size,
         coordinates.round_index,
-        coordinates.grammar_index,
-        coordinates.board_index,
         "board",
     )
     return SampledBoardParameters(
         seed=board_seed,
-        dimensions=_sample_integer(tier.dimensions, board_seed, "dimensions"),
-        board_depth=_sample_integer(tier.board_depth, board_seed, "board_depth"),
+        dimensions=base_generation.dimensions,
+        board_depth=coordinates.board_size,
     )
 
 
 def resolve_grammar_config(
     base: GrammarConfig,
     case_set: CaseSetConfig,
-    tier_name: str,
-    tier: TierConfig,
+    board_size: int,
     round_index: int,
-    grammar_index: int,
     grammar_id: str,
 ) -> GrammarConfig:
     seed = derive_seed(
         case_set.root_seed,
-        tier_name,
+        board_size,
         round_index,
-        grammar_index,
         "grammar",
     )
     data = base.model_dump(mode="json")
@@ -65,13 +58,6 @@ def resolve_grammar_config(
         {
             "config_name": grammar_id,
             "seed": seed,
-            "forbidden_fraction": float(
-                sample_axis(
-                    tier.forbidden_fraction,
-                    seed=derive_seed(seed, "forbidden_fraction"),
-                    integer=False,
-                )
-            ),
             "output_path": None,
             "show_stats": False,
         }
@@ -104,11 +90,10 @@ def resolve_generation_config(
 
 def grammar_artifact_id(
     case_set: str,
-    tier: str,
+    board_size: int,
     round_index: int,
-    grammar_index: int,
 ) -> str:
-    return f"{case_set}.{tier}.r{round_index:02d}.g{grammar_index:02d}"
+    return f"{case_set}.b{board_size:03d}.r{round_index:02d}"
 
 
 def evaluation_case_id(
@@ -116,16 +101,6 @@ def evaluation_case_id(
     coordinates: CaseCoordinates,
 ) -> str:
     return (
-        f"{case_set}.{coordinates.tier_name}.r{coordinates.round_index:02d}."
-        f"g{coordinates.grammar_index:02d}.b{coordinates.board_index:02d}"
-    )
-
-
-def _sample_integer(axis: NumericAxis, seed: int, axis_name: str) -> int:
-    return int(
-        sample_axis(
-            axis,
-            seed=derive_seed(seed, axis_name),
-            integer=True,
-        )
+        f"{case_set}.b{coordinates.board_size:03d}."
+        f"r{coordinates.round_index:02d}"
     )

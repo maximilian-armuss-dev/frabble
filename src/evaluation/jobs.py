@@ -7,8 +7,7 @@ from typing import Any
 
 from ..generator.config import PROJECT_ROOT
 from ..llm.env import ENV
-from ..llm.representers import LANGUAGE_REPRESENTERS
-from .config import RunConfig
+from .config import DEFAULT_LANGUAGE_REPRESENTATION, RunConfig
 
 EVALUATION_REASONING_EFFORT = "xhigh"
 
@@ -26,101 +25,84 @@ def build_evaluation_jobs(
     config: RunConfig,
     prepare_manifest: dict[str, Any],
 ) -> list[EvaluationJob]:
-    available_tiers = {
-        str(entry["tier"])
+    available_board_sizes = {
+        int(entry["board_size"])
         for entry in prepare_manifest["cases"].values()
         if isinstance(entry, dict)
     }
-    model_tiers = resolve_model_tiers(
+    model_board_sizes = resolve_model_board_sizes(
         config.models,
         available_models=ENV.get_registered_model_names(),
-        available_tiers=sorted(available_tiers),
-    )
-    representations = resolve_selection(
-        config.language_representations,
-        list(LANGUAGE_REPRESENTERS),
-        "language representations",
+        available_board_sizes=sorted(available_board_sizes),
     )
 
     jobs: list[EvaluationJob] = []
     for case_id, entry in sorted(prepare_manifest["cases"].items()):
         case_path = _project_path(str(entry["path"]))
-        for model_name, tiers in model_tiers.items():
-            if entry["tier"] not in tiers:
+        board_size = int(entry["board_size"])
+        for model_name, board_sizes in model_board_sizes.items():
+            if board_size not in board_sizes:
                 continue
-            for representation in representations:
-                jobs.append(
-                    EvaluationJob(
-                        job_id="__".join(
-                            (
-                                safe_id(case_id),
-                                safe_id(model_name),
-                                EVALUATION_REASONING_EFFORT,
-                                safe_id(representation),
-                            )
-                        ),
-                        case_path=case_path,
-                        model_name=model_name,
-                        language_representation=representation,
-                        reasoning_effort=EVALUATION_REASONING_EFFORT,
-                    )
+            jobs.append(
+                EvaluationJob(
+                    job_id="__".join(
+                        (
+                            safe_id(case_id),
+                            safe_id(model_name),
+                            EVALUATION_REASONING_EFFORT,
+                            safe_id(DEFAULT_LANGUAGE_REPRESENTATION),
+                        )
+                    ),
+                    case_path=case_path,
+                    model_name=model_name,
+                    language_representation=DEFAULT_LANGUAGE_REPRESENTATION,
+                    reasoning_effort=EVALUATION_REASONING_EFFORT,
                 )
+            )
     return jobs
 
 
-def resolve_model_tiers(
-    configured: dict[str, list[str]],
+def resolve_model_board_sizes(
+    configured: dict[str, list[int | str]],
     *,
     available_models: list[str],
-    available_tiers: list[str],
-) -> dict[str, list[str]]:
+    available_board_sizes: list[int],
+) -> dict[str, list[int]]:
     unknown_models = sorted(set(configured) - set(available_models))
     if unknown_models:
         raise ValueError(
             f"Unknown models: {unknown_models}. Available: {available_models}"
-        )
+    )
     mixed_all = sorted(
         model_name
-        for model_name, tiers in configured.items()
-        if "all" in tiers and tiers != ["all"]
+        for model_name, sizes in configured.items()
+        if "all" in sizes and sizes != ["all"]
     )
     if mixed_all:
         raise ValueError(
-            f"Models using tier 'all' must not list other tiers: {mixed_all}"
+            f"Models using board size 'all' must not list other sizes: {mixed_all}"
         )
-    unknown_tiers = sorted(
+    unknown_board_sizes = sorted(
         {
-            tier
-            for tiers in configured.values()
-            for tier in tiers
-            if tier != "all" and tier not in available_tiers
+            size
+            for sizes in configured.values()
+            for size in sizes
+            if size != "all" and size not in available_board_sizes
         }
     )
-    if unknown_tiers:
+    if unknown_board_sizes:
         raise ValueError(
-            f"Unknown tiers: {unknown_tiers}. Available: {available_tiers}"
+            "Unknown board sizes: "
+            f"{unknown_board_sizes}. Available: {available_board_sizes}"
         )
     return {
         model_name: (
-            list(available_tiers)
+            list(available_board_sizes)
             if configured[model_name] == ["all"]
-            else sorted(configured[model_name])
+            else sorted(int(size) for size in configured[model_name])
         )
         for model_name in sorted(configured)
     }
-
-
-def resolve_selection(
-    configured: list[str] | str,
-    available: list[str],
-    label: str,
-) -> list[str]:
-    if configured == "all":
-        return list(available)
-    unknown = sorted(set(configured) - set(available))
-    if unknown:
-        raise ValueError(f"Unknown {label}: {unknown}. Available: {available}")
-    return list(configured)
 
 
 def safe_id(value: str) -> str:

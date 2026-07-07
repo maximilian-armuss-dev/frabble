@@ -534,6 +534,16 @@ def display_llm_run_summary(context: LLMRunContext) -> object:
         """
         for label, value in scores
     )
+    token_rows = _token_rows(context.run_log.get("llm_usage"))
+    token_table = ""
+    if token_rows:
+        token_table = f"""
+          <div style="font-size:12px;text-transform:uppercase;color:#6b7280;
+                      font-weight:700;margin:14px 0 6px;">tokens</div>
+          <table style="border-collapse:collapse;width:100%;font-size:14px;">
+            <tbody>{token_rows}</tbody>
+          </table>
+        """
     move_markup = _move_markup(summary.get("parsed_move"))
     rack_markup = _rack_markup(summary)
     markup = f"""
@@ -574,6 +584,7 @@ def display_llm_run_summary(context: LLMRunContext) -> object:
           <table style="border-collapse:collapse;width:100%;font-size:14px;">
             <tbody>{score_rows}</tbody>
           </table>
+          {token_table}
         </div>
       </div>
       <div style="padding:10px 14px;background:#f9fafb;color:#6b7280;
@@ -593,6 +604,48 @@ def display_llm_run_summary(context: LLMRunContext) -> object:
         return HTML(markup)
     except ImportError:
         return summary
+
+
+def _token_rows(usage_value: object) -> str:
+    if not isinstance(usage_value, Mapping):
+        return ""
+    completion_details = usage_value.get("completion_tokens_details")
+    if not isinstance(completion_details, Mapping):
+        completion_details = {}
+    reasoning_tokens = completion_details.get("reasoning_tokens")
+    completion_tokens = usage_value.get("completion_tokens")
+    visible_tokens = completion_details.get("text_tokens")
+    if visible_tokens is None:
+        visible_tokens = _token_difference(completion_tokens, reasoning_tokens)
+    rows = (
+        ("prompt", usage_value.get("prompt_tokens")),
+        ("reasoning", reasoning_tokens),
+        ("visible output", visible_tokens),
+        ("completion", completion_tokens),
+        ("total", usage_value.get("total_tokens")),
+    )
+    return "\n".join(
+        f"""
+        <tr>
+          <td style="text-align:left;padding:3px 12px 3px 0;">
+            {html.escape(label)}
+          </td>
+          <td style="text-align:right;padding:3px 0 3px 12px;
+                     font-weight:700;color:#111827;">
+            {html.escape(_display_value(value))}
+          </td>
+        </tr>
+        """
+        for label, value in rows
+        if value is not None
+    )
+
+
+def _token_difference(total: object, part: object) -> int | None:
+    try:
+        return max(int(total) - int(part), 0)
+    except (TypeError, ValueError):
+        return None
 
 
 def plot_llm_run_move(

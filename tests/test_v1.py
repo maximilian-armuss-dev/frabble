@@ -419,6 +419,7 @@ class V1Tests(unittest.TestCase):
                 usage={
                     "prompt_tokens": 100,
                     "completion_tokens": 25,
+                    "total_tokens": 125,
                     "completion_tokens_details": {
                         "reasoning_tokens": 10,
                         "text_tokens": 15,
@@ -481,6 +482,14 @@ class V1Tests(unittest.TestCase):
             self.assertIn("text-align:left", displayed_summary)
             self.assertIn("text-align:right", displayed_summary)
             self.assertIn("min-width:22px", displayed_summary)
+            self.assertIn(">tokens<", displayed_summary)
+            self.assertIn("prompt", displayed_summary)
+            self.assertIn("reasoning", displayed_summary)
+            self.assertIn("visible output", displayed_summary)
+            self.assertIn("completion", displayed_summary)
+            self.assertIn("total", displayed_summary)
+            for value in ("100", "10", "15", "25", "125"):
+                self.assertIn(value, displayed_summary)
             self.assertNotIn("<strong>none</strong>", displayed_summary)
             self.assertNotIn(">transition 0<", displayed_summary)
             displayed_prompt = display_llm_prompt(prepared).data
