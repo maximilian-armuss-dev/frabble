@@ -1314,6 +1314,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
+    { name = "tiktoken" },
     { name = "tqdm" },
 ]
 
@@ -1334,6 +1335,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "pyyaml", specifier = ">=6.0.2" },
+    { name = "tiktoken", specifier = ">=0.7.0" },
     { name = "tqdm", specifier = ">=4.67.0" },
 ]
 
