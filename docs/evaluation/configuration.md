@@ -54,23 +54,23 @@ initial_word_axis: 0
 initial_word_length: 5
 length_distribution:
   start: 3
-  end: 7
+  end: 6
+fixed_final_transition_length: 6
 top_anchor_count: 40
 max_anchor_count: null
 top_template_count: 200
 target_witness_count: 200
 scoring:
-  anchor_centroid_weight: 1.0
-  anchor_free_span_weight: 1.0
-  template_centroid_weight: 1.0
-  template_new_cell_bonus_weight: 2.0
-  template_local_density_penalty_weight: 1.0
-  template_domain_slack_weight: 1.0
+  anchor_centroid_weight: 0.8
+  template_centroid_weight: 1.2
+  template_local_density_penalty_weight: 0.6
 additional_rack_noise: 0
 include_search_logs: true
 ```
 
 `additional_rack_noise` is optional and defaults to `0`. When set above `0`, that many random alphabet symbols are added as filler to each rack on top of the symbols the witness move actually needs.
+
+`fixed_final_transition_length` is optional. When set, the last generated witness transition uses exactly that word length instead of sampling from `length_distribution`. Evaluation case preparation sets `target_witness_count = board_size + 1`, so this fixes the ground-truth move shown to the model while earlier board-building transitions still use the configured range.
 
 `config_name` is omitted. `grammar` is an ID without a parent path or suffix and resolves to `outputs/grammars/<grammar>.json`. External files can instead be selected with `grammar_path`; both fields cannot be set simultaneously.
 

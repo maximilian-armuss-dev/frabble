@@ -40,11 +40,8 @@ class ScoringConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     anchor_centroid_weight: float = Field(ge=0)
-    anchor_free_span_weight: float = Field(ge=0)
     template_centroid_weight: float = Field(ge=0)
-    template_new_cell_bonus_weight: float = Field(ge=0)
     template_local_density_penalty_weight: float = Field(ge=0)
-    template_domain_slack_weight: float = Field(default=1.0, ge=0)
 
 
 class GeneratorConfig(BaseModel):
@@ -58,6 +55,7 @@ class GeneratorConfig(BaseModel):
     initial_word_axis: int
     initial_word_length: int
     length_distribution: LengthDistribution
+    fixed_final_transition_length: int | None = Field(default=None, gt=0)
     top_anchor_count: int = Field(gt=0)
     max_anchor_count: int | None = Field(default=None, gt=0)
     top_template_count: int = Field(gt=0)
@@ -150,6 +148,15 @@ def load_generator_config(
     if config.length_distribution.start < grammar.min_word_length:
         raise ConfigError(
             f"length_distribution.start ({config.length_distribution.start}) must be >= "
+            f"grammar min_word_length ({grammar.min_word_length})."
+        )
+    if (
+        config.fixed_final_transition_length is not None
+        and config.fixed_final_transition_length < grammar.min_word_length
+    ):
+        raise ConfigError(
+            "fixed_final_transition_length "
+            f"({config.fixed_final_transition_length}) must be >= "
             f"grammar min_word_length ({grammar.min_word_length})."
         )
 

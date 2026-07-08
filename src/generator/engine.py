@@ -66,7 +66,10 @@ class ScenarioGenerator:
         transitions: list[ScenarioTransition] = []
 
         while len(transitions) < self.config.target_witness_count:
-            board, transition, failures = self._generate_next_transition(board)
+            board, transition, failures = self._generate_next_transition(
+                board,
+                next_transition_index=len(transitions),
+            )
             if transition is None:
                 raise GenerationError(
                     _format_generation_failure(
@@ -92,20 +95,16 @@ class ScenarioGenerator:
     def _generate_next_transition(
         self,
         board: Board,
+        *,
+        next_transition_index: int = 0,
     ) -> tuple[Board, ScenarioTransition | None, tuple[LengthFailure, ...]]:
         failures: list[LengthFailure] = []
         centroid = BoardScoring.centroid(board)
-        remaining_lengths = list(
-            range(
-                self.config.length_distribution.start,
-                self.config.length_distribution.end + 1,
-            )
-        )
+        remaining_lengths = self._length_candidates(next_transition_index)
         while remaining_lengths:
             sampled_length = _pop_random(self.rng, remaining_lengths)
             anchor_candidates = top_anchors(
                 board,
-                sampled_length,
                 self.config.max_anchor_count,
                 self.config.scoring,
                 centroid,
@@ -193,6 +192,19 @@ class ScenarioGenerator:
             )
 
         return board, None, tuple(failures)
+
+    def _length_candidates(self, next_transition_index: int) -> list[int]:
+        if (
+            self.config.fixed_final_transition_length is not None
+            and next_transition_index == self.config.target_witness_count - 1
+        ):
+            return [self.config.fixed_final_transition_length]
+        return list(
+            range(
+                self.config.length_distribution.start,
+                self.config.length_distribution.end + 1,
+            )
+        )
 
     def write(self, scenario_run: ScenarioRun) -> Path:
         return write_scenario_run(resolve_output_path(self.config), scenario_run)
@@ -360,6 +372,8 @@ def _placed_cells(board: Board, move: Move) -> tuple[tuple[Coord, Symbol], ...]:
 
 
 def _pop_random(rng: random.Random, values: list[int]) -> int:
+    if len(values) == 1:
+        return values.pop(0)
     index = rng.randrange(len(values))
     return values.pop(index)
 
@@ -384,7 +398,7 @@ def _format_generation_failure(
         "All lengths in length_distribution were tried once for the current board state.",
     ]
     if failures:
-        lines.append("Failure summary by sampled length:")
+        lines.append("Failure summary by configured length:")
         for failure in sorted(failures, key=lambda item: item.length):
             status_summary = _status_summary(failure.attempt_statuses)
             detail = (

@@ -10,29 +10,23 @@ from .config import ScoringConfig
 
 def top_anchors(
     board: Board,
-    length: int,
     limit: int | None,
     scoring: ScoringConfig,
     centroid: tuple[float, ...] | None = None,
 ) -> tuple[AnchorCandidate, ...]:
     if centroid is None:
         centroid = BoardScoring.centroid(board)
-    raw_candidates: list[tuple[Coord, str, int, float, int]] = []
+    raw_candidates: list[tuple[Coord, str, int, float]] = []
     for coord, symbol in board.occupied_sorted():
         for axis in _cross_axes(board, coord):
             distance = BoardScoring.distance_to_centroid(coord, centroid)
-            free_span = BoardScoring.free_cross_axis_span(board, coord, axis, length)
-            raw_candidates.append((coord, symbol, axis, distance, free_span))
+            raw_candidates.append((coord, symbol, axis, distance))
 
     normalized_distance = _normalize_feature(item[3] for item in raw_candidates)
-    normalized_free_span = _normalize_feature(item[4] for item in raw_candidates)
 
     candidates: list[AnchorCandidate] = []
-    for index, (coord, symbol, axis, distance, free_span) in enumerate(raw_candidates):
-        score = (
-            -scoring.anchor_centroid_weight * normalized_distance[index]
-            + scoring.anchor_free_span_weight * normalized_free_span[index]
-        )
+    for index, (coord, symbol, axis, distance) in enumerate(raw_candidates):
+        score = -scoring.anchor_centroid_weight * normalized_distance[index]
         candidates.append(
             AnchorCandidate(
                 coord=coord,
@@ -40,7 +34,6 @@ def top_anchors(
                 axis=axis,
                 score=score,
                 distance_to_centroid=distance,
-                free_cross_axis_span=free_span,
             )
         )
     ranked = sorted(
@@ -70,7 +63,12 @@ def top_templates(
     if centroid is None:
         centroid = BoardScoring.centroid(board)
     raw_candidates: list[
-        tuple[SlotTemplate, float, int, int, int, tuple[frozenset[str], ...]]
+        tuple[
+            SlotTemplate,
+            float,
+            int,
+            tuple[frozenset[str], ...],
+        ]
     ] = []
     for anchor in anchors:
         for anchor_index in range(length):
@@ -103,43 +101,31 @@ def top_templates(
             if not new_coords:
                 continue
             typed_domains: tuple[frozenset[str], ...] = ()
-            domain_slack = 0
             if domains_for_template is not None:
                 domains = domains_for_template(template)
                 if any(not domain for domain in domains):
                     continue
                 typed_domains = tuple(frozenset(domain) for domain in domains)
-                domain_slack = sum(
-                    len(domains[index])
-                    for index, coord in enumerate(template.covered_coords)
-                    if board.get(coord) is None
-                )
             distance = BoardScoring.mean_distance_to_centroid(new_coords, centroid)
             local_density = BoardScoring.local_adjacent_density(board, new_coords)
             raw_candidates.append(
                 (
                     template,
                     distance,
-                    len(new_coords),
                     local_density,
-                    domain_slack,
                     typed_domains,
                 )
             )
 
     normalized_distance = _normalize_feature(item[1] for item in raw_candidates)
-    normalized_new_cell_count = _normalize_feature(item[2] for item in raw_candidates)
-    normalized_local_density = _normalize_feature(item[3] for item in raw_candidates)
-    normalized_domain_slack = _normalize_feature(item[4] for item in raw_candidates)
+    normalized_local_density = _normalize_feature(item[2] for item in raw_candidates)
 
     candidates: list[TemplateCandidate] = []
-    for index, (template, distance, _, _, domain_slack, domains) in enumerate(raw_candidates):
+    for index, (template, distance, _, domains) in enumerate(raw_candidates):
         score = (
             -scoring.template_centroid_weight * normalized_distance[index]
-            + scoring.template_new_cell_bonus_weight * normalized_new_cell_count[index]
             - scoring.template_local_density_penalty_weight
             * normalized_local_density[index]
-            + scoring.template_domain_slack_weight * normalized_domain_slack[index]
         )
         candidates.append(
             TemplateCandidate(
@@ -147,7 +133,6 @@ def top_templates(
                 score=score,
                 distance_to_centroid=distance,
                 domains=domains,
-                domain_slack=domain_slack,
             )
         )
     return tuple(

@@ -21,7 +21,7 @@ Sorting is stable. Score ties are resolved by fixed fields such as coordinate, a
 3. Place it on `axis = 0` around the origin.
 4. Store the first segment.
 5. Repeat until termination:
-   - Sample a word length from the allowed distribution.
+   - Select a word length from the allowed distribution, or use `fixed_final_transition_length` on the final requested transition when configured.
    - Cheaply score and sort all anchor-axis pairs.
    - Expand the next anchor batch.
    - Create slot templates for every anchor index of that length.
@@ -68,9 +68,10 @@ The inclusive length range is:
 ```text
 length_distribution.start = 3
 length_distribution.end = 7
+fixed_final_transition_length = 6
 ```
 
-Using `start = end = 7` produces consistently wide slots and, together with centroid heuristics, may create unnaturally regular filling.
+Using `start = end = 7` produces consistently wide slots and, together with centroid heuristics, may create unnaturally regular filling. `fixed_final_transition_length` only applies to the final requested witness transition; evaluation case preparation requests `board_size + 1` transitions, so this controls the move later used as ground truth.
 
 ## Crossing-Axis Logic
 
