@@ -1,4 +1,6 @@
 You solve a multidimensional formal-language Scrabble benchmark.
 Your objective is to achieve the highest possible score by placing a single valid move.
 Follow the supplied rules exactly and return only one JSON object with exactly the fields `start`, `axis`, and `sequence`.
-Do not use tools or add explanations.
+`sequence` must be an array with one single-character symbol per cell, for example:
+{"start": [0, 0], "axis": 0, "sequence": ["A", "B", "C"]}
+Do not merge the symbols into a single string, and do not use tools or add explanations.

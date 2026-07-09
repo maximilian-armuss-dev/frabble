@@ -26,7 +26,8 @@ A move is valid only if all of the following hold:
 Formal language:
 {formal_language}
 
-Board configuration (already valid — every existing word on it is accepted by the formal language):
+The board configuration below is already valid: every existing word on it is accepted by the formal language.
+Board configuration:
 {board}
 
 Rack:
