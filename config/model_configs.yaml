@@ -30,8 +30,8 @@ models:
     base_url_env: OPENROUTER_API_BASE
     provider: google-ai-studio
 
-  - name: or_grok-4-5
-    model: openrouter/x-ai/grok-4.5
+  - name: or_grok-4-3
+    model: openrouter/x-ai/grok-4.3
     api_key_env: OPENROUTER_API_KEY
     base_url_env: OPENROUTER_API_BASE
     provider: xai
