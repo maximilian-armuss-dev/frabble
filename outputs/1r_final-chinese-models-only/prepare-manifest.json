@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "case_set": "1r_final",
+  "config_hash": "5b67129ba7006f0a5b686aafba28676afb3fe2642f97a70f2ab79fdc6c222e64",
+  "status": "complete",
+  "created_at": "2026-07-09T20:02:50.990645+00:00",
+  "completed_at": "2026-07-09T20:05:37.063169+00:00",
+  "grammars": {
+    "1r_final.b025.r00": {
+      "status": "complete",
+      "config_hash": "8a68318958d47b51670ede9ae06070ebf685b9282d3500addab5656001ef3f21",
+      "path": "outputs/evaluation/1r_final/grammars/1r_final.b025.r00.json",
+      "sha256": "5293cc691ca1bdd4256b730ba47a2002b3eda6147c312c8cf3e686c303fdd0bc",
+      "requested_seed": 1253758092,
+      "actual_seed": 1253758092
+    },
+    "1r_final.b075.r00": {
+      "status": "complete",
+      "config_hash": "f5b45b1fe8bfb87dc0cd73c4123f550d35d6529490bde6560e3c0370b8b4fda2",
+      "path": "outputs/evaluation/1r_final/grammars/1r_final.b075.r00.json",
+      "sha256": "20143d5a6631a8ac697824d043c7750f92ec180322b1ffcedb1c0548c49ffa6a",
+      "requested_seed": 1844966191,
+      "actual_seed": 1844966191
+    },
+    "1r_final.b200.r00": {
+      "status": "complete",
+      "config_hash": "53a0b0417e4d8edd689e74f17780480487b809bdbe2815257e957aab50dab91f",
+      "path": "outputs/evaluation/1r_final/grammars/1r_final.b200.r00.json",
+      "sha256": "00bfcbdb42454aada264843ac84328d1de879d9c5410ed65005259a76880f399",
+      "requested_seed": 1164717642,
+      "actual_seed": 1164717642
+    },
+    "1r_final.b450.r00": {
+      "status": "complete",
+      "config_hash": "0c804018c7227b9fce3141e2eb60c19e0c6ea634dcec9bf5b200ef1f79f90d55",
+      "path": "outputs/evaluation/1r_final/grammars/1r_final.b450.r00.json",
+      "sha256": "b376e97b294f3a0916d3f944740cab157dc7b6a3d514c59d14d0f19fad8dd998",
+      "requested_seed": 1390312293,
+      "actual_seed": 1390312293
+    },
+    "1r_final.b900.r00": {
+      "status": "complete",
+      "config_hash": "3d50bda1a47968a742a4c7ca8ca5a7b297d86cfa246c180bb13bc5bf0085f109",
+      "path": "outputs/evaluation/1r_final/grammars/1r_final.b900.r00.json",
+      "sha256": "f8016100971f9a7ff6cfdc6f7f9a353b0fe0f580521ae638060bcdf25638ff57",
+      "requested_seed": 415648671,
+      "actual_seed": 415648671
+    }
+  },
+  "scenarios": {
+    "1r_final.b025.r00": {
+      "status": "complete",
+      "config_hash": "37b946b84dd4061bcb38372676b13e8f12a9d8c05a08034fe6f4ee0fc3f10d58",
+      "path": "outputs/evaluation/1r_final/scenarios/1r_final.b025.r00.json",
+      "sha256": "117aca59241ebbdd442a71c8e1af51b544a84ae160971a2dc85b8d5462bc9c55",
+      "board_depth": 25
+    },
+    "1r_final.b075.r00": {
+      "status": "complete",
+      "config_hash": "c5efd76afdae6c35ee9686b024b88ffd19920ae69d6f28428bf79beb1b28d195",
+      "path": "outputs/evaluation/1r_final/scenarios/1r_final.b075.r00.json",
+      "sha256": "f78813491afdc5e32d06d550f275d79f6e3143d15d5ca0ff1bd90abc6b150655",
+      "board_depth": 75
+    },
+    "1r_final.b200.r00": {
+      "status": "complete",
+      "config_hash": "7b0f9cbfc9a17f4d4cf5e16df348961794320cc83d7dc7361eec60006acb764b",
+      "path": "outputs/evaluation/1r_final/scenarios/1r_final.b200.r00.json",
+      "sha256": "296cc6fda05e4349eb2c50376c367f6af3eadb18ee27722d4cff2d208eff3072",
+      "board_depth": 200
+    },
+    "1r_final.b450.r00": {
+      "status": "complete",
+      "config_hash": "b39b1ae021ec16ec8aad8331ed28a361515daba490d713bfe0e555e31e7dea86",
+      "path": "outputs/evaluation/1r_final/scenarios/1r_final.b450.r00.json",
+      "sha256": "b5dbc19dbdd5e836a28eae45e59d140bb51a7d9005c0d2541387549090e6c528",
+      "board_depth": 450
+    },
+    "1r_final.b900.r00": {
+      "status": "complete",
+      "config_hash": "9632a1e3b87d8cba1107dc0e833da0307b19abe99225e0a1a42c9e2ce2cff914",
+      "path": "outputs/evaluation/1r_final/scenarios/1r_final.b900.r00.json",
+      "sha256": "30a61f55f8066c84eed5b89767836ef170825e4e1af5593ea09a3c10ba61e83d",
+      "board_depth": 900
+    }
+  },
+  "cases": {
+    "1r_final.b025.r00": {
+      "status": "complete",
+      "config_hash": "7ebe4c7487fc2adc4b5b01810e432af92238172805deb4808c62be01cae86588",
+      "path": "outputs/evaluation/1r_final/cases/1r_final.b025.r00.json",
+      "sha256": "815d21fee0d25908b89068982b93727e5cae3c883802c4ef11f98ee6c9227247",
+      "board_size": 25
+    },
+    "1r_final.b075.r00": {
+      "status": "complete",
+      "config_hash": "88c254b177fae6ecb6ac720f66d93a41777c9ee57fe85d304262a2ee3e1f28a6",
+      "path": "outputs/evaluation/1r_final/cases/1r_final.b075.r00.json",
+      "sha256": "2e485b1af3bfc50fdcdffedbe402ce65776719d8574e6411b432601b5a90a213",
+      "board_size": 75
+    },
+    "1r_final.b200.r00": {
+      "status": "complete",
+      "config_hash": "a5f54c7a513fa146216f6735999541386de38346dbb2495be4852631b2d0192e",
+      "path": "outputs/evaluation/1r_final/cases/1r_final.b200.r00.json",
+      "sha256": "e0d07fece6eb33a299954b4034fed2a42332ac76c71a139a41ab397f50b46285",
+      "board_size": 200
+    },
+    "1r_final.b450.r00": {
+      "status": "complete",
+      "config_hash": "d831f3beee3afcb9056523530e5fd4149b9bacf48f41053932fd47714d39c812",
+      "path": "outputs/evaluation/1r_final/cases/1r_final.b450.r00.json",
+      "sha256": "8693f22a43f0c98c29ac0be4175cc7827b48b0afab9d4e9ca24773a2894c0fb1",
+      "board_size": 450
+    },
+    "1r_final.b900.r00": {
+      "status": "complete",
+      "config_hash": "4773a000eb55eeab8b82ae10e73b49e7ae00316c7f7bf901d8bc96bcabed0472",
+      "path": "outputs/evaluation/1r_final/cases/1r_final.b900.r00.json",
+      "sha256": "4c6953c0939b030fc6d6e8e503f243a12f63c9fc46d08c482cb910e505804715",
+      "board_size": 900
+    }
+  },
+  "failures": {},
+  "schemas": {
+    "evaluation-case": {
+      "path": "outputs/evaluation/1r_final/schemas/evaluation-case.schema.json",
+      "sha256": "57c2b3fa7250d46b818c3d0af97162d8c835417e3fc671ac0fcb04945cbef759"
+    },
+    "decomposition-request": {
+      "path": "outputs/evaluation/1r_final/schemas/decomposition-request.schema.json",
+      "sha256": "a4686546efd73470e18cce7421c37748d9708ab9662e8dfa7bc52bc89286da6d"
+    },
+    "decomposition-result": {
+      "path": "outputs/evaluation/1r_final/schemas/decomposition-result.schema.json",
+      "sha256": "25c55c2abddf3776b059591b966baff55deca9e7197cfbfba2b181970b0ac709"
+    }
+  }
+}

@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "total_attempts": 15,
+  "completed": 15,
+  "passed": 0,
+  "failed": 15,
+  "pass_rate": 0.0,
+  "transport_errors": 0,
+  "primary_failures": {
+    "sequence": 5,
+    "truncated": 10
+  },
+  "format_robust": {
+    "passed": 0,
+    "pass_rate": 0.0,
+    "recovered": 0,
+    "primary_failures": {
+      "sequence": 5,
+      "truncated": 10
+    }
+  },
+  "failed_constraints": {
+    "parse_ok": 10,
+    "sequence_valid": 15,
+    "min_length_fulfilled": 11,
+    "spatial_valid": 14,
+    "overlap_valid": 11,
+    "no_word_extension": 15,
+    "cross_words_valid": 0,
+    "rack_valid": 0
+  },
+  "by_board_size": {
+    "200": {
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "transport_errors": 0,
+      "pass_rate": 0.0
+    },
+    "25": {
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "transport_errors": 0,
+      "pass_rate": 0.0
+    },
+    "450": {
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "transport_errors": 0,
+      "pass_rate": 0.0
+    },
+    "75": {
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "transport_errors": 0,
+      "pass_rate": 0.0
+    },
+    "900": {
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "transport_errors": 0,
+      "pass_rate": 0.0
+    }
+  },
+  "by_model": {
+    "or_deepseek-v4-pro": {
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "transport_errors": 0,
+      "pass_rate": 0.0
+    },
+    "or_kimi-k2-6": {
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "transport_errors": 0,
+      "pass_rate": 0.0
+    },
+    "or_qwen3-7-max": {
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "transport_errors": 0,
+      "pass_rate": 0.0
+    }
+  },
+  "by_group": [
+    {
+      "board_size": 200,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 200,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 200,
+      "model": "or_qwen3-7-max",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 25,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 25,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 25,
+      "model": "or_qwen3-7-max",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 450,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 450,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 450,
+      "model": "or_qwen3-7-max",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 75,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 75,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 75,
+      "model": "or_qwen3-7-max",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 900,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 900,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "board_size": 900,
+      "model": "or_qwen3-7-max",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    }
+  ]
+}
