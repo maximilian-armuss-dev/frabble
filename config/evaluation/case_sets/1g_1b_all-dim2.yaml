@@ -1,6 +1,6 @@
 generation_config: evaluation_base
 grammar_config: evaluation_base_grammar
-tier_config: default
+tier_config: default-dim2
 root_seed: 42
 sampling_rounds: 1
 grammar_samples_per_tier: 1
@@ -9,3 +9,4 @@ tiers:
   - low
   - medium
   - high
+  - stress
