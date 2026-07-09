@@ -61,8 +61,20 @@ def load_evaluation_results(
     case_set: str | None,
     run_id: str | None = None,
     *,
+    run_path: str | Path | None = None,
     project_root: str | Path = PROJECT_ROOT,
 ) -> tuple[Path, dict[str, Any]]:
+    if run_path is not None:
+        if case_set is not None or run_id is not None:
+            raise ValueError(
+                "Set run_path on its own, without case_set or run_id."
+            )
+        run_dir = Path(run_path)
+        if not run_dir.is_absolute():
+            run_dir = Path(project_root) / run_dir
+        if not run_dir.is_dir():
+            raise FileNotFoundError(f"Evaluation run folder not found: {run_dir}")
+        return run_dir, load_evaluation_aggregate(run_dir)
     if (case_set is None) == (run_id is None):
         raise ValueError("Set exactly one of case_set or run_id.")
     if run_id is not None:
