@@ -10,7 +10,6 @@ from .env import ModelConfig
 from .result import LLMCallResult
 
 OPENROUTER_PROVIDER_DEFAULTS = {
-    "allow_fallbacks": False,
     "require_parameters": True,
 }
 
@@ -88,7 +87,10 @@ def _request_kwargs(
             },
         },
         "provider": openrouter_provider_preferences(config),
-        "reasoning": openrouter_reasoning(reasoning_effort),
+        "reasoning": openrouter_reasoning(
+            reasoning_effort,
+            max_tokens=config.reasoning_max_tokens,
+        ),
         "x_open_router_metadata": "enabled",
         "stream": False,
         # The evaluation runner owns retries so every attempt is observable.
@@ -102,17 +104,29 @@ def _request_kwargs(
 def openrouter_provider_preferences(
     config: ModelConfig,
 ) -> dict[str, object] | None:
-    if config.provider is None:
+    preferences: dict[str, object] = {}
+    if config.provider is not None:
+        # Pin a single provider for reproducibility; no fallback.
+        preferences["only"] = [config.provider]
+        preferences["allow_fallbacks"] = False
+    if config.quantizations:
+        # Constrain by precision (e.g. fp8) and let OpenRouter pick a matching
+        # provider, falling back across them for a lower output-error rate.
+        preferences["quantizations"] = list(config.quantizations)
+        preferences.setdefault("allow_fallbacks", True)
+    if not preferences:
         return None
-    return {
-        "only": [config.provider],
-        **OPENROUTER_PROVIDER_DEFAULTS,
-    }
+    return {**preferences, **OPENROUTER_PROVIDER_DEFAULTS}
 
 
 def openrouter_reasoning(
     reasoning_effort: str | None,
+    *,
+    max_tokens: int | None = None,
 ) -> dict[str, object] | None:
+    # Mutually exclusive options that are present.
+    if max_tokens is not None:
+        return {"max_tokens": max_tokens}
     if reasoning_effort is None:
         return None
     return {"effort": reasoning_effort}
