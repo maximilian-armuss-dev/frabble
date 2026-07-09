@@ -34,7 +34,6 @@ class StrictlyLocalLanguage:
         snippets = ", ".join(" ".join(snippet) for snippet in self.forbidden_snippets)
         return "\n".join(
             [
-                f"Language ID: {self.language_id}",
                 f"Alphabet: {{{', '.join(self.alphabet)}}}",
                 f"k: {self.k}",
                 f"Minimum word length: {self.min_word_length}",
