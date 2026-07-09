@@ -1,0 +1,119 @@
+{
+  "$defs": {
+    "EvaluationCase": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "case_set": {
+          "title": "Case Set",
+          "type": "string"
+        },
+        "board_size": {
+          "title": "Board Size",
+          "type": "integer"
+        },
+        "sampling_round": {
+          "title": "Sampling Round",
+          "type": "integer"
+        },
+        "seeds": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Seeds",
+          "type": "object"
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "title": "Parameters",
+          "type": "object"
+        },
+        "grammar": {
+          "additionalProperties": true,
+          "title": "Grammar",
+          "type": "object"
+        },
+        "board": {
+          "additionalProperties": true,
+          "title": "Board",
+          "type": "object"
+        },
+        "rack": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Rack",
+          "type": "array"
+        },
+        "ground_truth_move": {
+          "additionalProperties": true,
+          "title": "Ground Truth Move",
+          "type": "object"
+        },
+        "provenance": {
+          "additionalProperties": true,
+          "title": "Provenance",
+          "type": "object"
+        }
+      },
+      "required": [
+        "case_id",
+        "case_set",
+        "board_size",
+        "sampling_round",
+        "seeds",
+        "parameters",
+        "grammar",
+        "board",
+        "rack",
+        "ground_truth_move",
+        "provenance"
+      ],
+      "title": "EvaluationCase",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "request_id": {
+      "title": "Request Id",
+      "type": "string"
+    },
+    "case": {
+      "$ref": "#/$defs/EvaluationCase"
+    },
+    "failed_attempt": {
+      "additionalProperties": true,
+      "title": "Failed Attempt",
+      "type": "object"
+    },
+    "requested_at": {
+      "format": "date-time",
+      "title": "Requested At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "case",
+    "failed_attempt",
+    "requested_at"
+  ],
+  "title": "DecompositionRequest",
+  "type": "object"
+}
