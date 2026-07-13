@@ -1,8 +1,0 @@
-case_set: 1r_10-50-150-400
-models:
-  openai_gpt-5: [all]
-  anthropic_claude-opus-4-8: [all]
-execution:
-  max_concurrency: 32
-  max_concurrency_per_model: 1
-  max_retries: 0

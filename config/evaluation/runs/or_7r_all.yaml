@@ -1,4 +1,4 @@
-case_set: 1r_final
+case_set: 7r
 models:
   or_gpt-5-5: [all]
   or_claude-opus-4-8: [all]
@@ -6,7 +6,7 @@ models:
   or_grok-4-3: [all]
   or_deepseek-v4-pro: [all]
   or_kimi-k2-6: [all]
-  or_qwen3-7-max: [all]
+  or_qwen3-7-max: [1]
 execution:
   max_concurrency: 35
   max_concurrency_per_model: 5

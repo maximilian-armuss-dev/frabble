@@ -71,7 +71,7 @@ length_distribution.end = 7
 fixed_final_transition_length = 6
 ```
 
-Using `start = end = 7` produces consistently wide slots and, together with centroid heuristics, may create unnaturally regular filling. `fixed_final_transition_length` only applies to the final requested witness transition; evaluation case preparation requests `board_size + 1` transitions, so this controls the move later used as ground truth.
+Using `start = end = 7` produces consistently wide slots and, together with centroid heuristics, may create unnaturally regular filling. `fixed_final_transition_length` applies to the final requested witness transition, so evaluation case preparation uses it for the move later stored as ground truth. For board size `0`, the initial word is generated at this fixed length and used as the ground-truth move on an empty board.
 
 ## Crossing-Axis Logic
 

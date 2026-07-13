@@ -13,6 +13,7 @@ from .sampling import derive_seed
 class SampledBoardParameters:
     seed: int
     dimensions: int
+    board_size: int
     board_depth: int
 
 
@@ -36,7 +37,11 @@ def sample_board_parameters(
     return SampledBoardParameters(
         seed=board_seed,
         dimensions=base_generation.dimensions,
-        board_depth=coordinates.board_size,
+        board_size=coordinates.board_size,
+        # The scenario starts with one word already placed. Therefore a board
+        # with N words needs N - 1 scenario transitions before the evaluation
+        # move. Size zero is handled explicitly when the case is snapshotted.
+        board_depth=max(coordinates.board_size - 1, 0),
     )
 
 
@@ -81,10 +86,19 @@ def resolve_generation_config(
             "seed": parameters.seed,
             "grammar": None,
             "grammar_path": str(grammar_path),
-            "target_witness_count": parameters.board_depth + 1,
+            # For positive sizes, the last generated transition is the
+            # ground-truth move after exactly board_size words. For size zero,
+            # one transition is still generated so GeneratorConfig remains
+            # valid; the initial word itself becomes the ground-truth move.
+            "target_witness_count": max(parameters.board_size, 1),
             "output_path": str(output_path),
         }
     )
+    if (
+        parameters.board_size == 0
+        and base.fixed_final_transition_length is not None
+    ):
+        data["initial_word_length"] = base.fixed_final_transition_length
     return GeneratorConfig.model_validate(data)
 
 

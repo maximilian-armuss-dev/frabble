@@ -21,7 +21,7 @@ Conceptual structure:
   "parameters": {
     "grammar": {},
     "generation": {},
-    "board_depth": 50
+    "board_depth": 49
   },
   "grammar": {},
   "board": {},
@@ -38,7 +38,11 @@ Conceptual structure:
 }
 ```
 
-The board and rack describe the exact input before the ground-truth move. The grammar is embedded completely so that later modification or deletion of the grammar file cannot change the case.
+The board and rack describe the exact input before the ground-truth move.
+`board_size` is the number of word segments on that board; `board_depth` is the
+number of post-initial-word scenario transitions applied to reconstruct it.
+The grammar is embedded completely so that later modification or deletion of
+the grammar file cannot change the case.
 
 ## Full-Puzzle Runner
 

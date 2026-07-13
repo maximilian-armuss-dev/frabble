@@ -92,6 +92,17 @@ class ScenarioGenerator:
             transitions=tuple(transitions),
         )
 
+    def generate_initial_transition(self) -> ScenarioTransition:
+        """Recreate the first-word placement represented by ``initial_board``."""
+        empty_board = Board.empty(self.config.dimensions)
+        move = self._initial_move()
+        return ScenarioTransition(
+            rack=self._rack_for_move(empty_board, move),
+            move=move,
+            placed=_placed_cells(empty_board, move),
+            search_log=None,
+        )
+
     def _generate_next_transition(
         self,
         board: Board,
@@ -210,6 +221,9 @@ class ScenarioGenerator:
         return write_scenario_run(resolve_output_path(self.config), scenario_run)
 
     def _initial_board(self) -> Board:
+        return Board.empty(self.config.dimensions).place(self._initial_move())
+
+    def _initial_move(self) -> Move:
         sequences = enumerate_accepted_sequences(self.language, self.config.initial_word_length)
         if not sequences:
             raise GenerationError("Configured initial_word_length has no accepted sequence.")
@@ -218,8 +232,7 @@ class ScenarioGenerator:
             -(self.config.initial_word_length // 2) if dim == self.config.initial_word_axis else 0
             for dim in range(self.config.dimensions)
         )
-        move = Move(start=start, axis=self.config.initial_word_axis, sequence=sequence)
-        return Board.empty(self.config.dimensions).place(move)
+        return Move(start=start, axis=self.config.initial_word_axis, sequence=sequence)
 
     def _try_templates(
         self,

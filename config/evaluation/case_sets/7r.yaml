@@ -3,8 +3,8 @@ grammar_config: evaluation_base_grammar
 root_seed: 2425
 sampling_rounds: 1
 board_sizes:
-  - 25
-  - 75
-  - 200
+  - 1
+  - 5
+  - 10
   - 450
   - 900

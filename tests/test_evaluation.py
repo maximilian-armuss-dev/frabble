@@ -647,6 +647,32 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertIn("rack", case)
         self.assertIn("grammar_sha256", case["provenance"])
 
+    def test_board_size_is_exact_number_of_words_on_snapshot_board(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            with patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", root):
+                prepare_case_set(tiny_case_set(board_sizes=[0, 1, 2]))
+
+            cases = {
+                case["board_size"]: case
+                for case in (
+                    read_json(path)
+                    for path in (root / "tiny" / "cases").glob("*.json")
+                )
+            }
+
+        self.assertEqual(sorted(cases), [0, 1, 2])
+        for board_size, case in cases.items():
+            with self.subTest(board_size=board_size):
+                self.assertEqual(len(case["board"]["segments"]), board_size)
+        self.assertEqual(cases[0]["board"]["occupied"], [])
+        self.assertEqual(
+            len(cases[0]["ground_truth_move"]["sequence"]),
+            cases[0]["parameters"]["generation"][
+                "fixed_final_transition_length"
+            ],
+        )
+
     def test_prepare_reports_generation_progress_per_witness(self):
         starts: list[tuple[str, int]] = []
         updates: list[tuple[str, int]] = []
