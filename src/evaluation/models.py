@@ -17,10 +17,8 @@ class EvaluationCase(BaseModel):
     schema_version: Literal[1] = 1
     case_id: str
     case_set: str
-    tier: str
+    board_size: int
     sampling_round: int
-    grammar_sample_index: int
-    board_sample_index: int
     seeds: dict[str, int]
     parameters: dict[str, Any]
     grammar: dict[str, Any]

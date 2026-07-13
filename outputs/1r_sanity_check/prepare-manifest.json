@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "case_set": "1r_sanity_check",
+  "config_hash": "026b4cf211b8cabb95b2b01cbd57f38edd252b19dd7bbb03ccf424acd6f1277e",
+  "status": "complete",
+  "created_at": "2026-07-08T14:42:11.034486+00:00",
+  "completed_at": "2026-07-08T14:42:11.859974+00:00",
+  "grammars": {
+    "1r_sanity_check.b001.r00": {
+      "status": "complete",
+      "config_hash": "7e8c6566cd598cb9a76658104858197a64111f002fc39e3f7b079d44f5723057",
+      "path": "outputs/evaluation/1r_sanity_check/grammars/1r_sanity_check.b001.r00.json",
+      "sha256": "3a819d84c65fb722434df3450d73689529876df20280b522f4988f8b7fabe26c",
+      "requested_seed": 1404080471,
+      "actual_seed": 1404080471
+    }
+  },
+  "scenarios": {
+    "1r_sanity_check.b001.r00": {
+      "status": "complete",
+      "config_hash": "e912b4ff72b8af7ff7ef9a60e93e27f8d978d4fa3abd7b4ea23ca3f8b931069b",
+      "path": "outputs/evaluation/1r_sanity_check/scenarios/1r_sanity_check.b001.r00.json",
+      "sha256": "a6cb672e14a041577f1e8a107bcd071bb55d25589da189f2228e9edf42cd9ab5",
+      "board_depth": 1
+    }
+  },
+  "cases": {
+    "1r_sanity_check.b001.r00": {
+      "status": "complete",
+      "config_hash": "6252c01ebd9df1fb0a7c46e81da60e6fc26d0b7d947fb9fb65ee689f73b1466a",
+      "path": "outputs/evaluation/1r_sanity_check/cases/1r_sanity_check.b001.r00.json",
+      "sha256": "ab0da9768023feb7856bc7753cc19eace395d3b17c8fd3b0f633e4f847270a69",
+      "board_size": 1
+    }
+  },
+  "failures": {},
+  "schemas": {
+    "evaluation-case": {
+      "path": "outputs/evaluation/1r_sanity_check/schemas/evaluation-case.schema.json",
+      "sha256": "57c2b3fa7250d46b818c3d0af97162d8c835417e3fc671ac0fcb04945cbef759"
+    },
+    "decomposition-request": {
+      "path": "outputs/evaluation/1r_sanity_check/schemas/decomposition-request.schema.json",
+      "sha256": "a4686546efd73470e18cce7421c37748d9708ab9662e8dfa7bc52bc89286da6d"
+    },
+    "decomposition-result": {
+      "path": "outputs/evaluation/1r_sanity_check/schemas/decomposition-result.schema.json",
+      "sha256": "25c55c2abddf3776b059591b966baff55deca9e7197cfbfba2b181970b0ac709"
+    }
+  }
+}

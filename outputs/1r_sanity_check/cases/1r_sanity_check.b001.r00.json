@@ -1,0 +1,438 @@
+{
+  "schema_version": 1,
+  "case_id": "1r_sanity_check.b001.r00",
+  "case_set": "1r_sanity_check",
+  "board_size": 1,
+  "sampling_round": 0,
+  "seeds": {
+    "grammar_requested": 1404080471,
+    "grammar_used": 1404080471,
+    "board": 1235387410
+  },
+  "parameters": {
+    "grammar": {
+      "alphabet_case": "upper",
+      "forbidden_fraction": 0.4,
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      },
+      "config_name": "1r_sanity_check.b001.r00",
+      "alphabet_size": 8,
+      "k": 3,
+      "min_word_length": 3,
+      "seed": 1404080471,
+      "output_path": null,
+      "show_stats": false
+    },
+    "generation": {
+      "config_name": "1r_sanity_check.b001.r00",
+      "dimensions": 2,
+      "seed": 1235387410,
+      "grammar": null,
+      "grammar_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/1r_sanity_check/grammars/1r_sanity_check.b001.r00.json",
+      "initial_word_axis": 0,
+      "initial_word_length": 5,
+      "length_distribution": {
+        "start": 3,
+        "end": 6
+      },
+      "fixed_final_transition_length": 6,
+      "top_anchor_count": 40,
+      "max_anchor_count": null,
+      "top_template_count": 200,
+      "target_witness_count": 2,
+      "scoring": {
+        "anchor_centroid_weight": 0.8,
+        "template_centroid_weight": 1.2,
+        "template_local_density_penalty_weight": 0.6
+      },
+      "additional_rack_noise": 0,
+      "output_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/1r_sanity_check/scenarios/1r_sanity_check.b001.r00.json",
+      "include_search_logs": false
+    },
+    "board_depth": 1
+  },
+  "grammar": {
+    "schema_version": 2,
+    "type": "sl",
+    "name": "1r_sanity_check.b001.r00",
+    "alphabet": [
+      "E",
+      "I",
+      "K",
+      "M",
+      "Q",
+      "S",
+      "T",
+      "Y"
+    ],
+    "k": 3,
+    "forbidden": [
+      "EEE",
+      "EEM",
+      "EEY",
+      "EIE",
+      "EIM",
+      "EIQ",
+      "EKK",
+      "EKS",
+      "EKT",
+      "EKY",
+      "EMQ",
+      "EMS",
+      "EQM",
+      "EQQ",
+      "EQS",
+      "EQY",
+      "ESE",
+      "ESK",
+      "ESQ",
+      "EST",
+      "ETK",
+      "ETQ",
+      "ETT",
+      "ETY",
+      "EYM",
+      "EYQ",
+      "IEK",
+      "IEY",
+      "IIK",
+      "IIS",
+      "IIT",
+      "IKE",
+      "IKQ",
+      "IKS",
+      "IME",
+      "IMQ",
+      "IMS",
+      "IMT",
+      "IQM",
+      "IQQ",
+      "IQS",
+      "IQT",
+      "ISE",
+      "ISQ",
+      "ISS",
+      "ITE",
+      "ITI",
+      "ITK",
+      "ITM",
+      "ITQ",
+      "ITT",
+      "IYE",
+      "KEK",
+      "KES",
+      "KET",
+      "KIK",
+      "KIM",
+      "KIQ",
+      "KIS",
+      "KKE",
+      "KKQ",
+      "KKT",
+      "KMI",
+      "KMQ",
+      "KMS",
+      "KMY",
+      "KQS",
+      "KSE",
+      "KSI",
+      "KSK",
+      "KSS",
+      "KTI",
+      "KTS",
+      "KTT",
+      "KTY",
+      "KYQ",
+      "KYT",
+      "MEE",
+      "MEI",
+      "MES",
+      "MET",
+      "MIE",
+      "MIQ",
+      "MKE",
+      "MKK",
+      "MKM",
+      "MKS",
+      "MKT",
+      "MKY",
+      "MME",
+      "MMS",
+      "MQE",
+      "MQI",
+      "MQM",
+      "MSE",
+      "MSM",
+      "MTE",
+      "MTK",
+      "MYE",
+      "MYI",
+      "MYM",
+      "MYY",
+      "QEE",
+      "QET",
+      "QEY",
+      "QII",
+      "QIQ",
+      "QKM",
+      "QKT",
+      "QME",
+      "QMI",
+      "QMK",
+      "QMM",
+      "QMS",
+      "QMT",
+      "QQI",
+      "QQK",
+      "QQM",
+      "QQS",
+      "QQT",
+      "QQY",
+      "QSE",
+      "QSK",
+      "QSM",
+      "QSY",
+      "QYE",
+      "QYI",
+      "QYK",
+      "QYQ",
+      "QYT",
+      "SEK",
+      "SES",
+      "SET",
+      "SEY",
+      "SIE",
+      "SIK",
+      "SIM",
+      "SIS",
+      "SKE",
+      "SKQ",
+      "SKS",
+      "SKT",
+      "SKY",
+      "SMI",
+      "SQE",
+      "SQI",
+      "SQM",
+      "SQS",
+      "SSE",
+      "SSK",
+      "SSM",
+      "SSY",
+      "STE",
+      "STK",
+      "STM",
+      "SYK",
+      "SYM",
+      "SYS",
+      "SYT",
+      "SYY",
+      "TEE",
+      "TES",
+      "TEY",
+      "TIE",
+      "TII",
+      "TIQ",
+      "TIS",
+      "TIT",
+      "TIY",
+      "TKQ",
+      "TKT",
+      "TKY",
+      "TMT",
+      "TQE",
+      "TQM",
+      "TQS",
+      "TSI",
+      "TSQ",
+      "TSS",
+      "TTS",
+      "TTT",
+      "TTY",
+      "TYE",
+      "TYT",
+      "YEM",
+      "YEQ",
+      "YES",
+      "YEY",
+      "YIK",
+      "YIM",
+      "YIQ",
+      "YIS",
+      "YIY",
+      "YKI",
+      "YKK",
+      "YKM",
+      "YKS",
+      "YME",
+      "YMI",
+      "YMY",
+      "YQE",
+      "YQM",
+      "YQQ",
+      "YQT",
+      "YSK",
+      "YSY",
+      "YTI",
+      "YTM",
+      "YTS",
+      "YTY",
+      "YYI",
+      "YYM",
+      "YYQ"
+    ],
+    "min_word_length": 3,
+    "letter_scores": {
+      "E": 1,
+      "I": 1,
+      "K": 4,
+      "M": 1,
+      "Q": 1,
+      "S": 2,
+      "T": 2,
+      "Y": 2
+    },
+    "seed": 1404080471,
+    "sampling_config": {
+      "alphabet_size": 8,
+      "forbidden_fraction": 0.4,
+      "alphabet_case": "upper",
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      }
+    }
+  },
+  "board": {
+    "dimensions": 2,
+    "occupied": [
+      [
+        [
+          -2,
+          0
+        ],
+        "I"
+      ],
+      [
+        [
+          -1,
+          -1
+        ],
+        "Q"
+      ],
+      [
+        [
+          -1,
+          0
+        ],
+        "Q"
+      ],
+      [
+        [
+          -1,
+          1
+        ],
+        "Q"
+      ],
+      [
+        [
+          -1,
+          2
+        ],
+        "Q"
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        "K"
+      ],
+      [
+        [
+          1,
+          0
+        ],
+        "S"
+      ],
+      [
+        [
+          2,
+          0
+        ],
+        "Q"
+      ]
+    ],
+    "segments": [
+      {
+        "start": [
+          -2,
+          0
+        ],
+        "axis": 0,
+        "sequence": [
+          "I",
+          "Q",
+          "K",
+          "S",
+          "Q"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          -1
+        ],
+        "axis": 1,
+        "sequence": [
+          "Q",
+          "Q",
+          "Q",
+          "Q"
+        ]
+      }
+    ]
+  },
+  "rack": [
+    "K",
+    "K",
+    "M",
+    "Q",
+    "T"
+  ],
+  "ground_truth_move": {
+    "start": [
+      -1,
+      2
+    ],
+    "axis": 0,
+    "sequence": [
+      "Q",
+      "T",
+      "K",
+      "M",
+      "K",
+      "Q"
+    ]
+  },
+  "provenance": {
+    "grammar_artifact": "outputs/evaluation/1r_sanity_check/grammars/1r_sanity_check.b001.r00.json",
+    "scenario_artifact": "outputs/evaluation/1r_sanity_check/scenarios/1r_sanity_check.b001.r00.json",
+    "grammar_sha256": "3a819d84c65fb722434df3450d73689529876df20280b522f4988f8b7fabe26c",
+    "scenario_sha256": "a6cb672e14a041577f1e8a107bcd071bb55d25589da189f2228e9edf42cd9ab5",
+    "case_set_config_sha256": "026b4cf211b8cabb95b2b01cbd57f38edd252b19dd7bbb03ccf424acd6f1277e",
+    "git_revision": "2ae08cda1904709b259ffd84aa49e7ba1e00cdcb"
+  }
+}

@@ -28,9 +28,6 @@ from .run_figures import (
     display_llm_response,
 )
 
-TIER_ORDER = ("low", "medium", "high", "stress")
-
-
 def resolve_evaluation_run(
     case_set: str | None,
     run_id: str,
@@ -120,11 +117,11 @@ def plot_pass_rate_heatmaps(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
     figures = []
     for representation, effort, groups in _group_slices(aggregate):
         models = sorted({str(group["model"]) for group in groups})
-        tiers = _ordered_tiers(groups)
+        board_sizes = _ordered_board_sizes(groups)
         values = [
             [
-                _group_value(groups, model, tier, "pass_rate")
-                for tier in tiers
+                _group_value(groups, model, board_size, "pass_rate")
+                for board_size in board_sizes
             ]
             for model in models
         ]
@@ -133,12 +130,12 @@ def plot_pass_rate_heatmaps(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
                 _group_summary_stat(
                     groups,
                     model,
-                    tier,
+                    board_size,
                     family="quality",
                     metric="rack_usage_ratio",
                     statistic="mean",
                 )
-                for tier in tiers
+                for board_size in board_sizes
             ]
             for model in models
         ]
@@ -155,7 +152,7 @@ def plot_pass_rate_heatmaps(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
         ]
         figure = go.Figure(
             go.Heatmap(
-                x=tiers,
+                x=[str(size) for size in board_sizes],
                 y=models,
                 z=values,
                 zmin=0,
@@ -166,16 +163,16 @@ def plot_pass_rate_heatmaps(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
                 customdata=rack_usage,
                 colorbar={"title": "pass rate"},
                 hovertemplate=(
-                    "model=%{y}<br>tier=%{x}<br>pass=%{z:.1%}"
+                    "model=%{y}<br>board size=%{x}<br>pass=%{z:.1%}"
                     "<br>mean rack usage=%{customdata:.1%}<extra></extra>"
                 ),
             )
         )
         _style_figure(
             figure,
-            "Pass rate by model and tier",
+            "Pass rate by model and board size",
             metadata=_plot_metadata(representation, effort, groups),
-            x_title="complexity tier",
+            x_title="board size",
             y_title="model",
         )
         figures.append(figure)
@@ -192,7 +189,7 @@ def plot_primary_failure_bars(
         ordered = sorted(
             groups,
             key=lambda group: (
-                _tier_key(str(group["tier"])),
+                int(group["board_size"]),
                 str(group["model"]),
             ),
         )
@@ -215,13 +212,13 @@ def plot_primary_failure_bars(
                 figure.add_bar(
                     name=failure_type,
                     x=[
-                        [str(group["tier"])],
+                        [str(group["board_size"])],
                         [str(group["model"])],
                     ],
                     y=[_rate(int(count), int(group["failed"]))],
                     customdata=[
                         [
-                            str(group["tier"]),
+                            str(group["board_size"]),
                             str(group["model"]),
                             int(count),
                         ]
@@ -230,7 +227,7 @@ def plot_primary_failure_bars(
                     legendgroup=failure_type,
                     showlegend=failure_type not in shown_in_legend,
                     hovertemplate=(
-                        "tier=%{customdata[0]}<br>"
+                        "board size=%{customdata[0]}<br>"
                         "model=%{customdata[1]}<br>"
                         + failure_type
                         + ": %{customdata[2]} "
@@ -243,7 +240,7 @@ def plot_primary_failure_bars(
             figure,
             "Primary failure composition",
             metadata=_plot_metadata(representation, effort, groups),
-            x_title="tier and model",
+            x_title="board size and model",
             y_title="share of failed attempts",
         )
         figure.update_layout(legend={"traceorder": "reversed"})
@@ -260,14 +257,14 @@ def plot_grammar_pass_rates(
 
     figures = []
     for representation, effort, groups in _group_slices(aggregate):
-        for tier in _ordered_tiers(groups):
-            tier_groups = [
-                group for group in groups if str(group["tier"]) == tier
+        for board_size in _ordered_board_sizes(groups):
+            board_size_groups = [
+                group for group in groups if int(group["board_size"]) == board_size
             ]
             grammar_ids = sorted(
                 {
                     _grammar_id(grammar)
-                    for group in tier_groups
+                    for group in board_size_groups
                     for grammar in group["grammars"]
                 }
             )
@@ -278,7 +275,7 @@ def plot_grammar_pass_rates(
                 for index in range(1, len(grammar_ids) + 1)
             ]
             ordered_groups = sorted(
-                tier_groups,
+                board_size_groups,
                 key=lambda group: str(group["model"]),
             )
             values = [
@@ -320,7 +317,7 @@ def plot_grammar_pass_rates(
                     representation,
                     effort,
                     groups,
-                    tier=tier,
+                    board_size=board_size,
                 ),
                 x_title="sampled grammar",
                 y_title="model",
@@ -337,11 +334,11 @@ def plot_token_usage_bars(
     figures = []
     for representation, effort, groups in _group_slices(aggregate):
         ordered = _ordered_groups(groups)
-        tiers = [str(group["tier"]) for group in ordered]
+        board_sizes = [str(group["board_size"]) for group in ordered]
         models = [str(group["model"]) for group in ordered]
-        categories = [tiers, models]
+        categories = [board_sizes, models]
         hover_data = [
-            [str(group["tier"]), str(group["model"])]
+            [str(group["board_size"]), str(group["model"])]
             for group in ordered
         ]
         prompt = [_usage_mean(group, "prompt_tokens") for group in ordered]
@@ -366,7 +363,7 @@ def plot_token_usage_bars(
                 "y": values,
                 "customdata": hover_data,
                 "hovertemplate": (
-                    "tier=%{customdata[0]}<br>"
+                    "board size=%{customdata[0]}<br>"
                     "model=%{customdata[1]}<br>"
                     + name
                     + ": %{y:,.0f}<extra></extra>"
@@ -395,7 +392,7 @@ def plot_token_usage_bars(
             figure,
             "Average token usage per attempt",
             metadata=_plot_metadata(representation, effort, groups),
-            x_title="tier and model",
+            x_title="board size and model",
             y_title="average tokens",
         )
         figure.update_xaxes(type="multicategory")
@@ -418,11 +415,11 @@ def plot_quality_score_bars(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
     for representation, effort, groups in _group_slices(aggregate):
         ordered = _ordered_groups(groups)
         categories = [
-            [str(group["tier"]) for group in ordered],
+            [str(group["board_size"]) for group in ordered],
             [str(group["model"]) for group in ordered],
         ]
         hover_data = [
-            [str(group["tier"]), str(group["model"])] for group in ordered
+            [str(group["board_size"]), str(group["model"])] for group in ordered
         ]
         for metric, title, hover_label in QUALITY_METRICS:
             values = [_quality_mean(group, metric) for group in ordered]
@@ -438,7 +435,7 @@ def plot_quality_score_bars(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
                     ],
                     textposition="outside",
                     hovertemplate=(
-                        "tier=%{customdata[0]}<br>"
+                        "board size=%{customdata[0]}<br>"
                         "model=%{customdata[1]}<br>"
                         f"{hover_label}: %{{y:.2f}}<extra></extra>"
                     ),
@@ -448,7 +445,7 @@ def plot_quality_score_bars(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
                 figure,
                 title,
                 metadata=_plot_metadata(representation, effort, groups),
-                x_title="tier and model",
+                x_title="board size and model",
                 y_title=title.removeprefix("Average ").title(),
             )
             figure.update_xaxes(type="multicategory")
@@ -468,9 +465,7 @@ def plot_latency_tables(
 
     figures = []
     for representation, effort, groups in _group_slices(aggregate):
-        present_tiers = set(_ordered_tiers(groups))
-        tiers = list(TIER_ORDER)
-        tiers.extend(sorted(present_tiers - set(tiers)))
+        board_sizes = _ordered_board_sizes(groups)
         models = sorted({str(group["model"]) for group in groups})
         runtime_columns = [
             [
@@ -478,20 +473,20 @@ def plot_latency_tables(
                     _group_summary_mean(
                         groups,
                         model,
-                        tier,
+                        board_size,
                         family="timing",
                         metric="request_elapsed_seconds",
                     )
                 )
                 for model in models
             ]
-            for tier in tiers
+            for board_size in board_sizes
         ]
         figure = go.Figure(
             go.Table(
                 header={
-                    "values": ["Model", *[tier.title() for tier in tiers]],
-                    "align": ["left", *(["right"] * len(tiers))],
+                    "values": ["Model", *[str(size) for size in board_sizes]],
+                    "align": ["left", *(["right"] * len(board_sizes))],
                     "fill_color": "#e8eef7",
                     "font": {"color": "#172033", "size": 13},
                     "height": 30,
@@ -501,7 +496,7 @@ def plot_latency_tables(
                         models,
                         *runtime_columns,
                     ],
-                    "align": ["left", *(["right"] * len(tiers))],
+                    "align": ["left", *(["right"] * len(board_sizes))],
                     "fill_color": "#ffffff",
                     "font": {"color": "#172033", "size": 12},
                     "height": 28,
@@ -532,10 +527,9 @@ def _group_slices(
     ]
 
 
-def _ordered_tiers(groups: list[Mapping[str, Any]]) -> list[str]:
+def _ordered_board_sizes(groups: list[Mapping[str, Any]]) -> list[int]:
     return sorted(
-        {str(group["tier"]) for group in groups},
-        key=_tier_key,
+        {int(group["board_size"]) for group in groups},
     )
 
 
@@ -545,27 +539,20 @@ def _ordered_groups(
     return sorted(
         groups,
         key=lambda group: (
-            _tier_key(str(group["tier"])),
+            int(group["board_size"]),
             str(group["model"]),
         ),
     )
 
 
-def _tier_key(tier: str) -> tuple[int, str]:
-    try:
-        return (TIER_ORDER.index(tier), tier)
-    except ValueError:
-        return (len(TIER_ORDER), tier)
-
-
 def _group_value(
     groups: list[Mapping[str, Any]],
     model: str,
-    tier: str,
+    board_size: int,
     field: str,
 ) -> Any:
     for group in groups:
-        if group["model"] == model and group["tier"] == tier:
+        if group["model"] == model and int(group["board_size"]) == board_size:
             return group.get(field)
     return None
 
@@ -573,7 +560,7 @@ def _group_value(
 def _group_summary_mean(
     groups: list[Mapping[str, Any]],
     model: str,
-    tier: str,
+    board_size: int,
     *,
     family: str,
     metric: str,
@@ -581,7 +568,7 @@ def _group_summary_mean(
     return _group_summary_stat(
         groups,
         model,
-        tier,
+        board_size,
         family=family,
         metric=metric,
         statistic="mean",
@@ -591,14 +578,14 @@ def _group_summary_mean(
 def _group_summary_stat(
     groups: list[Mapping[str, Any]],
     model: str,
-    tier: str,
+    board_size: int,
     *,
     family: str,
     metric: str,
     statistic: str,
 ) -> float | None:
     for group in groups:
-        if group["model"] == model and group["tier"] == tier:
+        if group["model"] == model and int(group["board_size"]) == board_size:
             value = group.get(family, {}).get(metric, {}).get(statistic)
             return float(value) if value is not None else None
     return None
@@ -616,10 +603,7 @@ def _pass_rate_label(
 
 
 def _grammar_id(grammar: Mapping[str, Any]) -> str:
-    return (
-        f"r{int(grammar['sampling_round']):02d}."
-        f"g{int(grammar['grammar_sample_index']):02d}"
-    )
+    return f"r{int(grammar['sampling_round']):02d}"
 
 
 def _grammar_value(
@@ -651,11 +635,15 @@ def _plot_metadata(
     effort: str,
     groups: list[Mapping[str, Any]],
     *,
-    tier: str | None = None,
+    board_size: int | None = None,
 ) -> Mapping[str, str]:
-    tiers = tier or ", ".join(_ordered_tiers(groups))
+    board_sizes = (
+        str(board_size)
+        if board_size is not None
+        else ", ".join(str(size) for size in _ordered_board_sizes(groups))
+    )
     return {
-        "Tier": tiers,
+        "Board size": board_sizes,
         "Representation": representation,
         "Reasoning": effort,
     }
@@ -896,7 +884,7 @@ def display_attempt_summary(context: EvaluationAttemptContext) -> object:
         {"rack": context.rack, "rack_symbols_needed": dict(needed)}
     )
 
-    tier = attempt.get("tier", "")
+    board_size = attempt.get("board_size", "")
     model = attempt.get("model", "")
     lang_repr = attempt.get("language_representation", "")
     effort = attempt.get("reasoning_effort", "")
@@ -914,7 +902,7 @@ def display_attempt_summary(context: EvaluationAttemptContext) -> object:
         <span style="background:{status_color};color:white;font-weight:700;
                      border-radius:999px;padding:3px 10px;font-size:12px;">{status}</span>
         <span style="font-size:13px;color:#6b7280;">
-          tier:&nbsp;<b>{html.escape(tier)}</b>&ensp;·&ensp;
+          board size:&nbsp;<b>{html.escape(str(board_size))}</b>&ensp;·&ensp;
           model:&nbsp;<b>{html.escape(model)}</b>&ensp;·&ensp;
           repr:&nbsp;<b>{html.escape(lang_repr)}</b>&ensp;·&ensp;
           effort:&nbsp;<b>{html.escape(effort)}</b>

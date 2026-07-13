@@ -1,0 +1,1853 @@
+{
+  "schema_version": 2,
+  "dimensions": [
+    "board_size",
+    "model",
+    "language_representation",
+    "reasoning_effort"
+  ],
+  "overall": {
+    "total_attempts": 7,
+    "completed": 7,
+    "passed": 5,
+    "failed": 2,
+    "pass_rate": 0.7142857142857143,
+    "transport_errors": 0,
+    "retry_count_total": 0,
+    "primary_failures": {
+      "parse": 1,
+      "sequence": 1
+    },
+    "failed_constraints": {
+      "parse_ok": 1,
+      "sequence_valid": 2,
+      "min_length_fulfilled": 1,
+      "spatial_valid": 1,
+      "overlap_valid": 2,
+      "no_word_extension": 1,
+      "cross_words_valid": 1,
+      "rack_valid": 0
+    },
+    "constraint_pass_rates": {
+      "parse_ok": 0.8571428571428571,
+      "sequence_valid": 0.7142857142857143,
+      "min_length_fulfilled": 0.8571428571428571,
+      "spatial_valid": 0.8571428571428571,
+      "overlap_valid": 0.7142857142857143,
+      "no_word_extension": 0.8571428571428571,
+      "cross_words_valid": 0.7142857142857143,
+      "rack_valid": 0.8571428571428571
+    },
+    "timing": {
+      "request_elapsed_seconds": {
+        "count": 7,
+        "sum": 2192.621105499915,
+        "mean": 313.2315864999878,
+        "median": 204.36976591695566,
+        "min": 64.09333141695242,
+        "max": 945.9329709999729
+      },
+      "llm_elapsed_seconds": {
+        "count": 7,
+        "sum": 2192.621105499915,
+        "mean": 313.2315864999878,
+        "median": 204.36976591695566,
+        "min": 64.09333141695242,
+        "max": 945.9329709999729
+      },
+      "llm_elapsed_seconds_total": {
+        "count": 7,
+        "sum": 2192.621105499915,
+        "mean": 313.2315864999878,
+        "median": 204.36976591695566,
+        "min": 64.09333141695242,
+        "max": 945.9329709999729
+      },
+      "retry_wait_seconds_total": {
+        "count": 7,
+        "sum": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "provider_processing_ms": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      }
+    },
+    "usage": {
+      "prompt_tokens": {
+        "count": 7,
+        "sum": 12414.0,
+        "mean": 1773.4285714285713,
+        "median": 1646.0,
+        "min": 1564.0,
+        "max": 2456.0
+      },
+      "completion_tokens": {
+        "count": 7,
+        "sum": 123439.0,
+        "mean": 17634.14285714286,
+        "median": 12247.0,
+        "min": 7325.0,
+        "max": 32385.0
+      },
+      "reasoning_tokens": {
+        "count": 7,
+        "sum": 116086.0,
+        "mean": 16583.714285714286,
+        "median": 12221.0,
+        "min": 1124.0,
+        "max": 32384.0
+      },
+      "total_tokens": {
+        "count": 7,
+        "sum": 135853.0,
+        "mean": 19407.571428571428,
+        "median": 14097.0,
+        "min": 8946.0,
+        "max": 34010.0
+      }
+    },
+    "quality": {
+      "rack_symbols_used": {
+        "count": 7,
+        "sum": 28.0,
+        "mean": 4.0,
+        "median": 5.0,
+        "min": 0.0,
+        "max": 5.0
+      },
+      "rack_usage_ratio": {
+        "count": 7,
+        "sum": 5.6,
+        "mean": 0.7999999999999999,
+        "median": 1.0,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "main_word_length": {
+        "count": 5,
+        "sum": 30.0,
+        "mean": 6.0,
+        "median": 6.0,
+        "min": 6.0,
+        "max": 6.0
+      },
+      "overlap_count": {
+        "count": 5,
+        "sum": 5.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "letter_score_total": {
+        "count": 5,
+        "sum": 68.0,
+        "mean": 13.6,
+        "median": 14.0,
+        "min": 13.0,
+        "max": 14.0
+      }
+    },
+    "grammars": [
+      {
+        "sampling_round": 0,
+        "total_attempts": 7,
+        "completed": 7,
+        "passed": 5,
+        "failed": 2,
+        "pass_rate": 0.7142857142857143,
+        "transport_errors": 0,
+        "retry_count_total": 0,
+        "primary_failures": {
+          "parse": 1,
+          "sequence": 1
+        },
+        "failed_constraints": {
+          "parse_ok": 1,
+          "sequence_valid": 2,
+          "min_length_fulfilled": 1,
+          "spatial_valid": 1,
+          "overlap_valid": 2,
+          "no_word_extension": 1,
+          "cross_words_valid": 1,
+          "rack_valid": 0
+        },
+        "constraint_pass_rates": {
+          "parse_ok": 0.8571428571428571,
+          "sequence_valid": 0.7142857142857143,
+          "min_length_fulfilled": 0.8571428571428571,
+          "spatial_valid": 0.8571428571428571,
+          "overlap_valid": 0.7142857142857143,
+          "no_word_extension": 0.8571428571428571,
+          "cross_words_valid": 0.7142857142857143,
+          "rack_valid": 0.8571428571428571
+        },
+        "timing": {},
+        "usage": {},
+        "quality": {
+          "rack_symbols_used": {
+            "count": 7,
+            "sum": 28.0,
+            "mean": 4.0,
+            "median": 5.0,
+            "min": 0.0,
+            "max": 5.0
+          },
+          "rack_usage_ratio": {
+            "count": 7,
+            "sum": 5.6,
+            "mean": 0.7999999999999999,
+            "median": 1.0,
+            "min": 0.0,
+            "max": 1.0
+          },
+          "main_word_length": {
+            "count": 5,
+            "sum": 30.0,
+            "mean": 6.0,
+            "median": 6.0,
+            "min": 6.0,
+            "max": 6.0
+          },
+          "overlap_count": {
+            "count": 5,
+            "sum": 5.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "letter_score_total": {
+            "count": 5,
+            "sum": 68.0,
+            "mean": 13.6,
+            "median": 14.0,
+            "min": 13.0,
+            "max": 14.0
+          }
+        }
+      }
+    ]
+  },
+  "groups": [
+    {
+      "board_size": 1,
+      "model": "or_claude-opus-4-8",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 1,
+      "passed": 1,
+      "failed": 0,
+      "pass_rate": 1.0,
+      "transport_errors": 0,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": 1.0,
+        "sequence_valid": 1.0,
+        "min_length_fulfilled": 1.0,
+        "spatial_valid": 1.0,
+        "overlap_valid": 1.0,
+        "no_word_extension": 1.0,
+        "cross_words_valid": 1.0,
+        "rack_valid": 1.0
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 95.49738116702065,
+          "mean": 95.49738116702065,
+          "median": 95.49738116702065,
+          "min": 95.49738116702065,
+          "max": 95.49738116702065
+        },
+        "llm_elapsed_seconds": {
+          "count": 1,
+          "sum": 95.49738116702065,
+          "mean": 95.49738116702065,
+          "median": 95.49738116702065,
+          "min": 95.49738116702065,
+          "max": 95.49738116702065
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 1,
+          "sum": 95.49738116702065,
+          "mean": 95.49738116702065,
+          "median": 95.49738116702065,
+          "min": 95.49738116702065,
+          "max": 95.49738116702065
+        },
+        "retry_wait_seconds_total": {
+          "count": 1,
+          "sum": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 1,
+          "sum": 2456.0,
+          "mean": 2456.0,
+          "median": 2456.0,
+          "min": 2456.0,
+          "max": 2456.0
+        },
+        "completion_tokens": {
+          "count": 1,
+          "sum": 8279.0,
+          "mean": 8279.0,
+          "median": 8279.0,
+          "min": 8279.0,
+          "max": 8279.0
+        },
+        "reasoning_tokens": {
+          "count": 1,
+          "sum": 1124.0,
+          "mean": 1124.0,
+          "median": 1124.0,
+          "min": 1124.0,
+          "max": 1124.0
+        },
+        "total_tokens": {
+          "count": 1,
+          "sum": 10735.0,
+          "mean": 10735.0,
+          "median": 10735.0,
+          "min": 10735.0,
+          "max": 10735.0
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 1,
+          "sum": 5.0,
+          "mean": 5.0,
+          "median": 5.0,
+          "min": 5.0,
+          "max": 5.0
+        },
+        "rack_usage_ratio": {
+          "count": 1,
+          "sum": 1.0,
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "main_word_length": {
+          "count": 1,
+          "sum": 6.0,
+          "mean": 6.0,
+          "median": 6.0,
+          "min": 6.0,
+          "max": 6.0
+        },
+        "overlap_count": {
+          "count": 1,
+          "sum": 1.0,
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "letter_score_total": {
+          "count": 1,
+          "sum": 13.0,
+          "mean": 13.0,
+          "median": 13.0,
+          "min": 13.0,
+          "max": 13.0
+        }
+      },
+      "grammars": [
+        {
+          "sampling_round": 0,
+          "total_attempts": 1,
+          "completed": 1,
+          "passed": 1,
+          "failed": 0,
+          "pass_rate": 1.0,
+          "transport_errors": 0,
+          "retry_count_total": 0,
+          "primary_failures": {},
+          "failed_constraints": {
+            "parse_ok": 0,
+            "sequence_valid": 0,
+            "min_length_fulfilled": 0,
+            "spatial_valid": 0,
+            "overlap_valid": 0,
+            "no_word_extension": 0,
+            "cross_words_valid": 0,
+            "rack_valid": 0
+          },
+          "constraint_pass_rates": {
+            "parse_ok": 1.0,
+            "sequence_valid": 1.0,
+            "min_length_fulfilled": 1.0,
+            "spatial_valid": 1.0,
+            "overlap_valid": 1.0,
+            "no_word_extension": 1.0,
+            "cross_words_valid": 1.0,
+            "rack_valid": 1.0
+          },
+          "timing": {},
+          "usage": {},
+          "quality": {
+            "rack_symbols_used": {
+              "count": 1,
+              "sum": 5.0,
+              "mean": 5.0,
+              "median": 5.0,
+              "min": 5.0,
+              "max": 5.0
+            },
+            "rack_usage_ratio": {
+              "count": 1,
+              "sum": 1.0,
+              "mean": 1.0,
+              "median": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "main_word_length": {
+              "count": 1,
+              "sum": 6.0,
+              "mean": 6.0,
+              "median": 6.0,
+              "min": 6.0,
+              "max": 6.0
+            },
+            "overlap_count": {
+              "count": 1,
+              "sum": 1.0,
+              "mean": 1.0,
+              "median": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "letter_score_total": {
+              "count": 1,
+              "sum": 13.0,
+              "mean": 13.0,
+              "median": 13.0,
+              "min": 13.0,
+              "max": 13.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "board_size": 1,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0,
+      "retry_count_total": 0,
+      "primary_failures": {
+        "parse": 1
+      },
+      "failed_constraints": {
+        "parse_ok": 1,
+        "sequence_valid": 1,
+        "min_length_fulfilled": 1,
+        "spatial_valid": 1,
+        "overlap_valid": 1,
+        "no_word_extension": 1,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": 0.0,
+        "sequence_valid": 0.0,
+        "min_length_fulfilled": 0.0,
+        "spatial_valid": 0.0,
+        "overlap_valid": 0.0,
+        "no_word_extension": 0.0,
+        "cross_words_valid": 0.0,
+        "rack_valid": 0.0
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 343.31815545796417,
+          "mean": 343.31815545796417,
+          "median": 343.31815545796417,
+          "min": 343.31815545796417,
+          "max": 343.31815545796417
+        },
+        "llm_elapsed_seconds": {
+          "count": 1,
+          "sum": 343.31815545796417,
+          "mean": 343.31815545796417,
+          "median": 343.31815545796417,
+          "min": 343.31815545796417,
+          "max": 343.31815545796417
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 1,
+          "sum": 343.31815545796417,
+          "mean": 343.31815545796417,
+          "median": 343.31815545796417,
+          "min": 343.31815545796417,
+          "max": 343.31815545796417
+        },
+        "retry_wait_seconds_total": {
+          "count": 1,
+          "sum": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 1,
+          "sum": 1625.0,
+          "mean": 1625.0,
+          "median": 1625.0,
+          "min": 1625.0,
+          "max": 1625.0
+        },
+        "completion_tokens": {
+          "count": 1,
+          "sum": 32385.0,
+          "mean": 32385.0,
+          "median": 32385.0,
+          "min": 32385.0,
+          "max": 32385.0
+        },
+        "reasoning_tokens": {
+          "count": 1,
+          "sum": 32384.0,
+          "mean": 32384.0,
+          "median": 32384.0,
+          "min": 32384.0,
+          "max": 32384.0
+        },
+        "total_tokens": {
+          "count": 1,
+          "sum": 34010.0,
+          "mean": 34010.0,
+          "median": 34010.0,
+          "min": 34010.0,
+          "max": 34010.0
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 1,
+          "sum": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "rack_usage_ratio": {
+          "count": 1,
+          "sum": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": [
+        {
+          "sampling_round": 0,
+          "total_attempts": 1,
+          "completed": 1,
+          "passed": 0,
+          "failed": 1,
+          "pass_rate": 0.0,
+          "transport_errors": 0,
+          "retry_count_total": 0,
+          "primary_failures": {
+            "parse": 1
+          },
+          "failed_constraints": {
+            "parse_ok": 1,
+            "sequence_valid": 1,
+            "min_length_fulfilled": 1,
+            "spatial_valid": 1,
+            "overlap_valid": 1,
+            "no_word_extension": 1,
+            "cross_words_valid": 0,
+            "rack_valid": 0
+          },
+          "constraint_pass_rates": {
+            "parse_ok": 0.0,
+            "sequence_valid": 0.0,
+            "min_length_fulfilled": 0.0,
+            "spatial_valid": 0.0,
+            "overlap_valid": 0.0,
+            "no_word_extension": 0.0,
+            "cross_words_valid": 0.0,
+            "rack_valid": 0.0
+          },
+          "timing": {},
+          "usage": {},
+          "quality": {
+            "rack_symbols_used": {
+              "count": 1,
+              "sum": 0.0,
+              "mean": 0.0,
+              "median": 0.0,
+              "min": 0.0,
+              "max": 0.0
+            },
+            "rack_usage_ratio": {
+              "count": 1,
+              "sum": 0.0,
+              "mean": 0.0,
+              "median": 0.0,
+              "min": 0.0,
+              "max": 0.0
+            },
+            "main_word_length": {
+              "count": 0,
+              "sum": null,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "overlap_count": {
+              "count": 0,
+              "sum": null,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "letter_score_total": {
+              "count": 0,
+              "sum": null,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "board_size": 1,
+      "model": "or_gemini-3-1-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 1,
+      "passed": 1,
+      "failed": 0,
+      "pass_rate": 1.0,
+      "transport_errors": 0,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": 1.0,
+        "sequence_valid": 1.0,
+        "min_length_fulfilled": 1.0,
+        "spatial_valid": 1.0,
+        "overlap_valid": 1.0,
+        "no_word_extension": 1.0,
+        "cross_words_valid": 1.0,
+        "rack_valid": 1.0
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 64.09333141695242,
+          "mean": 64.09333141695242,
+          "median": 64.09333141695242,
+          "min": 64.09333141695242,
+          "max": 64.09333141695242
+        },
+        "llm_elapsed_seconds": {
+          "count": 1,
+          "sum": 64.09333141695242,
+          "mean": 64.09333141695242,
+          "median": 64.09333141695242,
+          "min": 64.09333141695242,
+          "max": 64.09333141695242
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 1,
+          "sum": 64.09333141695242,
+          "mean": 64.09333141695242,
+          "median": 64.09333141695242,
+          "min": 64.09333141695242,
+          "max": 64.09333141695242
+        },
+        "retry_wait_seconds_total": {
+          "count": 1,
+          "sum": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 1,
+          "sum": 1621.0,
+          "mean": 1621.0,
+          "median": 1621.0,
+          "min": 1621.0,
+          "max": 1621.0
+        },
+        "completion_tokens": {
+          "count": 1,
+          "sum": 7325.0,
+          "mean": 7325.0,
+          "median": 7325.0,
+          "min": 7325.0,
+          "max": 7325.0
+        },
+        "reasoning_tokens": {
+          "count": 1,
+          "sum": 7260.0,
+          "mean": 7260.0,
+          "median": 7260.0,
+          "min": 7260.0,
+          "max": 7260.0
+        },
+        "total_tokens": {
+          "count": 1,
+          "sum": 8946.0,
+          "mean": 8946.0,
+          "median": 8946.0,
+          "min": 8946.0,
+          "max": 8946.0
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 1,
+          "sum": 5.0,
+          "mean": 5.0,
+          "median": 5.0,
+          "min": 5.0,
+          "max": 5.0
+        },
+        "rack_usage_ratio": {
+          "count": 1,
+          "sum": 1.0,
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "main_word_length": {
+          "count": 1,
+          "sum": 6.0,
+          "mean": 6.0,
+          "median": 6.0,
+          "min": 6.0,
+          "max": 6.0
+        },
+        "overlap_count": {
+          "count": 1,
+          "sum": 1.0,
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "letter_score_total": {
+          "count": 1,
+          "sum": 14.0,
+          "mean": 14.0,
+          "median": 14.0,
+          "min": 14.0,
+          "max": 14.0
+        }
+      },
+      "grammars": [
+        {
+          "sampling_round": 0,
+          "total_attempts": 1,
+          "completed": 1,
+          "passed": 1,
+          "failed": 0,
+          "pass_rate": 1.0,
+          "transport_errors": 0,
+          "retry_count_total": 0,
+          "primary_failures": {},
+          "failed_constraints": {
+            "parse_ok": 0,
+            "sequence_valid": 0,
+            "min_length_fulfilled": 0,
+            "spatial_valid": 0,
+            "overlap_valid": 0,
+            "no_word_extension": 0,
+            "cross_words_valid": 0,
+            "rack_valid": 0
+          },
+          "constraint_pass_rates": {
+            "parse_ok": 1.0,
+            "sequence_valid": 1.0,
+            "min_length_fulfilled": 1.0,
+            "spatial_valid": 1.0,
+            "overlap_valid": 1.0,
+            "no_word_extension": 1.0,
+            "cross_words_valid": 1.0,
+            "rack_valid": 1.0
+          },
+          "timing": {},
+          "usage": {},
+          "quality": {
+            "rack_symbols_used": {
+              "count": 1,
+              "sum": 5.0,
+              "mean": 5.0,
+              "median": 5.0,
+              "min": 5.0,
+              "max": 5.0
+            },
+            "rack_usage_ratio": {
+              "count": 1,
+              "sum": 1.0,
+              "mean": 1.0,
+              "median": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "main_word_length": {
+              "count": 1,
+              "sum": 6.0,
+              "mean": 6.0,
+              "median": 6.0,
+              "min": 6.0,
+              "max": 6.0
+            },
+            "overlap_count": {
+              "count": 1,
+              "sum": 1.0,
+              "mean": 1.0,
+              "median": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "letter_score_total": {
+              "count": 1,
+              "sum": 14.0,
+              "mean": 14.0,
+              "median": 14.0,
+              "min": 14.0,
+              "max": 14.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "board_size": 1,
+      "model": "or_gpt-5-5",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 1,
+      "passed": 1,
+      "failed": 0,
+      "pass_rate": 1.0,
+      "transport_errors": 0,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": 1.0,
+        "sequence_valid": 1.0,
+        "min_length_fulfilled": 1.0,
+        "spatial_valid": 1.0,
+        "overlap_valid": 1.0,
+        "no_word_extension": 1.0,
+        "cross_words_valid": 1.0,
+        "rack_valid": 1.0
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 176.43456724996213,
+          "mean": 176.43456724996213,
+          "median": 176.43456724996213,
+          "min": 176.43456724996213,
+          "max": 176.43456724996213
+        },
+        "llm_elapsed_seconds": {
+          "count": 1,
+          "sum": 176.43456724996213,
+          "mean": 176.43456724996213,
+          "median": 176.43456724996213,
+          "min": 176.43456724996213,
+          "max": 176.43456724996213
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 1,
+          "sum": 176.43456724996213,
+          "mean": 176.43456724996213,
+          "median": 176.43456724996213,
+          "min": 176.43456724996213,
+          "max": 176.43456724996213
+        },
+        "retry_wait_seconds_total": {
+          "count": 1,
+          "sum": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 1,
+          "sum": 1652.0,
+          "mean": 1652.0,
+          "median": 1652.0,
+          "min": 1652.0,
+          "max": 1652.0
+        },
+        "completion_tokens": {
+          "count": 1,
+          "sum": 10912.0,
+          "mean": 10912.0,
+          "median": 10912.0,
+          "min": 10912.0,
+          "max": 10912.0
+        },
+        "reasoning_tokens": {
+          "count": 1,
+          "sum": 10876.0,
+          "mean": 10876.0,
+          "median": 10876.0,
+          "min": 10876.0,
+          "max": 10876.0
+        },
+        "total_tokens": {
+          "count": 1,
+          "sum": 12564.0,
+          "mean": 12564.0,
+          "median": 12564.0,
+          "min": 12564.0,
+          "max": 12564.0
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 1,
+          "sum": 5.0,
+          "mean": 5.0,
+          "median": 5.0,
+          "min": 5.0,
+          "max": 5.0
+        },
+        "rack_usage_ratio": {
+          "count": 1,
+          "sum": 1.0,
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "main_word_length": {
+          "count": 1,
+          "sum": 6.0,
+          "mean": 6.0,
+          "median": 6.0,
+          "min": 6.0,
+          "max": 6.0
+        },
+        "overlap_count": {
+          "count": 1,
+          "sum": 1.0,
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "letter_score_total": {
+          "count": 1,
+          "sum": 14.0,
+          "mean": 14.0,
+          "median": 14.0,
+          "min": 14.0,
+          "max": 14.0
+        }
+      },
+      "grammars": [
+        {
+          "sampling_round": 0,
+          "total_attempts": 1,
+          "completed": 1,
+          "passed": 1,
+          "failed": 0,
+          "pass_rate": 1.0,
+          "transport_errors": 0,
+          "retry_count_total": 0,
+          "primary_failures": {},
+          "failed_constraints": {
+            "parse_ok": 0,
+            "sequence_valid": 0,
+            "min_length_fulfilled": 0,
+            "spatial_valid": 0,
+            "overlap_valid": 0,
+            "no_word_extension": 0,
+            "cross_words_valid": 0,
+            "rack_valid": 0
+          },
+          "constraint_pass_rates": {
+            "parse_ok": 1.0,
+            "sequence_valid": 1.0,
+            "min_length_fulfilled": 1.0,
+            "spatial_valid": 1.0,
+            "overlap_valid": 1.0,
+            "no_word_extension": 1.0,
+            "cross_words_valid": 1.0,
+            "rack_valid": 1.0
+          },
+          "timing": {},
+          "usage": {},
+          "quality": {
+            "rack_symbols_used": {
+              "count": 1,
+              "sum": 5.0,
+              "mean": 5.0,
+              "median": 5.0,
+              "min": 5.0,
+              "max": 5.0
+            },
+            "rack_usage_ratio": {
+              "count": 1,
+              "sum": 1.0,
+              "mean": 1.0,
+              "median": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "main_word_length": {
+              "count": 1,
+              "sum": 6.0,
+              "mean": 6.0,
+              "median": 6.0,
+              "min": 6.0,
+              "max": 6.0
+            },
+            "overlap_count": {
+              "count": 1,
+              "sum": 1.0,
+              "mean": 1.0,
+              "median": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "letter_score_total": {
+              "count": 1,
+              "sum": 14.0,
+              "mean": 14.0,
+              "median": 14.0,
+              "min": 14.0,
+              "max": 14.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "board_size": 1,
+      "model": "or_grok-4-3",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 1,
+      "passed": 1,
+      "failed": 0,
+      "pass_rate": 1.0,
+      "transport_errors": 0,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": 1.0,
+        "sequence_valid": 1.0,
+        "min_length_fulfilled": 1.0,
+        "spatial_valid": 1.0,
+        "overlap_valid": 1.0,
+        "no_word_extension": 1.0,
+        "cross_words_valid": 1.0,
+        "rack_valid": 1.0
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 204.36976591695566,
+          "mean": 204.36976591695566,
+          "median": 204.36976591695566,
+          "min": 204.36976591695566,
+          "max": 204.36976591695566
+        },
+        "llm_elapsed_seconds": {
+          "count": 1,
+          "sum": 204.36976591695566,
+          "mean": 204.36976591695566,
+          "median": 204.36976591695566,
+          "min": 204.36976591695566,
+          "max": 204.36976591695566
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 1,
+          "sum": 204.36976591695566,
+          "mean": 204.36976591695566,
+          "median": 204.36976591695566,
+          "min": 204.36976591695566,
+          "max": 204.36976591695566
+        },
+        "retry_wait_seconds_total": {
+          "count": 1,
+          "sum": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 1,
+          "sum": 1850.0,
+          "mean": 1850.0,
+          "median": 1850.0,
+          "min": 1850.0,
+          "max": 1850.0
+        },
+        "completion_tokens": {
+          "count": 1,
+          "sum": 12247.0,
+          "mean": 12247.0,
+          "median": 12247.0,
+          "min": 12247.0,
+          "max": 12247.0
+        },
+        "reasoning_tokens": {
+          "count": 1,
+          "sum": 12221.0,
+          "mean": 12221.0,
+          "median": 12221.0,
+          "min": 12221.0,
+          "max": 12221.0
+        },
+        "total_tokens": {
+          "count": 1,
+          "sum": 14097.0,
+          "mean": 14097.0,
+          "median": 14097.0,
+          "min": 14097.0,
+          "max": 14097.0
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 1,
+          "sum": 5.0,
+          "mean": 5.0,
+          "median": 5.0,
+          "min": 5.0,
+          "max": 5.0
+        },
+        "rack_usage_ratio": {
+          "count": 1,
+          "sum": 1.0,
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "main_word_length": {
+          "count": 1,
+          "sum": 6.0,
+          "mean": 6.0,
+          "median": 6.0,
+          "min": 6.0,
+          "max": 6.0
+        },
+        "overlap_count": {
+          "count": 1,
+          "sum": 1.0,
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "letter_score_total": {
+          "count": 1,
+          "sum": 13.0,
+          "mean": 13.0,
+          "median": 13.0,
+          "min": 13.0,
+          "max": 13.0
+        }
+      },
+      "grammars": [
+        {
+          "sampling_round": 0,
+          "total_attempts": 1,
+          "completed": 1,
+          "passed": 1,
+          "failed": 0,
+          "pass_rate": 1.0,
+          "transport_errors": 0,
+          "retry_count_total": 0,
+          "primary_failures": {},
+          "failed_constraints": {
+            "parse_ok": 0,
+            "sequence_valid": 0,
+            "min_length_fulfilled": 0,
+            "spatial_valid": 0,
+            "overlap_valid": 0,
+            "no_word_extension": 0,
+            "cross_words_valid": 0,
+            "rack_valid": 0
+          },
+          "constraint_pass_rates": {
+            "parse_ok": 1.0,
+            "sequence_valid": 1.0,
+            "min_length_fulfilled": 1.0,
+            "spatial_valid": 1.0,
+            "overlap_valid": 1.0,
+            "no_word_extension": 1.0,
+            "cross_words_valid": 1.0,
+            "rack_valid": 1.0
+          },
+          "timing": {},
+          "usage": {},
+          "quality": {
+            "rack_symbols_used": {
+              "count": 1,
+              "sum": 5.0,
+              "mean": 5.0,
+              "median": 5.0,
+              "min": 5.0,
+              "max": 5.0
+            },
+            "rack_usage_ratio": {
+              "count": 1,
+              "sum": 1.0,
+              "mean": 1.0,
+              "median": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "main_word_length": {
+              "count": 1,
+              "sum": 6.0,
+              "mean": 6.0,
+              "median": 6.0,
+              "min": 6.0,
+              "max": 6.0
+            },
+            "overlap_count": {
+              "count": 1,
+              "sum": 1.0,
+              "mean": 1.0,
+              "median": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "letter_score_total": {
+              "count": 1,
+              "sum": 13.0,
+              "mean": 13.0,
+              "median": 13.0,
+              "min": 13.0,
+              "max": 13.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "board_size": 1,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 1,
+      "passed": 1,
+      "failed": 0,
+      "pass_rate": 1.0,
+      "transport_errors": 0,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": 1.0,
+        "sequence_valid": 1.0,
+        "min_length_fulfilled": 1.0,
+        "spatial_valid": 1.0,
+        "overlap_valid": 1.0,
+        "no_word_extension": 1.0,
+        "cross_words_valid": 1.0,
+        "rack_valid": 1.0
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 945.9329709999729,
+          "mean": 945.9329709999729,
+          "median": 945.9329709999729,
+          "min": 945.9329709999729,
+          "max": 945.9329709999729
+        },
+        "llm_elapsed_seconds": {
+          "count": 1,
+          "sum": 945.9329709999729,
+          "mean": 945.9329709999729,
+          "median": 945.9329709999729,
+          "min": 945.9329709999729,
+          "max": 945.9329709999729
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 1,
+          "sum": 945.9329709999729,
+          "mean": 945.9329709999729,
+          "median": 945.9329709999729,
+          "min": 945.9329709999729,
+          "max": 945.9329709999729
+        },
+        "retry_wait_seconds_total": {
+          "count": 1,
+          "sum": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 1,
+          "sum": 1564.0,
+          "mean": 1564.0,
+          "median": 1564.0,
+          "min": 1564.0,
+          "max": 1564.0
+        },
+        "completion_tokens": {
+          "count": 1,
+          "sum": 32361.0,
+          "mean": 32361.0,
+          "median": 32361.0,
+          "min": 32361.0,
+          "max": 32361.0
+        },
+        "reasoning_tokens": {
+          "count": 1,
+          "sum": 32322.0,
+          "mean": 32322.0,
+          "median": 32322.0,
+          "min": 32322.0,
+          "max": 32322.0
+        },
+        "total_tokens": {
+          "count": 1,
+          "sum": 33925.0,
+          "mean": 33925.0,
+          "median": 33925.0,
+          "min": 33925.0,
+          "max": 33925.0
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 1,
+          "sum": 5.0,
+          "mean": 5.0,
+          "median": 5.0,
+          "min": 5.0,
+          "max": 5.0
+        },
+        "rack_usage_ratio": {
+          "count": 1,
+          "sum": 1.0,
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "main_word_length": {
+          "count": 1,
+          "sum": 6.0,
+          "mean": 6.0,
+          "median": 6.0,
+          "min": 6.0,
+          "max": 6.0
+        },
+        "overlap_count": {
+          "count": 1,
+          "sum": 1.0,
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "letter_score_total": {
+          "count": 1,
+          "sum": 14.0,
+          "mean": 14.0,
+          "median": 14.0,
+          "min": 14.0,
+          "max": 14.0
+        }
+      },
+      "grammars": [
+        {
+          "sampling_round": 0,
+          "total_attempts": 1,
+          "completed": 1,
+          "passed": 1,
+          "failed": 0,
+          "pass_rate": 1.0,
+          "transport_errors": 0,
+          "retry_count_total": 0,
+          "primary_failures": {},
+          "failed_constraints": {
+            "parse_ok": 0,
+            "sequence_valid": 0,
+            "min_length_fulfilled": 0,
+            "spatial_valid": 0,
+            "overlap_valid": 0,
+            "no_word_extension": 0,
+            "cross_words_valid": 0,
+            "rack_valid": 0
+          },
+          "constraint_pass_rates": {
+            "parse_ok": 1.0,
+            "sequence_valid": 1.0,
+            "min_length_fulfilled": 1.0,
+            "spatial_valid": 1.0,
+            "overlap_valid": 1.0,
+            "no_word_extension": 1.0,
+            "cross_words_valid": 1.0,
+            "rack_valid": 1.0
+          },
+          "timing": {},
+          "usage": {},
+          "quality": {
+            "rack_symbols_used": {
+              "count": 1,
+              "sum": 5.0,
+              "mean": 5.0,
+              "median": 5.0,
+              "min": 5.0,
+              "max": 5.0
+            },
+            "rack_usage_ratio": {
+              "count": 1,
+              "sum": 1.0,
+              "mean": 1.0,
+              "median": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "main_word_length": {
+              "count": 1,
+              "sum": 6.0,
+              "mean": 6.0,
+              "median": 6.0,
+              "min": 6.0,
+              "max": 6.0
+            },
+            "overlap_count": {
+              "count": 1,
+              "sum": 1.0,
+              "mean": 1.0,
+              "median": 1.0,
+              "min": 1.0,
+              "max": 1.0
+            },
+            "letter_score_total": {
+              "count": 1,
+              "sum": 14.0,
+              "mean": 14.0,
+              "median": 14.0,
+              "min": 14.0,
+              "max": 14.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "board_size": 1,
+      "model": "or_qwen3-7-max",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 1,
+      "passed": 0,
+      "failed": 1,
+      "pass_rate": 0.0,
+      "transport_errors": 0,
+      "retry_count_total": 0,
+      "primary_failures": {
+        "sequence": 1
+      },
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 1,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 1,
+        "no_word_extension": 0,
+        "cross_words_valid": 1,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": 1.0,
+        "sequence_valid": 0.0,
+        "min_length_fulfilled": 1.0,
+        "spatial_valid": 1.0,
+        "overlap_valid": 0.0,
+        "no_word_extension": 1.0,
+        "cross_words_valid": 0.0,
+        "rack_valid": 1.0
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 362.9749332910869,
+          "mean": 362.9749332910869,
+          "median": 362.9749332910869,
+          "min": 362.9749332910869,
+          "max": 362.9749332910869
+        },
+        "llm_elapsed_seconds": {
+          "count": 1,
+          "sum": 362.9749332910869,
+          "mean": 362.9749332910869,
+          "median": 362.9749332910869,
+          "min": 362.9749332910869,
+          "max": 362.9749332910869
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 1,
+          "sum": 362.9749332910869,
+          "mean": 362.9749332910869,
+          "median": 362.9749332910869,
+          "min": 362.9749332910869,
+          "max": 362.9749332910869
+        },
+        "retry_wait_seconds_total": {
+          "count": 1,
+          "sum": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 1,
+          "sum": 1646.0,
+          "mean": 1646.0,
+          "median": 1646.0,
+          "min": 1646.0,
+          "max": 1646.0
+        },
+        "completion_tokens": {
+          "count": 1,
+          "sum": 19930.0,
+          "mean": 19930.0,
+          "median": 19930.0,
+          "min": 19930.0,
+          "max": 19930.0
+        },
+        "reasoning_tokens": {
+          "count": 1,
+          "sum": 19899.0,
+          "mean": 19899.0,
+          "median": 19899.0,
+          "min": 19899.0,
+          "max": 19899.0
+        },
+        "total_tokens": {
+          "count": 1,
+          "sum": 21576.0,
+          "mean": 21576.0,
+          "median": 21576.0,
+          "min": 21576.0,
+          "max": 21576.0
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 1,
+          "sum": 3.0,
+          "mean": 3.0,
+          "median": 3.0,
+          "min": 3.0,
+          "max": 3.0
+        },
+        "rack_usage_ratio": {
+          "count": 1,
+          "sum": 0.6,
+          "mean": 0.6,
+          "median": 0.6,
+          "min": 0.6,
+          "max": 0.6
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": [
+        {
+          "sampling_round": 0,
+          "total_attempts": 1,
+          "completed": 1,
+          "passed": 0,
+          "failed": 1,
+          "pass_rate": 0.0,
+          "transport_errors": 0,
+          "retry_count_total": 0,
+          "primary_failures": {
+            "sequence": 1
+          },
+          "failed_constraints": {
+            "parse_ok": 0,
+            "sequence_valid": 1,
+            "min_length_fulfilled": 0,
+            "spatial_valid": 0,
+            "overlap_valid": 1,
+            "no_word_extension": 0,
+            "cross_words_valid": 1,
+            "rack_valid": 0
+          },
+          "constraint_pass_rates": {
+            "parse_ok": 1.0,
+            "sequence_valid": 0.0,
+            "min_length_fulfilled": 1.0,
+            "spatial_valid": 1.0,
+            "overlap_valid": 0.0,
+            "no_word_extension": 1.0,
+            "cross_words_valid": 0.0,
+            "rack_valid": 1.0
+          },
+          "timing": {},
+          "usage": {},
+          "quality": {
+            "rack_symbols_used": {
+              "count": 1,
+              "sum": 3.0,
+              "mean": 3.0,
+              "median": 3.0,
+              "min": 3.0,
+              "max": 3.0
+            },
+            "rack_usage_ratio": {
+              "count": 1,
+              "sum": 0.6,
+              "mean": 0.6,
+              "median": 0.6,
+              "min": 0.6,
+              "max": 0.6
+            },
+            "main_word_length": {
+              "count": 0,
+              "sum": null,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "overlap_count": {
+              "count": 0,
+              "sum": null,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "letter_score_total": {
+              "count": 0,
+              "sum": null,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

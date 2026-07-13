@@ -18,7 +18,7 @@ k: 3
 min_word_length: 3
 seed: 42
 alphabet_case: upper
-forbidden_fraction: 0.35
+forbidden_fraction: 0.4
 auto_resample:
   enabled: true
   max_attempts: 20
@@ -34,9 +34,9 @@ The default output is `outputs/grammars/<grammar-id>.json`. An optional `output_
 
 For case sets, `alphabet_size` and `k` are fixed globally by the
 `grammar_config` referenced from the case set (e.g.
-`config/grammars/evaluation_base_grammar.yaml`). They are not configurable per tier:
-every grammar sampled for a case set shares the same `alphabet_size` and `k`,
-isolating `forbidden_fraction` as the per-tier axis under study.
+`config/grammars/evaluation_base_grammar.yaml`). `forbidden_fraction` is also
+fixed globally in that grammar config. The default evaluation value is `0.4`.
+Every grammar sampled for a case set shares these global grammar parameters.
 
 ## Standalone Generation Configs
 
@@ -54,23 +54,23 @@ initial_word_axis: 0
 initial_word_length: 5
 length_distribution:
   start: 3
-  end: 7
+  end: 6
+fixed_final_transition_length: 6
 top_anchor_count: 40
 max_anchor_count: null
 top_template_count: 200
 target_witness_count: 200
 scoring:
-  anchor_centroid_weight: 1.0
-  anchor_free_span_weight: 1.0
-  template_centroid_weight: 1.0
-  template_new_cell_bonus_weight: 2.0
-  template_local_density_penalty_weight: 1.0
-  template_domain_slack_weight: 1.0
+  anchor_centroid_weight: 0.8
+  template_centroid_weight: 1.2
+  template_local_density_penalty_weight: 0.6
 additional_rack_noise: 0
 include_search_logs: true
 ```
 
 `additional_rack_noise` is optional and defaults to `0`. When set above `0`, that many random alphabet symbols are added as filler to each rack on top of the symbols the witness move actually needs.
+
+`fixed_final_transition_length` is optional. When set, the last generated witness transition uses exactly that word length instead of sampling from `length_distribution`. Evaluation case preparation sets `target_witness_count = board_size + 1`, so this fixes the ground-truth move shown to the model while earlier board-building transitions still use the configured range.
 
 `config_name` is omitted. `grammar` is an ID without a parent path or suffix and resolves to `outputs/grammars/<grammar>.json`. External files can instead be selected with `grammar_path`; both fields cannot be set simultaneously.
 
@@ -78,73 +78,45 @@ The default output is `outputs/scenarios/<generation-id>.json`. `output_path` re
 
 ## Case-Set Configs
 
-Tier-set definitions live under `config/evaluation/tiers/`. Each file owns a
-complete, internally consistent set of named tiers:
-
-```yaml
-# config/evaluation/tiers/default.yaml
-tiers:
-  low:
-    dimensions: 2
-    board_depth: {min: 5, max: 53}
-    forbidden_fraction: {min: 0.10, max: 0.20}
-
-  medium:
-    dimensions: 3
-    board_depth: {min: 54, max: 102}
-    forbidden_fraction: {min: 0.20, max: 0.30}
-```
-
-Case-set configs live under `config/evaluation/case_sets/` and select tiers
-from one tier set:
+Case-set configs live under `config/evaluation/case_sets/` and define the
+board sizes to prepare:
 
 ```yaml
 generation_config: evaluation_base
 grammar_config: evaluation_base_grammar
-tier_config: default
 root_seed: 42
-sampling_rounds: 1
-grammar_samples_per_tier: 3
-boards_per_grammar: 10
-tiers:
-  - low
-  - medium
-  - high
-  - stress
+sampling_rounds: 5
+board_sizes:
+  - 10
+  - 50
+  - 150
+  - 400
 ```
 
-`generation_config`, `grammar_config`, and `tier_config` reference complete
-standalone configs. Tier IDs are resolved within the selected tier set when
-the case set is loaded. A second tier-set file can redefine `low`, `medium`,
-`high`, and `stress` for another experimental scale without changing case-set
-or run semantics. The selected tier-set ID and fully resolved values are
-included in the case-set hash.
+`generation_config` and `grammar_config` reference complete standalone configs.
+`board_sizes` contains the number of witness transitions already applied to the
+board shown to the model. Preparing size `50` therefore generates `51` witness
+transitions: 50 to reconstruct the visible board and one ground-truth move to
+solve.
 
-An axis value can be either a fixed scalar or an interval with `min` and `max`. Intervals are sampled with a bounded normal distribution:
+Every `(board_size, sampling_round)` pair samples a new grammar and generates a
+new board from its own deterministic seed. Smaller sizes are not sliced out of
+larger generated boards.
 
-- Mean: interval midpoint.
-- Standard deviation: interval width divided by six.
-- Values outside the interval are redrawn.
-- Integer fields are rounded and finally clamped.
-
-Grammar parameters are drawn per grammar sample. Board parameters are drawn per board sample.
-
-`sampling_rounds` creates completely new parameters, grammars, and boards. Four tiers, one round, three grammar samples, and ten boards produce `4 * 1 * 3 * 10 = 120` cases.
+`sampling_rounds` creates additional independent versions per selected board
+size. Four board sizes and five rounds produce `4 * 5 = 20` grammars, boards,
+and evaluation cases.
 
 ## Run Configs
 
 Run configs live under `config/evaluation/runs/`:
 
 ```yaml
-case_set: 3g_3b_lmh
+case_set: 5r_10-50-150-400
 
 models:
-  gpt-5-mini: [low, medium]
-  gpt-5: [high]
-
-language_representations:
-  - forbidden-snippets
-  - generic-production-rules
+  gpt-5-mini: [50, 400]
+  gpt-5: [all]
 
 execution:
   max_concurrency: 10
@@ -152,11 +124,14 @@ execution:
   max_retries: 5
 ```
 
-`models` maps each model profile from `config/model_configs.yaml` to the complexity tiers it should process. `[all]` selects every prepared tier for that model.
+`models` maps each model profile from `config/model_configs.yaml` to the board
+sizes it should process. `[all]` selects every prepared board size for that
+model.
 
-`language_representations` accepts a list or `all`.
-Every evaluation call uses the native `xhigh` reasoning effort value,
-which is persisted in the job and attempt artifacts.
+The language representation is fixed to `forbidden-snippets`.
+Every evaluation call uses the highest configured native reasoning effort for
+the selected backend (`high` for LiteLLM/OpenAI, `xhigh` for OpenRouter), which
+is persisted in the job and attempt artifacts.
 Interactive notebook calls pass their selected provider-native effort value
 directly through LiteLLM or the OpenRouter SDK.
 
@@ -184,6 +159,6 @@ boundary and sends the shared completion limit as `max_tokens`, while LiteLLM
 receives `temperature` and `max_completion_tokens` directly. OpenRouter
 profiles pin a provider that supports every requested parameter.
 
-Board and rack representations do not appear in the run config while only one implementation exists for each. Every allowed case-tier, model-profile, and language-representation combination becomes a separate job.
+Board and rack representations do not appear in the run config while only one implementation exists for each. Every allowed board-size and model-profile combination becomes a separate job.
 
 There is intentionally no `repetitions` key for resampling. New instances are created through `sampling_rounds` in the case set. Repeated model calls on the exact same case may later be introduced as a separate execution dimension.

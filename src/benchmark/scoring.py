@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import math
-
 from ..domain.board import Board
 from ..domain.models import Coord
 
@@ -18,32 +16,7 @@ class BoardScoring:
 
     @staticmethod
     def distance_to_centroid(coord: Coord, centroid: tuple[float, ...]) -> float:
-        return math.sqrt(
-            sum((value - centroid[dim]) ** 2 for dim, value in enumerate(coord))
-        )
-
-    @staticmethod
-    def free_cross_axis_span(
-        board: Board,
-        anchor: Coord,
-        axis: int,
-        length: int,
-    ) -> int:
-        usable_templates = 0
-        for anchor_index in range(length):
-            start = tuple(
-                value - (anchor_index if dim == axis else 0)
-                for dim, value in enumerate(anchor)
-            )
-            coords = board.coords_for_slot(start, axis, length)
-            if any(axis in board.axes_at(coord) for coord in coords):
-                continue
-            before = _advance(coords[0], axis, -1)
-            after = _advance(coords[-1], axis, 1)
-            if axis in board.axes_at(before) or axis in board.axes_at(after):
-                continue
-            usable_templates += 1
-        return usable_templates
+        return max(abs(value - centroid[dim]) for dim, value in enumerate(coord))
 
     @staticmethod
     def mean_distance_to_centroid(

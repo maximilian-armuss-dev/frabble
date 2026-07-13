@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+from contextlib import AbstractContextManager
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -19,7 +20,13 @@ def prepare_case_set(
     config: CaseSetConfig,
     *,
     clean: bool = False,
-    progress_callback: Callable[[int], None] | None = None,
+    generation_progress_factory: (
+        Callable[
+            [str, int],
+            AbstractContextManager[Callable[[int], None]],
+        ]
+        | None
+    ) = None,
 ) -> dict[str, Any]:
     root = EVALUATION_OUTPUT_DIR / config.config_name
     base_grammar = load_grammar_config(config.grammar_config)
@@ -45,7 +52,7 @@ def prepare_case_set(
         root=root,
         config_hash=config_hash,
         manifest=manifest,
-        progress_callback=progress_callback,
+        generation_progress_factory=generation_progress_factory,
     )
     preparer.prepare()
     manifest.mark_complete()

@@ -3,7 +3,7 @@ k: 3
 min_word_length: 3
 seed: 42
 alphabet_case: upper
-forbidden_fraction: 0.35
+forbidden_fraction: 0.4
 auto_resample:
   enabled: true
   max_attempts: 20

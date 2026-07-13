@@ -1,0 +1,5515 @@
+{
+  "schema_version": 2,
+  "dimensions": [
+    "board_size",
+    "model",
+    "language_representation",
+    "reasoning_effort"
+  ],
+  "overall": {
+    "total_attempts": 35,
+    "completed": 0,
+    "passed": 0,
+    "failed": 0,
+    "pass_rate": null,
+    "transport_errors": 35,
+    "retry_count_total": 0,
+    "primary_failures": {},
+    "failed_constraints": {
+      "parse_ok": 0,
+      "sequence_valid": 0,
+      "min_length_fulfilled": 0,
+      "spatial_valid": 0,
+      "overlap_valid": 0,
+      "no_word_extension": 0,
+      "cross_words_valid": 0,
+      "rack_valid": 0
+    },
+    "constraint_pass_rates": {
+      "parse_ok": null,
+      "sequence_valid": null,
+      "min_length_fulfilled": null,
+      "spatial_valid": null,
+      "overlap_valid": null,
+      "no_word_extension": null,
+      "cross_words_valid": null,
+      "rack_valid": null
+    },
+    "timing": {
+      "request_elapsed_seconds": {
+        "count": 35,
+        "sum": 10.74949454353191,
+        "mean": 0.3071284155294831,
+        "median": 0.3061022909823805,
+        "min": 0.1077330419793725,
+        "max": 0.6170677499612793
+      },
+      "llm_elapsed_seconds": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      },
+      "llm_elapsed_seconds_total": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      },
+      "retry_wait_seconds_total": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      },
+      "provider_processing_ms": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      }
+    },
+    "usage": {
+      "prompt_tokens": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      },
+      "completion_tokens": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      },
+      "reasoning_tokens": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      },
+      "total_tokens": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      }
+    },
+    "quality": {
+      "rack_symbols_used": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      },
+      "rack_usage_ratio": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      },
+      "main_word_length": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      },
+      "overlap_count": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      },
+      "letter_score_total": {
+        "count": 0,
+        "sum": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "max": null
+      }
+    },
+    "grammars": []
+  },
+  "groups": [
+    {
+      "board_size": 200,
+      "model": "or_claude-opus-4-8",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.2283440420869738,
+          "mean": 0.2283440420869738,
+          "median": 0.2283440420869738,
+          "min": 0.2283440420869738,
+          "max": 0.2283440420869738
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 200,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.3544462500140071,
+          "mean": 0.3544462500140071,
+          "median": 0.3544462500140071,
+          "min": 0.3544462500140071,
+          "max": 0.3544462500140071
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 200,
+      "model": "or_gemini-3-1-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.24229974998161197,
+          "mean": 0.24229974998161197,
+          "median": 0.24229974998161197,
+          "min": 0.24229974998161197,
+          "max": 0.24229974998161197
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 200,
+      "model": "or_gpt-5-5",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.6144496669294313,
+          "mean": 0.6144496669294313,
+          "median": 0.6144496669294313,
+          "min": 0.6144496669294313,
+          "max": 0.6144496669294313
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 200,
+      "model": "or_grok-4-3",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.14540529192890972,
+          "mean": 0.14540529192890972,
+          "median": 0.14540529192890972,
+          "min": 0.14540529192890972,
+          "max": 0.14540529192890972
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 200,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.27341237501241267,
+          "mean": 0.27341237501241267,
+          "median": 0.27341237501241267,
+          "min": 0.27341237501241267,
+          "max": 0.27341237501241267
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 200,
+      "model": "or_qwen3-7-max",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.2524635409936309,
+          "mean": 0.2524635409936309,
+          "median": 0.2524635409936309,
+          "min": 0.2524635409936309,
+          "max": 0.2524635409936309
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 25,
+      "model": "or_claude-opus-4-8",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.18878629198297858,
+          "mean": 0.18878629198297858,
+          "median": 0.18878629198297858,
+          "min": 0.18878629198297858,
+          "max": 0.18878629198297858
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 25,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.13896599994041026,
+          "mean": 0.13896599994041026,
+          "median": 0.13896599994041026,
+          "min": 0.13896599994041026,
+          "max": 0.13896599994041026
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 25,
+      "model": "or_gemini-3-1-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.12366779206786305,
+          "mean": 0.12366779206786305,
+          "median": 0.12366779206786305,
+          "min": 0.12366779206786305,
+          "max": 0.12366779206786305
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 25,
+      "model": "or_gpt-5-5",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.12202987493947148,
+          "mean": 0.12202987493947148,
+          "median": 0.12202987493947148,
+          "min": 0.12202987493947148,
+          "max": 0.12202987493947148
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 25,
+      "model": "or_grok-4-3",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.12285995890852064,
+          "mean": 0.12285995890852064,
+          "median": 0.12285995890852064,
+          "min": 0.12285995890852064,
+          "max": 0.12285995890852064
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 25,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.14499820803757757,
+          "mean": 0.14499820803757757,
+          "median": 0.14499820803757757,
+          "min": 0.14499820803757757,
+          "max": 0.14499820803757757
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 25,
+      "model": "or_qwen3-7-max",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.3256953749805689,
+          "mean": 0.3256953749805689,
+          "median": 0.3256953749805689,
+          "min": 0.3256953749805689,
+          "max": 0.3256953749805689
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 450,
+      "model": "or_claude-opus-4-8",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.47280925000086427,
+          "mean": 0.47280925000086427,
+          "median": 0.47280925000086427,
+          "min": 0.47280925000086427,
+          "max": 0.47280925000086427
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 450,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.17183695803396404,
+          "mean": 0.17183695803396404,
+          "median": 0.17183695803396404,
+          "min": 0.17183695803396404,
+          "max": 0.17183695803396404
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 450,
+      "model": "or_gemini-3-1-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.23781224992126226,
+          "mean": 0.23781224992126226,
+          "median": 0.23781224992126226,
+          "min": 0.23781224992126226,
+          "max": 0.23781224992126226
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 450,
+      "model": "or_gpt-5-5",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.40047483309172094,
+          "mean": 0.40047483309172094,
+          "median": 0.40047483309172094,
+          "min": 0.40047483309172094,
+          "max": 0.40047483309172094
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 450,
+      "model": "or_grok-4-3",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.3061022909823805,
+          "mean": 0.3061022909823805,
+          "median": 0.3061022909823805,
+          "min": 0.3061022909823805,
+          "max": 0.3061022909823805
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 450,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.5371005419874564,
+          "mean": 0.5371005419874564,
+          "median": 0.5371005419874564,
+          "min": 0.5371005419874564,
+          "max": 0.5371005419874564
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 450,
+      "model": "or_qwen3-7-max",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.20675937493797392,
+          "mean": 0.20675937493797392,
+          "median": 0.20675937493797392,
+          "min": 0.20675937493797392,
+          "max": 0.20675937493797392
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 75,
+      "model": "or_claude-opus-4-8",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.3947816659929231,
+          "mean": 0.3947816659929231,
+          "median": 0.3947816659929231,
+          "min": 0.3947816659929231,
+          "max": 0.3947816659929231
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 75,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.6170677499612793,
+          "mean": 0.6170677499612793,
+          "median": 0.6170677499612793,
+          "min": 0.6170677499612793,
+          "max": 0.6170677499612793
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 75,
+      "model": "or_gemini-3-1-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.5219328749226406,
+          "mean": 0.5219328749226406,
+          "median": 0.5219328749226406,
+          "min": 0.5219328749226406,
+          "max": 0.5219328749226406
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 75,
+      "model": "or_gpt-5-5",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.1077330419793725,
+          "mean": 0.1077330419793725,
+          "median": 0.1077330419793725,
+          "min": 0.1077330419793725,
+          "max": 0.1077330419793725
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 75,
+      "model": "or_grok-4-3",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.3302625840296969,
+          "mean": 0.3302625840296969,
+          "median": 0.3302625840296969,
+          "min": 0.3302625840296969,
+          "max": 0.3302625840296969
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 75,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.2518432500073686,
+          "mean": 0.2518432500073686,
+          "median": 0.2518432500073686,
+          "min": 0.2518432500073686,
+          "max": 0.2518432500073686
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 75,
+      "model": "or_qwen3-7-max",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.34675487503409386,
+          "mean": 0.34675487503409386,
+          "median": 0.34675487503409386,
+          "min": 0.34675487503409386,
+          "max": 0.34675487503409386
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 900,
+      "model": "or_claude-opus-4-8",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.33770704199559987,
+          "mean": 0.33770704199559987,
+          "median": 0.33770704199559987,
+          "min": 0.33770704199559987,
+          "max": 0.33770704199559987
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 900,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.4084767500171438,
+          "mean": 0.4084767500171438,
+          "median": 0.4084767500171438,
+          "min": 0.4084767500171438,
+          "max": 0.4084767500171438
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 900,
+      "model": "or_gemini-3-1-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.3628464589128271,
+          "mean": 0.3628464589128271,
+          "median": 0.3628464589128271,
+          "min": 0.3628464589128271,
+          "max": 0.3628464589128271
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 900,
+      "model": "or_gpt-5-5",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.33730479201767594,
+          "mean": 0.33730479201767594,
+          "median": 0.33730479201767594,
+          "min": 0.33730479201767594,
+          "max": 0.33730479201767594
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 900,
+      "model": "or_grok-4-3",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.5046930419048294,
+          "mean": 0.5046930419048294,
+          "median": 0.5046930419048294,
+          "min": 0.5046930419048294,
+          "max": 0.5046930419048294
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 900,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.27421941596549004,
+          "mean": 0.27421941596549004,
+          "median": 0.27421941596549004,
+          "min": 0.27421941596549004,
+          "max": 0.27421941596549004
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    },
+    {
+      "board_size": 900,
+      "model": "or_qwen3-7-max",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total_attempts": 1,
+      "completed": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 1,
+      "retry_count_total": 0,
+      "primary_failures": {},
+      "failed_constraints": {
+        "parse_ok": 0,
+        "sequence_valid": 0,
+        "min_length_fulfilled": 0,
+        "spatial_valid": 0,
+        "overlap_valid": 0,
+        "no_word_extension": 0,
+        "cross_words_valid": 0,
+        "rack_valid": 0
+      },
+      "constraint_pass_rates": {
+        "parse_ok": null,
+        "sequence_valid": null,
+        "min_length_fulfilled": null,
+        "spatial_valid": null,
+        "overlap_valid": null,
+        "no_word_extension": null,
+        "cross_words_valid": null,
+        "rack_valid": null
+      },
+      "timing": {
+        "request_elapsed_seconds": {
+          "count": 1,
+          "sum": 0.3431510840309784,
+          "mean": 0.3431510840309784,
+          "median": 0.3431510840309784,
+          "min": 0.3431510840309784,
+          "max": 0.3431510840309784
+        },
+        "llm_elapsed_seconds": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "llm_elapsed_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "retry_wait_seconds_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "provider_processing_ms": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "completion_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "reasoning_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "total_tokens": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "quality": {
+        "rack_symbols_used": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "rack_usage_ratio": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "main_word_length": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "overlap_count": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "letter_score_total": {
+          "count": 0,
+          "sum": null,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "grammars": []
+    }
+  ]
+}

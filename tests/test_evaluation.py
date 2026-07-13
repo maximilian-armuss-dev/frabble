@@ -4,6 +4,7 @@ import asyncio
 import csv
 import tempfile
 import unittest
+from contextlib import contextmanager
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -16,9 +17,9 @@ from src.configuration import NamedYamlConfigSource
 from src.evaluation.artifacts import read_json, write_json_atomic
 from src.evaluation.config import (
     CaseSetConfig,
+    NumericRange,
     RunConfig,
     load_case_set_config,
-    load_tier_set_config,
 )
 from src.evaluation.decomposition import decompose_run
 from src.evaluation.job_execution import (
@@ -34,6 +35,7 @@ from src.evaluation.job_execution import (
 from src.evaluation.jobs import (
     EVALUATION_REASONING_EFFORT,
     build_evaluation_jobs,
+    evaluation_reasoning_effort,
 )
 from src.evaluation.prepare import prepare_case_set
 from src.evaluation.result_aggregation import build_aggregate
@@ -63,24 +65,15 @@ class ExampleConfig(BaseModel):
     value: int
 
 
-def tiny_case_set(*, boards: int = 1) -> CaseSetConfig:
+def tiny_case_set(*, board_sizes: list[int] | None = None) -> CaseSetConfig:
     return CaseSetConfig.model_validate(
         {
             "config_name": "tiny",
             "generation_config": "evaluation_base",
             "grammar_config": "evaluation_base_grammar",
-            "tier_config": "inline-test",
             "root_seed": 7,
             "sampling_rounds": 1,
-            "grammar_samples_per_tier": 1,
-            "boards_per_grammar": boards,
-            "tiers": {
-                "low": {
-                    "dimensions": 2,
-                    "board_depth": {"min": 0, "max": 1},
-                    "forbidden_fraction": 0.15,
-                }
-            },
+            "board_sizes": board_sizes or [0],
         }
     )
 
@@ -95,8 +88,7 @@ def tiny_run(
         {
             "config_name": "tiny_run",
             "case_set": "tiny",
-            "models": {model_name: ["low"]},
-            "language_representations": ["forbidden-snippets"],
+            "models": {model_name: ["all"]},
             "execution": {
                 "max_concurrency": concurrency,
                 "max_concurrency_per_model": concurrency_per_model,
@@ -107,38 +99,33 @@ def tiny_run(
 
 
 class EvaluationConfigTests(unittest.TestCase):
-    def test_case_set_resolves_named_tier_files(self):
-        config = load_case_set_config("3g_3b_lmh")
+    def test_case_set_loads_board_sizes(self):
+        config = load_case_set_config("1r_10-50-150")
 
-        self.assertEqual(list(config.tiers), ["low", "medium", "high"])
-        self.assertEqual(config.tiers["low"].dimensions, 2)
-        self.assertEqual(config.tiers["medium"].dimensions, 3)
-        self.assertIn(
-            "board_depth",
-            config.model_dump(mode="json")["tiers"]["low"],
-        )
-
-    def test_tier_set_config_loads_all_tiers_by_filename(self):
-        tier_set = load_tier_set_config("default")
-
-        self.assertEqual(
-            list(tier_set.tiers),
-            ["low", "medium", "high", "stress"],
-        )
-        self.assertEqual(tier_set.tiers["stress"].dimensions, 5)
-
-    def test_unknown_tier_set_config_fails_before_preparation(self):
-        with self.assertRaisesRegex(
-            ValueError,
-            "Tier config does not exist",
-        ):
-            load_tier_set_config("unknown")
+        self.assertEqual(config.board_sizes, [10, 50, 150])
+        self.assertEqual(config.sampling_rounds, 1)
+        self.assertNotIn("tiers", config.model_dump(mode="json"))
 
     def test_evaluation_rejects_obsolete_reasoning_config(self):
         payload = tiny_run().model_dump(mode="json")
         payload["reasoning_effort"] = "high"
 
         with self.assertRaisesRegex(ValueError, "Extra inputs are not permitted"):
+            RunConfig.model_validate(payload)
+
+    def test_evaluation_rejects_obsolete_language_representation_config(self):
+        payload = tiny_run().model_dump(mode="json")
+        payload["language_representations"] = ["forbidden-snippets"]
+
+        with self.assertRaisesRegex(ValueError, "Extra inputs are not permitted"):
+            RunConfig.model_validate(payload)
+
+    def test_evaluation_rejects_mixed_all_and_board_sizes(self):
+        payload = tiny_run().model_dump(mode="json")
+        model_name = next(iter(payload["models"]))
+        payload["models"][model_name] = ["all", 50]
+
+        with self.assertRaisesRegex(ValueError, "must not mix 'all'"):
             RunConfig.model_validate(payload)
 
     def test_evaluation_plots_sort_failures_and_expose_resources(self):
@@ -158,7 +145,7 @@ class EvaluationConfigTests(unittest.TestCase):
             "reversed",
         )
         self.assertIn(
-            "<b>Tier:</b> low",
+            "<b>Board size:</b> 50",
             failure_figure.layout.title.text,
         )
         self.assertIn(
@@ -170,7 +157,7 @@ class EvaluationConfigTests(unittest.TestCase):
             failure_figure.layout.title.text,
         )
         self.assertIn(
-            "<b>Tier:</b> low<br><b>Representation:</b>",
+            "<b>Board size:</b> 50<br><b>Representation:</b>",
             failure_figure.layout.title.text,
         )
         self.assertIn(
@@ -185,13 +172,13 @@ class EvaluationConfigTests(unittest.TestCase):
         grammar_figure = plot_grammar_pass_rates(aggregate)[0]
         self.assertEqual(
             list(grammar_figure.data[0].x),
-            ["Grammar 1", "Grammar 2"],
+            ["Grammar 1"],
         )
         self.assertEqual(
             list(grammar_figure.data[0].customdata[0]),
-            ["r00.g00", "r00.g01"],
+            ["r00"],
         )
-        self.assertEqual(list(grammar_figure.data[0].z[0]), [0.25, 0.75])
+        self.assertEqual(list(grammar_figure.data[0].z[0]), [0.25])
 
         token_figure = plot_token_usage_bars(aggregate)[0]
         self.assertEqual(
@@ -282,7 +269,7 @@ class EvaluationConfigTests(unittest.TestCase):
         aggregate = _multi_group_plot_aggregate()
 
         pass_figure = plot_pass_rate_heatmaps(aggregate)[0]
-        self.assertEqual(list(pass_figure.data[0].x), ["low", "medium", "high"])
+        self.assertEqual(list(pass_figure.data[0].x), ["10", "50", "150"])
         self.assertEqual(
             list(pass_figure.data[0].y),
             ["gpt-5", "gpt-5-mini"],
@@ -300,10 +287,10 @@ class EvaluationConfigTests(unittest.TestCase):
                 )
             ),
             [
-                ("low", "gpt-5-mini"),
-                ("medium", "gpt-5"),
-                ("medium", "gpt-5-mini"),
-                ("high", "gpt-5-mini"),
+                ("10", "gpt-5-mini"),
+                ("50", "gpt-5"),
+                ("50", "gpt-5-mini"),
+                ("150", "gpt-5-mini"),
             ],
         )
         self.assertEqual(failure_figure.layout.xaxis.type, "multicategory")
@@ -325,10 +312,10 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(
             list(zip(*token_figure.data[0].x)),
             [
-                ("low", "gpt-5-mini"),
-                ("medium", "gpt-5"),
-                ("medium", "gpt-5-mini"),
-                ("high", "gpt-5-mini"),
+                ("10", "gpt-5-mini"),
+                ("50", "gpt-5"),
+                ("50", "gpt-5-mini"),
+                ("150", "gpt-5-mini"),
             ],
         )
 
@@ -381,28 +368,27 @@ class EvaluationConfigTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "exactly one"):
             load_evaluation_results("tiny", "run-a")
 
-    def test_model_specific_tiers_expand_to_expected_jobs(self):
+    def test_model_specific_board_sizes_expand_to_expected_jobs(self):
         model_names = ENV.get_registered_model_names()
         config = RunConfig.model_validate(
             {
-                "config_name": "model_tiers",
+                "config_name": "model_board_sizes",
                 "case_set": "tiny",
                 "models": {
-                    model_names[0]: ["low", "medium"],
-                    model_names[1]: ["high"],
+                    model_names[0]: [10, 50],
+                    model_names[1]: [150],
                 },
-                "language_representations": ["forbidden-snippets"],
             }
         )
         jobs = build_evaluation_jobs(
             config,
             {
                 "cases": {
-                    tier: {
-                        "tier": tier,
-                        "path": f"outputs/evaluation/tiny/cases/{tier}.json",
+                    str(board_size): {
+                        "board_size": board_size,
+                        "path": f"outputs/evaluation/tiny/cases/{board_size}.json",
                     }
-                    for tier in ("low", "medium", "high")
+                    for board_size in (10, 50, 150)
                 }
             },
         )
@@ -412,9 +398,9 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(
             {(job.model_name, job.case_path.stem) for job in jobs},
             {
-                (model_names[0], "low"),
-                (model_names[0], "medium"),
-                (model_names[1], "high"),
+                (model_names[0], "10"),
+                (model_names[0], "50"),
+                (model_names[1], "150"),
             },
         )
         self.assertTrue(
@@ -424,7 +410,11 @@ class EvaluationConfigTests(unittest.TestCase):
             )
         )
 
-    def test_summary_groups_models_tiers_failures_and_constraints(self):
+    def test_reasoning_effort_is_backend_specific(self):
+        self.assertEqual(evaluation_reasoning_effort("openai_gpt-5"), "high")
+        self.assertEqual(evaluation_reasoning_effort("or_gpt-5-5"), "xhigh")
+
+    def test_summary_groups_models_board_sizes_failures_and_constraints(self):
         attempts = [
             _attempt(overall=True, grammar=0),
             _attempt(
@@ -447,7 +437,7 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(summary["passed"], 1)
         self.assertEqual(summary["primary_failures"]["word_extension"], 1)
         self.assertEqual(summary["failed_constraints"]["cross_words_valid"], 1)
-        self.assertEqual(summary["by_tier"]["low"]["total"], 3)
+        self.assertEqual(summary["by_board_size"]["50"]["total"], 3)
         self.assertEqual(summary["by_model"]["gpt-5-mini"]["total"], 2)
         self.assertEqual(len(summary["by_group"]), 2)
 
@@ -544,8 +534,8 @@ class EvaluationConfigTests(unittest.TestCase):
         ))
 
     def test_truncated_normal_sampling_is_deterministic_and_bounded(self):
-        axis = tiny_case_set().tiers["low"].board_depth
-        seed = derive_seed(42, "low", 0, 0)
+        axis = NumericRange(min=0, max=1)
+        seed = derive_seed(42, 50, 0)
 
         first = sample_axis(axis, seed=seed, integer=True)
         second = sample_axis(axis, seed=seed, integer=True)
@@ -651,11 +641,35 @@ class EvaluationConfigTests(unittest.TestCase):
             case_path = next((root / "tiny" / "cases").glob("*.json"))
             case = read_json(case_path)
 
-        self.assertEqual(case["tier"], "low")
+        self.assertEqual(case["board_size"], 0)
         self.assertIn("grammar", case)
         self.assertIn("board", case)
         self.assertIn("rack", case)
         self.assertIn("grammar_sha256", case["provenance"])
+
+    def test_prepare_reports_generation_progress_per_witness(self):
+        starts: list[tuple[str, int]] = []
+        updates: list[tuple[str, int]] = []
+
+        @contextmanager
+        def progress_factory(scenario_id: str, total: int):
+            starts.append((scenario_id, total))
+
+            def update(amount: int) -> None:
+                updates.append((scenario_id, amount))
+
+            yield update
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            with patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", root):
+                prepare_case_set(
+                    tiny_case_set(),
+                    generation_progress_factory=progress_factory,
+                )
+
+        self.assertEqual(starts, [("tiny.b000.r00", 1)])
+        self.assertEqual(updates, [("tiny.b000.r00", 1)])
 
     def test_clean_prepare_removes_existing_case_set_output(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -743,7 +757,7 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
                 patch("src.evaluation.runner.EVALUATION_OUTPUT_DIR", root),
                 patch("src.evaluation.decomposition.EVALUATION_OUTPUT_DIR", root),
             ):
-                prepare_case_set(tiny_case_set(boards=3))
+                prepare_case_set(tiny_case_set(board_sizes=[0, 1, 2]))
                 with patch(
                     "src.evaluation.runner.acall_llm_detailed",
                     side_effect=fake_call,
@@ -792,7 +806,7 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(
             all("prompt_sha256" in item for item in attempt_data)
         )
-        self.assertEqual(len(aggregate["groups"]), 1)
+        self.assertEqual(len(aggregate["groups"]), 3)
         self.assertTrue(
             any(
                 row["scope"] == "group"
@@ -883,12 +897,10 @@ def _attempt(
 ) -> dict[str, object]:
     return {
         "status": "complete",
-        "tier": "low",
+        "board_size": 50,
         "model": model,
         "language_representation": "forbidden-snippets",
         "sampling_round": 0,
-        "grammar_sample_index": grammar,
-        "board_sample_index": 0,
         "retry_count": 0,
         "llm_elapsed_seconds": 1.0,
         "usage": {
@@ -920,7 +932,7 @@ def _plot_aggregate() -> dict[str, object]:
     return {
         "groups": [
             {
-                "tier": "low",
+                "board_size": 50,
                 "model": "test-model",
                 "reasoning_effort": "high",
                 "language_representation": "forbidden-snippets",
@@ -951,13 +963,7 @@ def _plot_aggregate() -> dict[str, object]:
                 "grammars": [
                     {
                         "sampling_round": 0,
-                        "grammar_sample_index": 0,
                         "pass_rate": 0.25,
-                    },
-                    {
-                        "sampling_round": 0,
-                        "grammar_sample_index": 1,
-                        "pass_rate": 0.75,
                     },
                 ],
             }
@@ -967,17 +973,17 @@ def _plot_aggregate() -> dict[str, object]:
 
 def _multi_group_plot_aggregate() -> dict[str, object]:
     groups = []
-    for model, tier, pass_rate, runtime in (
-        ("gpt-5-mini", "low", 0.4, 10),
-        ("gpt-5-mini", "medium", 0.6, 20),
-        ("gpt-5-mini", "high", 0.2, 30),
-        ("gpt-5", "medium", 0.8, 25),
+    for model, board_size, pass_rate, runtime in (
+        ("gpt-5-mini", 10, 0.4, 10),
+        ("gpt-5-mini", 50, 0.6, 20),
+        ("gpt-5-mini", 150, 0.2, 30),
+        ("gpt-5", 50, 0.8, 25),
     ):
         group = dict(_plot_aggregate()["groups"][0])
         group.update(
             {
                 "model": model,
-                "tier": tier,
+                "board_size": board_size,
                 "pass_rate": pass_rate,
                 "timing": {
                     "request_elapsed_seconds": {"mean": runtime},

@@ -46,10 +46,9 @@ def build_evaluation_case(
     return EvaluationCase(
         case_id=case_id,
         case_set=case_set,
-        tier=coordinates.tier_name,
+        board_size=coordinates.board_size,
+
         sampling_round=coordinates.round_index,
-        grammar_sample_index=coordinates.grammar_index,
-        board_sample_index=coordinates.board_index,
         seeds={
             "grammar_requested": grammar.config.seed,
             "grammar_used": grammar.actual_seed,

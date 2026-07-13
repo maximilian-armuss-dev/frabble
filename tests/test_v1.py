@@ -122,11 +122,8 @@ def config_dict(output_path: str, *, dimensions: int = 2) -> dict[str, object]:
         "target_witness_count": 3,
         "scoring": {
             "anchor_centroid_weight": 1.0,
-            "anchor_free_span_weight": 1.0,
             "template_centroid_weight": 1.0,
-            "template_new_cell_bonus_weight": 1.5,
             "template_local_density_penalty_weight": 1.0,
-            "template_domain_slack_weight": 1.0,
         },
         "additional_rack_noise": 1,
         "output_path": output_path,
@@ -419,6 +416,7 @@ class V1Tests(unittest.TestCase):
                 usage={
                     "prompt_tokens": 100,
                     "completion_tokens": 25,
+                    "total_tokens": 125,
                     "completion_tokens_details": {
                         "reasoning_tokens": 10,
                         "text_tokens": 15,
@@ -481,6 +479,14 @@ class V1Tests(unittest.TestCase):
             self.assertIn("text-align:left", displayed_summary)
             self.assertIn("text-align:right", displayed_summary)
             self.assertIn("min-width:22px", displayed_summary)
+            self.assertIn(">tokens<", displayed_summary)
+            self.assertIn("prompt", displayed_summary)
+            self.assertIn("reasoning", displayed_summary)
+            self.assertIn("visible output", displayed_summary)
+            self.assertIn("completion", displayed_summary)
+            self.assertIn("total", displayed_summary)
+            for value in ("100", "10", "15", "25", "125"):
+                self.assertIn(value, displayed_summary)
             self.assertNotIn("<strong>none</strong>", displayed_summary)
             self.assertNotIn(">transition 0<", displayed_summary)
             displayed_prompt = display_llm_prompt(prepared).data
@@ -570,6 +576,11 @@ class V1Tests(unittest.TestCase):
 
         self.assertEqual(density, 3)
 
+    def test_centroid_distance_uses_square_growth_metric(self):
+        distance = BoardScoring.distance_to_centroid((3, 4), (0.0, 0.0))
+
+        self.assertEqual(distance, 4.0)
+
     def test_candidate_feature_normalization_is_pool_local(self):
         self.assertEqual(_normalize_feature([2, 4, 6]), (0.0, 0.5, 1.0))
         self.assertEqual(_normalize_feature([3, 3, 3]), (0.0, 0.0, 0.0))
@@ -584,7 +595,7 @@ class V1Tests(unittest.TestCase):
             Move(start=(-1, 0, 0), axis=0, sequence=("A", "B", "C"))
         )
 
-        candidates = top_anchors(board, 3, 20, config.scoring)
+        candidates = top_anchors(board, 20, config.scoring)
         center_axes = {
             candidate.axis
             for candidate in candidates
@@ -922,7 +933,7 @@ class V1Tests(unittest.TestCase):
             Move(start=(1, -2), axis=1, sequence=("A", "B", "A")),
         ):
             board = board.place(move)
-        anchor = AnchorCandidate((-2, -2), "B", 0, 0.0, 0.0, 0)
+        anchor = AnchorCandidate((-2, -2), "B", 0, 0.0, 0.0)
         extension_start = (-2, -2)
         scoring = GeneratorConfig.model_validate(config_dict("unused.json")).scoring
 
@@ -954,7 +965,7 @@ class V1Tests(unittest.TestCase):
         ):
             board = board.place(move)
         scoring = GeneratorConfig.model_validate(config_dict("unused.json")).scoring
-        anchor = AnchorCandidate((1, 1), "A", 0, 0.0, 0.0, 0)
+        anchor = AnchorCandidate((1, 1), "A", 0, 0.0, 0.0)
 
         templates = top_templates(
             board,
@@ -982,7 +993,7 @@ class V1Tests(unittest.TestCase):
         config = GeneratorConfig.model_validate(config_dict("unused.json"))
         generator = ScenarioGenerator(config)
         generator.language = sl
-        anchor = AnchorCandidate((0, 0), "B", 1, 0.0, 0.0, 0)
+        anchor = AnchorCandidate((0, 0), "B", 1, 0.0, 0.0)
 
         templates = top_templates(
             board,
@@ -1012,8 +1023,8 @@ class V1Tests(unittest.TestCase):
         board = Board.empty(2).place(
             Move(start=(-1, 0), axis=0, sequence=("A", "B", "C"))
         )
-        first = AnchorCandidate((-1, 0), "A", 1, 2.0, 0.0, 1)
-        second = AnchorCandidate((0, 0), "B", 1, 1.0, 1.0, 1)
+        first = AnchorCandidate((-1, 0), "A", 1, 2.0, 0.0)
+        second = AnchorCandidate((0, 0), "B", 1, 1.0, 1.0)
         template = SlotTemplate(
             anchor_coord=(0, 0),
             anchor_symbol="B",
@@ -1028,7 +1039,6 @@ class V1Tests(unittest.TestCase):
             score=1.0,
             distance_to_centroid=0.0,
             domains=(frozenset({"A"}), frozenset({"B"}), frozenset({"A"})),
-            domain_slack=2,
         )
         batches: list[tuple[AnchorCandidate, ...]] = []
 
@@ -1089,11 +1099,12 @@ class V1Tests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             GeneratorConfig.model_validate(invalid)
 
-    def test_evaluation_base_config_uses_word_length_range(self):
+    def test_evaluation_base_config_fixes_final_transition_length(self):
         config = load_generator_config("evaluation_base")
 
         self.assertEqual(config.length_distribution.start, 3)
         self.assertGreater(config.length_distribution.end, config.length_distribution.start)
+        self.assertEqual(config.fixed_final_transition_length, 6)
 
     def test_generator_is_reproducible_and_writes_incremental_transitions(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -1195,6 +1206,28 @@ class V1Tests(unittest.TestCase):
         self.assertIsNone(transition)
         self.assertEqual(sorted(failure.length for failure in failures), [3, 4, 5])
         self.assertEqual({failure.reason for failure in failures}, {"no_anchor_candidates"})
+
+    def test_generator_uses_fixed_length_for_final_transition(self):
+        data = config_dict("unused.json") | {
+            "length_distribution": {"start": 3, "end": 5},
+            "fixed_final_transition_length": 6,
+            "target_witness_count": 1,
+        }
+        config = GeneratorConfig.model_validate(data)
+        board = Board.empty(2)
+        for move in (
+            Move(start=(0, 0), axis=0, sequence=("A",)),
+            Move(start=(0, 0), axis=1, sequence=("A",)),
+        ):
+            board = board.place(move)
+
+        _, transition, failures = ScenarioGenerator(config)._generate_next_transition(
+            board,
+            next_transition_index=0,
+        )
+
+        self.assertIsNone(transition)
+        self.assertEqual([failure.length for failure in failures], [6])
 
     def test_readable_json_truncates_floats(self):
         rendered = dumps_readable_json({"score": 1.23456, "loss": -1.23456})

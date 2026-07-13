@@ -4,9 +4,9 @@ The generator does not need to prove that no further move exists. It only needs 
 
 ## Search Space per Board State
 
-For each board state, the configured length range is searched once without replacement:
+For each board state, the configured length set is searched once without replacement. Normal board-building transitions use `length_distribution`; when `fixed_final_transition_length` is set, the last requested witness transition uses that single configured length.
 
-1. Sample an unused word length from `length_distribution`.
+1. Select an unused word length from the configured length set.
 2. Sort all anchor-axis pairs once by the cheap anchor score.
 3. Expand the next non-overlapping batch of size `top_anchor_count`.
 4. Remove deterministic word extensions and templates with empty cross-domains.

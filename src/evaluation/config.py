@@ -1,23 +1,19 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
     field_validator,
-    model_validator,
 )
 
 from ..configuration import NamedYamlConfigSource
 from ..generator.config import PROJECT_ROOT
-from ..llm.representers import LANGUAGE_REPRESENTERS
 
 EVALUATION_CONFIG_DIR = PROJECT_ROOT / "config" / "evaluation"
 CASE_SET_CONFIG_DIR = EVALUATION_CONFIG_DIR / "case_sets"
 RUN_CONFIG_DIR = EVALUATION_CONFIG_DIR / "runs"
-TIER_CONFIG_DIR = EVALUATION_CONFIG_DIR / "tiers"
+DEFAULT_LANGUAGE_REPRESENTATION = "forbidden-snippets"
 
 
 class EvaluationConfigError(ValueError):
@@ -32,11 +28,6 @@ CASE_SET_CONFIG_SOURCE = NamedYamlConfigSource(
 RUN_CONFIG_SOURCE = NamedYamlConfigSource(
     directory=RUN_CONFIG_DIR,
     kind="run",
-    error_type=EvaluationConfigError,
-)
-TIER_CONFIG_SOURCE = NamedYamlConfigSource(
-    directory=TIER_CONFIG_DIR,
-    kind="tier",
     error_type=EvaluationConfigError,
 )
 
@@ -59,83 +50,25 @@ class NumericRange(BaseModel):
 NumericAxis = int | float | NumericRange
 
 
-class TierConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    dimensions: int | NumericRange
-    board_depth: int | NumericRange
-    forbidden_fraction: float | NumericRange
-
-    @model_validator(mode="after")
-    def validate_axes(self) -> "TierConfig":
-        _validate_axis_bounds(self.dimensions, "dimensions", minimum=2)
-        _validate_axis_bounds(self.board_depth, "board_depth", minimum=0)
-        _validate_axis_bounds(
-            self.forbidden_fraction,
-            "forbidden_fraction",
-            minimum=0,
-            maximum=1,
-        )
-        return self
-
-
-class TierSetConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    config_name: str
-    tiers: dict[str, TierConfig]
-
-    @field_validator("tiers")
-    @classmethod
-    def validate_tiers(cls, value: dict[str, TierConfig]) -> dict[str, TierConfig]:
-        if not value:
-            raise ValueError("At least one tier must be configured.")
-        for name in value:
-            _validate_identifier(name, field="tier")
-        return value
-
-
-class CaseSetBaseConfig(BaseModel):
+class CaseSetConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     config_name: str
     generation_config: str
     grammar_config: str
-    tier_config: str
     root_seed: int
     sampling_rounds: int = Field(default=1, gt=0)
-    grammar_samples_per_tier: int = Field(default=3, gt=0)
-    boards_per_grammar: int = Field(default=10, gt=0)
+    board_sizes: list[int]
 
-
-class CaseSetFileConfig(CaseSetBaseConfig):
-    tiers: list[str]
-
-    @field_validator("tiers")
+    @field_validator("board_sizes")
     @classmethod
-    def validate_tier_ids(cls, value: list[str]) -> list[str]:
+    def validate_board_sizes(cls, value: list[int]) -> list[int]:
         if not value:
-            raise ValueError("At least one tier must be configured.")
-        normalized = [name.strip() for name in value]
-        if any(not name for name in normalized):
-            raise ValueError("Tier names must not be empty.")
-        if len(normalized) != len(set(normalized)):
-            raise ValueError("Tier names must not contain duplicates.")
-        for name in normalized:
-            _validate_identifier(name, field="tier")
-        return normalized
-
-
-class CaseSetConfig(CaseSetBaseConfig):
-    tiers: dict[str, TierConfig]
-
-    @field_validator("tiers")
-    @classmethod
-    def validate_tiers(cls, value: dict[str, TierConfig]) -> dict[str, TierConfig]:
-        if not value:
-            raise ValueError("At least one tier must be configured.")
-        for name in value:
-            _validate_identifier(name, field="tier")
+            raise ValueError("At least one board size must be configured.")
+        if any(isinstance(size, bool) or size < 0 for size in value):
+            raise ValueError("Board sizes must be >= 0.")
+        if len(value) != len(set(value)):
+            raise ValueError("Board sizes must not contain duplicates.")
         return value
 
 
@@ -152,105 +85,60 @@ class RunConfig(BaseModel):
 
     config_name: str
     case_set: str
-    models: dict[str, list[str]]
-    language_representations: list[str] | str
+    models: dict[str, list[int | str]]
     execution: ExecutionConfig = Field(default_factory=ExecutionConfig)
-
-    @field_validator("language_representations")
-    @classmethod
-    def validate_selection(cls, value: list[str] | str) -> list[str] | str:
-        if isinstance(value, str):
-            if value != "all":
-                raise ValueError("Selection strings must be 'all'.")
-            return value
-        if not value:
-            raise ValueError("Selection lists must not be empty.")
-        if len(value) != len(set(value)):
-            raise ValueError("Selection lists must not contain duplicates.")
-        return value
 
     @field_validator("models")
     @classmethod
     def validate_models(
         cls,
-        value: dict[str, list[str]],
-    ) -> dict[str, list[str]]:
+        value: dict[str, list[int | str]],
+    ) -> dict[str, list[int | str]]:
         if not value:
             raise ValueError("models must not be empty.")
-        normalized_models: dict[str, list[str]] = {}
-        for model_name, tiers in value.items():
+        normalized_models: dict[str, list[int | str]] = {}
+        for model_name, board_sizes in value.items():
             if not model_name.strip():
                 raise ValueError("Model names must not be empty.")
-            if not tiers:
+            if not board_sizes:
                 raise ValueError(
-                    f"Model {model_name!r} must select at least one tier."
+                    f"Model {model_name!r} must select at least one board size."
                 )
-            normalized = [tier.strip() for tier in tiers]
-            if any(not tier for tier in normalized):
-                raise ValueError(
-                    f"Model {model_name!r} contains an empty tier."
-                )
+            normalized = [
+                item.strip() if isinstance(item, str) else item
+                for item in board_sizes
+            ]
             if len(normalized) != len(set(normalized)):
                 raise ValueError(
-                    f"Model {model_name!r} contains duplicate tiers."
+                    f"Model {model_name!r} contains duplicate board sizes."
+                )
+            if "all" in normalized and normalized != ["all"]:
+                raise ValueError(
+                    f"Model {model_name!r} must not mix 'all' with board sizes."
+                )
+            invalid = [
+                item
+                for item in normalized
+                if not (
+                    item == "all"
+                    or (
+                        isinstance(item, int)
+                        and not isinstance(item, bool)
+                        and item >= 0
+                    )
+                )
+            ]
+            if invalid:
+                raise ValueError(
+                    f"Model {model_name!r} contains invalid board sizes: {invalid}"
                 )
             normalized_models[model_name.strip()] = normalized
         return normalized_models
 
-    @field_validator("language_representations")
-    @classmethod
-    def validate_language_representations(
-        cls, value: list[str] | str
-    ) -> list[str] | str:
-        if value == "all":
-            return value
-        unknown = sorted(set(value) - set(LANGUAGE_REPRESENTERS))
-        if unknown:
-            raise ValueError(f"Unknown language representations: {unknown}")
-        return value
-
 
 def load_case_set_config(config_name: str) -> CaseSetConfig:
-    file_config = CASE_SET_CONFIG_SOURCE.load(config_name, CaseSetFileConfig)
-    tier_set = load_tier_set_config(file_config.tier_config)
-    unknown = sorted(set(file_config.tiers) - set(tier_set.tiers))
-    if unknown:
-        raise EvaluationConfigError(
-            f"Unknown tiers {unknown} in tier config "
-            f"'{file_config.tier_config}'. Available: {sorted(tier_set.tiers)}"
-        )
-    data = file_config.model_dump(mode="json", exclude={"tiers"})
-    data["tiers"] = {
-        tier_name: tier_set.tiers[tier_name]
-        for tier_name in file_config.tiers
-    }
-    return CaseSetConfig.model_validate(data)
-
-
-def load_tier_set_config(config_name: str) -> TierSetConfig:
-    return TIER_CONFIG_SOURCE.load(config_name, TierSetConfig)
+    return CASE_SET_CONFIG_SOURCE.load(config_name, CaseSetConfig)
 
 
 def load_run_config(config_name: str) -> RunConfig:
     return RUN_CONFIG_SOURCE.load(config_name, RunConfig)
-
-
-def _validate_identifier(value: str, *, field: str) -> None:
-    if not value or "/" in value or "\\" in value or value.endswith((".yaml", ".yml")):
-        raise EvaluationConfigError(
-            f"{field} must be a non-empty identifier without path or suffix."
-        )
-
-
-def _validate_axis_bounds(
-    value: NumericAxis,
-    field: str,
-    *,
-    minimum: float,
-    maximum: float | None = None,
-) -> None:
-    values = (value.min, value.max) if isinstance(value, NumericRange) else (value,)
-    if any(item < minimum for item in values):
-        raise ValueError(f"{field} must be >= {minimum}.")
-    if maximum is not None and any(item > maximum for item in values):
-        raise ValueError(f"{field} must be <= {maximum}.")

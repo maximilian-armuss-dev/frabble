@@ -32,7 +32,7 @@ Domain modules retain their own schemas and semantic rules:
 
 - `formal/grammar/config.py`: grammar sampling.
 - `generator/config.py`: scenario generation and grammar resolution.
-- `evaluation/config.py`: case sets, tiers, and evaluation runs.
+- `evaluation/config.py`: case sets and evaluation runs.
 
 The shared source knows no grammar, generator, or evaluation parameters.
 
@@ -52,7 +52,7 @@ The use-case composition root:
 
 Orchestrates case-set materialization:
 
-- Iterates tiers, sampling rounds, and sample indices.
+- Iterates board sizes and sampling rounds.
 - Samples or loads grammars.
 - Starts the scenario generator.
 - Writes cases.
@@ -105,7 +105,7 @@ Provider and retry details do not belong to this module.
 
 Expands a run config into `EvaluationJob` objects and owns:
 
-- Tier, model, and representation selection.
+- Board-size and model selection.
 - Case-path resolution.
 - Stable job IDs.
 

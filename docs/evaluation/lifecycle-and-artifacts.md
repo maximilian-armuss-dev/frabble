@@ -3,7 +3,7 @@
 ## Prepare
 
 ```bash
-uv run prepare --config 3g_3b_lmh
+uv run prepare --config 5r_10-50-150-400
 ```
 
 `--clean` deletes `outputs/evaluation/<case-set>/` before preparation. This
@@ -13,9 +13,9 @@ results from referencing newly overwritten case files.
 Prepare:
 
 1. Loads and validates the case set.
-2. Expands sampling rounds, tiers, and sample indices.
-3. Samples grammar parameters and grammars.
-4. Samples board parameters and generates scenarios.
+2. Expands board sizes and sampling rounds.
+3. Samples grammars.
+4. Generates scenarios.
 5. Reconstructs the board state at `board_depth`.
 6. Materializes an immutable evaluation case.
 7. Updates the prepare manifest atomically.
@@ -29,14 +29,14 @@ Prepare is model-independent. An existing artifact is reused only if its ID, con
 ## Evaluate
 
 ```bash
-uv run evaluate --config gpt5_mini_all
+uv run evaluate --config gpt5_andmini_5r_all
 ```
 
 Evaluate:
 
 1. Loads the run config and referenced prepare manifest.
-2. Filters cases by tier.
-3. Expands models and language representations.
+2. Filters cases by board size.
+3. Expands models.
 4. Creates stable job IDs.
 5. Shuffles pending jobs deterministically.
 6. Executes them with the asynchronous concurrency window.
@@ -50,7 +50,7 @@ A semantically invalid model move is a completed evaluation attempt with `overal
 ## Decompose
 
 ```bash
-uv run decompose --config gpt5_mini_all
+uv run decompose --config gpt5_andmini_5r_all
 ```
 
 Decompose uses the same run config. It finds the newest completed evaluation run with the same canonical run-config hash and processes its semantically failed attempts.
@@ -73,8 +73,8 @@ Manifests are updated after every completed artifact. An interruption therefore 
 
 IDs are built from stable domain components:
 
-- Grammar: case set, tier, sampling round, and grammar index.
-- Scenario and case: case set, tier, sampling round, grammar index, and board index.
+- Grammar: case set, board size, and sampling round.
+- Scenario and case: case set, board size, and sampling round.
 - Job: case ID, model profile, reasoning effort, and language representation.
 
 Hashes are built from canonical JSON with sorted keys. Timestamps and absolute local paths are not part of semantic content hashes.

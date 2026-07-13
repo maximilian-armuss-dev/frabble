@@ -115,7 +115,6 @@ class AnchorCandidate:
     axis: int
     score: float
     distance_to_centroid: float
-    free_cross_axis_span: int
 
     def to_json(self) -> dict[str, object]:
         return {
@@ -124,7 +123,6 @@ class AnchorCandidate:
             "axis": self.axis,
             "score": self.score,
             "distance_to_centroid": self.distance_to_centroid,
-            "free_cross_axis_span": self.free_cross_axis_span,
         }
 
 
@@ -134,7 +132,6 @@ class TemplateCandidate:
     score: float
     distance_to_centroid: float
     domains: tuple[frozenset[Symbol], ...] = ()
-    domain_slack: int = 0
 
     def to_json(self) -> dict[str, object]:
         return {
@@ -149,7 +146,6 @@ class TemplateCandidate:
             },
             "score": self.score,
             "distance_to_centroid": self.distance_to_centroid,
-            "domain_slack": self.domain_slack,
         }
 
 

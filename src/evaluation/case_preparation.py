@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 from collections.abc import Callable
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -21,7 +22,7 @@ from .case_sampling import (
     sample_board_parameters,
 )
 from .case_snapshot import PreparedGrammar, PreparedScenario, build_evaluation_case
-from .config import CaseSetConfig, TierConfig
+from .config import CaseSetConfig
 from .preparation_artifacts import (
     PreparationManifest,
     artifact_entry,
@@ -36,56 +37,44 @@ class CaseSetPreparer:
     root: Path
     config_hash: str
     manifest: PreparationManifest
-    progress_callback: Callable[[int], None] | None = None
+    generation_progress_factory: (
+        Callable[
+            [str, int],
+            AbstractContextManager[Callable[[int], None]],
+        ]
+        | None
+    ) = None
 
     def prepare(self) -> None:
         git_revision = _git_revision()
-        for tier_name, tier in self.config.tiers.items():
+        for board_size in self.config.board_sizes:
             for round_index in range(self.config.sampling_rounds):
-                for grammar_index in range(self.config.grammar_samples_per_tier):
-                    grammar = self._prepare_grammar(
-                        tier_name,
-                        tier,
-                        round_index,
-                        grammar_index,
-                    )
-                    for board_index in range(self.config.boards_per_grammar):
-                        coordinates = CaseCoordinates(
-                            tier_name=tier_name,
-                            round_index=round_index,
-                            grammar_index=grammar_index,
-                            board_index=board_index,
-                        )
-                        self._prepare_case(
-                            coordinates=coordinates,
-                            tier=tier,
-                            grammar=grammar,
-                            git_revision=git_revision,
-                        )
-                        if self.progress_callback is not None:
-                            self.progress_callback(1)
+                coordinates = CaseCoordinates(
+                    board_size=board_size,
+                    round_index=round_index,
+                )
+                grammar = self._prepare_grammar(coordinates)
+                self._prepare_case(
+                    coordinates=coordinates,
+                    grammar=grammar,
+                    git_revision=git_revision,
+                )
 
     def _prepare_grammar(
         self,
-        tier_name: str,
-        tier: TierConfig,
-        round_index: int,
-        grammar_index: int,
+        coordinates: CaseCoordinates,
     ) -> PreparedGrammar:
         grammar_id = grammar_artifact_id(
             self.config.config_name,
-            tier_name,
-            round_index,
-            grammar_index,
+            coordinates.board_size,
+            coordinates.round_index,
         )
         grammar_path = self.root / "grammars" / f"{grammar_id}.json"
         grammar_config = resolve_grammar_config(
             self.base_grammar,
             self.config,
-            tier_name,
-            tier,
-            round_index,
-            grammar_index,
+            coordinates.board_size,
+            coordinates.round_index,
             grammar_id,
         )
         grammar_hash = content_sha256(grammar_config.model_dump(mode="json"))
@@ -135,7 +124,6 @@ class CaseSetPreparer:
         self,
         *,
         coordinates: CaseCoordinates,
-        tier: TierConfig,
         grammar: PreparedGrammar,
         git_revision: str | None,
     ) -> None:
@@ -146,8 +134,8 @@ class CaseSetPreparer:
         try:
             parameters = sample_board_parameters(
                 self.config,
-                tier,
                 coordinates,
+                self.base_generation,
             )
             scenario = self._prepare_scenario(
                 case_id,
@@ -189,7 +177,17 @@ class CaseSetPreparer:
             scenario_path,
         ):
             generator = ScenarioGenerator(generation_config)
-            generator.write(generator.generate())
+            if self.generation_progress_factory is None:
+                scenario_run = generator.generate()
+            else:
+                with self.generation_progress_factory(
+                    scenario_id,
+                    generation_config.target_witness_count,
+                ) as update_progress:
+                    scenario_run = generator.generate(
+                        progress_callback=update_progress,
+                    )
+            generator.write(scenario_run)
             self.manifest.record_artifact(
                 "scenarios",
                 scenario_id,
@@ -249,7 +247,7 @@ class CaseSetPreparer:
             artifact_entry(
                 config_hash=case_hash,
                 path=case_path,
-                tier=coordinates.tier_name,
+                board_size=coordinates.board_size,
             ),
         )
 
