@@ -28,9 +28,12 @@ def sample_grammar_from_config(
     *,
     language_id: str | None = None,
 ) -> tuple[StrictlyLocalLanguage, int]:
-    from .alphabet import LetterAlphabetSampler
+    from .alphabet import ChineseAlphabetSampler, LetterAlphabetSampler
 
-    sampler = LetterAlphabetSampler(case=config.alphabet_case)
+    if config.alphabet_type == "chinese":
+        sampler = ChineseAlphabetSampler()
+    else:
+        sampler = LetterAlphabetSampler(case=config.alphabet_case)
     alphabet = sampler.sample(config.alphabet_size, config.seed)
     resolved_id = language_id or config.config_name
     if config.auto_resample.enabled:

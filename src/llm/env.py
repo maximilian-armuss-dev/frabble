@@ -27,6 +27,8 @@ class ModelConfig:
     timeout_seconds: float
     base_url: str | None = None
     provider: str | None = None
+    quantizations: tuple[str, ...] | None = None
+    reasoning_max_tokens: int | None = None
 
     @property
     def backend(self) -> str:
@@ -107,9 +109,16 @@ class Environment:
                 inclusive=False,
             )
             provider = self._optional_config_value(raw_model, "provider")
-            if backend == "openrouter" and provider is None:
+            quantizations = self._optional_list_config_value(
+                raw_model, "quantizations"
+            )
+            reasoning_max_tokens = self._optional_int_config_value(
+                raw_model, "reasoning_max_tokens"
+            )
+            if backend == "openrouter" and provider is None and not quantizations:
                 raise RuntimeError(
-                    f"OpenRouter model profile '{name}' must configure provider."
+                    f"OpenRouter model profile '{name}' must configure a provider "
+                    "or quantizations."
                 )
             configs[name] = ModelConfig(
                 name=name,
@@ -120,6 +129,8 @@ class Environment:
                 base_url=base_url,
                 timeout_seconds=timeout_seconds,
                 provider=provider,
+                quantizations=quantizations,
+                reasoning_max_tokens=reasoning_max_tokens,
             )
         return configs
 
@@ -169,6 +180,28 @@ class Environment:
         if value is None:
             return None
         return str(value).strip()
+
+    def _optional_int_config_value(
+        self, raw_model: dict[str, object], key: str
+    ) -> int | None:
+        value = raw_model.get(key)
+        if value is None:
+            return None
+        parsed = int(value)
+        if parsed <= 0:
+            raise RuntimeError(f"Model config value '{key}' must be positive.")
+        return parsed
+
+    def _optional_list_config_value(
+        self, raw_model: dict[str, object], key: str
+    ) -> tuple[str, ...] | None:
+        value = raw_model.get(key)
+        if value is None:
+            return None
+        if not isinstance(value, list):
+            raise RuntimeError(f"Model config value '{key}' must be a list.")
+        items = tuple(str(item).strip() for item in value if str(item).strip())
+        return items or None
 
     def _required_config_value(self, raw_model: dict[str, object], key: str) -> str:
         value = self._optional_config_value(raw_model, key)

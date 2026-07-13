@@ -1,6 +1,6 @@
-generation_config: evaluation_base
+generation_config: evaluation_base_sanity_check
 grammar_config: evaluation_base_grammar
-root_seed: 942
+root_seed: 1234
 sampling_rounds: 1
 board_sizes:
-  - 1
+  - 0

@@ -57,9 +57,11 @@ def evaluate_granular(
     rack: tuple[str, ...],
     submitted: SubmittedMove | None,
     parse_error: str | None = None,
+    *,
+    finish_reason: str | None = None,
 ) -> GranularEvaluation:
     if submitted is None:
-        return _parse_failed(parse_error)
+        return _parse_failed(parse_error, finish_reason)
 
     move = submitted.to_move()
     report = validate_move_detailed(board, language, rack, move)
@@ -97,7 +99,13 @@ def evaluate_granular(
     )
 
 
-def _parse_failed(parse_error: str | None) -> GranularEvaluation:
+def _parse_failed(
+    parse_error: str | None,
+    finish_reason: str | None = None,
+) -> GranularEvaluation:
+    # A length-capped completion never emitted the answer: distinguish this
+    # provider/budget truncation from a genuine malformed response.
+    truncated = finish_reason == "length"
     return GranularEvaluation(
         overall=False,
         parse_ok=False,
@@ -114,6 +122,10 @@ def _parse_failed(parse_error: str | None) -> GranularEvaluation:
         main_word_length=None,
         overlap_count=None,
         letter_score_total=None,
-        failure_type="parse",
-        message=parse_error or "Failed to parse model response.",
+        failure_type="truncated" if truncated else "parse",
+        message=(
+            "Completion truncated before the answer (finish_reason=length)."
+            if truncated
+            else (parse_error or "Failed to parse model response.")
+        ),
     )

@@ -10,7 +10,11 @@ from typing import Any
 import litellm
 from openrouter import errors as openrouter_errors
 
-from ..formal.parsing import SubmittedMove, parse_submitted_move
+from ..formal.parsing import (
+    SubmittedMove,
+    parse_submitted_move,
+    parse_submitted_move_lenient,
+)
 from ..llm.client import LLMCallResult
 from ..llm.env import ENV
 from ..llm.evaluation import evaluate_granular
@@ -215,6 +219,7 @@ async def execute_job(
         )
         raise
     elapsed = perf_counter() - started_at
+    finish_reason = _finish_reason(result)
     submitted, parse_error = _parse_response(result.content)
     evaluation = evaluate_granular(
         board,
@@ -222,6 +227,19 @@ async def execute_job(
         transition.rack,
         submitted,
         parse_error,
+        finish_reason=finish_reason,
+    )
+    # Format-robust pass: tolerate serialization quirks (string sequences,
+    # un-split words) so that a correct move is not scored 0 for formatting.
+    # The strict `evaluation` above stays the headline number.
+    submitted_lenient, parse_error_lenient = _parse_response_lenient(result.content)
+    evaluation_format_robust = evaluate_granular(
+        board,
+        language,
+        transition.rack,
+        submitted_lenient,
+        parse_error_lenient,
+        finish_reason=finish_reason,
     )
     return {
         "schema_version": 1,
@@ -254,7 +272,11 @@ async def execute_job(
         "user_prompt": user_prompt,
         "raw_response": result.content,
         "parsed_move": submitted.model_dump(mode="json") if submitted else None,
+        "parsed_move_lenient": (
+            submitted_lenient.model_dump(mode="json") if submitted_lenient else None
+        ),
         "evaluation": evaluation.to_json(),
+        "evaluation_format_robust": evaluation_format_robust.to_json(),
         "ground_truth_move": evaluation_case.ground_truth_move,
     }
 
@@ -387,3 +409,15 @@ def _parse_response(content: str) -> tuple[SubmittedMove | None, str | None]:
         return parse_submitted_move(content), None
     except Exception as exc:
         return None, str(exc)
+
+
+def _parse_response_lenient(content: str) -> tuple[SubmittedMove | None, str | None]:
+    try:
+        return parse_submitted_move_lenient(content), None
+    except Exception as exc:
+        return None, str(exc)
+
+
+def _finish_reason(result: LLMCallResult) -> str | None:
+    value = result.metadata.get("finish_reason")
+    return str(value) if value is not None else None

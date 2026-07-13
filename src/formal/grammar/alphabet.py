@@ -25,3 +25,19 @@ class LetterAlphabetSampler:
         pool = [chr(start + i) for i in range(26)]
         rng = random.Random(seed)
         return tuple(sorted(rng.sample(pool, size)))
+
+
+class ChineseAlphabetSampler:
+    """Draws single CJK ideographs without replacement, returned in sorted order."""
+
+    # Common CJK Unified Ideographs block (U+4E00–U+9FFF), each a single character.
+    _POOL_START = 0x4E00
+    _POOL_END = 0x9FFF
+
+    def sample(self, size: int, seed: int) -> tuple[Symbol, ...]:
+        pool_size = self._POOL_END - self._POOL_START + 1
+        if size < 1 or size > pool_size:
+            raise ValueError(f"alphabet size must be between 1 and {pool_size}, got {size}")
+        pool = [chr(self._POOL_START + i) for i in range(pool_size)]
+        rng = random.Random(seed)
+        return tuple(sorted(rng.sample(pool, size)))

@@ -1,0 +1,16 @@
+alphabet_size: 8
+k: 3
+min_word_length: 3
+seed: 42
+alphabet_case: upper
+alphabet_type: chinese
+forbidden_fraction: 0.4
+auto_resample:
+  enabled: true
+  max_attempts: 20
+  perron_min: 1.1
+  perron_max: 50.0
+  resample_length_min: 3
+  resample_length_max: 7
+  min_word_count: 20
+show_stats: false

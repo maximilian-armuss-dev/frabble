@@ -76,6 +76,7 @@ def compact_summary(aggregate: Mapping[str, Any]) -> dict[str, Any]:
         "pass_rate": overall["pass_rate"],
         "transport_errors": overall["transport_errors"],
         "primary_failures": overall["primary_failures"],
+        "format_robust": overall.get("format_robust"),
         "failed_constraints": overall["failed_constraints"],
         "by_board_size": by_board_size,
         "by_model": by_model,
@@ -131,6 +132,23 @@ def _aggregate_group(
         str(item.get("evaluation", {}).get("failure_type") or "unknown")
         for item in failed
     )
+    robust_passed = [item for item in completed if _robust_passed(item)]
+    format_recovered = [
+        item
+        for item in completed
+        if _robust_passed(item) and not _attempt_passed(item)
+    ]
+    robust_failures = Counter(
+        str(item.get("evaluation_format_robust", {}).get("failure_type") or "unknown")
+        for item in completed
+        if not _robust_passed(item)
+    )
+    format_robust = {
+        "passed": len(robust_passed),
+        "pass_rate": _rate(len(robust_passed), len(completed)),
+        "recovered": len(format_recovered),
+        "primary_failures": dict(sorted(robust_failures.items())),
+    }
     failed_constraints = {
         field: sum(
             item.get("evaluation", {}).get(field) is False for item in completed
@@ -164,6 +182,7 @@ def _aggregate_group(
             int(item.get("retry_count", 0)) for item in attempts
         ),
         "primary_failures": dict(sorted(primary_failures.items())),
+        "format_robust": format_robust,
         "failed_constraints": failed_constraints,
         "constraint_pass_rates": constraint_pass_rates,
         "timing": {
@@ -311,6 +330,14 @@ def _metric_rows(
         yield _row(base, "outcome", name, count, int(denominator))
     for name, count in aggregate["primary_failures"].items():
         yield _row(base, "primary_failure", name, int(count), failed)
+    robust = aggregate.get("format_robust")
+    if robust:
+        yield _row(base, "format_robust", "passed", int(robust["passed"]), completed)
+        yield _row(
+            base, "format_robust", "recovered", int(robust["recovered"]), completed
+        )
+        for name, count in robust["primary_failures"].items():
+            yield _row(base, "format_robust_failure", name, int(count), completed)
     for name, count in aggregate["failed_constraints"].items():
         yield _row(base, "failed_constraint", name, int(count), completed)
     for family in ("timing", "usage", "quality"):
@@ -458,3 +485,7 @@ def _rate(numerator: int, denominator: int) -> float | None:
 
 def _attempt_passed(attempt: Mapping[str, Any]) -> bool:
     return bool(dict(attempt.get("evaluation", {})).get("overall"))
+
+
+def _robust_passed(attempt: Mapping[str, Any]) -> bool:
+    return bool(dict(attempt.get("evaluation_format_robust", {})).get("overall"))

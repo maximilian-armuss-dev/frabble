@@ -50,6 +50,7 @@ class SLSamplingConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     alphabet_case: str
+    alphabet_type: str = "letters"
     forbidden_fraction: float = Field(ge=0, le=1)
     auto_resample: AutoResampleConfig
 
@@ -67,7 +68,9 @@ class GrammarConfig(SLSamplingConfig):
 
     @model_validator(mode="after")
     def validate_grammar(self) -> "GrammarConfig":
-        if self.alphabet_case not in {"upper", "lower"}:
+        if self.alphabet_type not in {"letters", "chinese"}:
+            raise ValueError("alphabet_type must be 'letters' or 'chinese'.")
+        if self.alphabet_type == "letters" and self.alphabet_case not in {"upper", "lower"}:
             raise ValueError("alphabet_case must be 'upper' or 'lower'.")
         return self
 

@@ -40,8 +40,10 @@ models:
     model: openrouter/deepseek/deepseek-v4-pro
     api_key_env: OPENROUTER_API_KEY
     base_url_env: OPENROUTER_API_BASE
-    # DeepSeek's own endpoint currently lacks strict structured outputs.
     provider: alibaba
+    # DeepSeek does not reserve output room under max_completion_tokens; cap the
+    # reasoning phase explicitly (overrides reasoning effort) so the answer prints.
+    reasoning_max_tokens: 32000
 
   - name: or_kimi-k2-6
     model: openrouter/moonshotai/kimi-k2.6

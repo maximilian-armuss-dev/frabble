@@ -1,0 +1,13 @@
+case_set: 1r_sanity_check_chinese
+models:
+  or_gpt-5-5: [all]
+  or_claude-opus-4-8: [all]
+  or_gemini-3-1-pro: [all]
+  or_grok-4-3: [all]
+  or_deepseek-v4-pro: [all]
+  or_kimi-k2-6: [all]
+  or_qwen3-7-max: [all]
+execution:
+  max_concurrency: 7
+  max_concurrency_per_model: 1
+  max_retries: 1
