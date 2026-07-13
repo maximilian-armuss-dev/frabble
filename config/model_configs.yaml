@@ -43,7 +43,7 @@ models:
     provider: alibaba
     # DeepSeek does not reserve output room under max_completion_tokens; cap the
     # reasoning phase explicitly (overrides reasoning effort) so the answer prints.
-    reasoning_max_tokens: 32384
+    reasoning_max_tokens: 32000
 
   - name: or_kimi-k2-6
     model: openrouter/moonshotai/kimi-k2.6
