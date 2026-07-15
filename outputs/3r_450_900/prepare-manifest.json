@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "case_set": "3r_450_900",
+  "config_hash": "9e76aec9554b275f2ad279db9737ea98384bd7ef9487994ace66356d5f84ea8b",
+  "status": "complete",
+  "created_at": "2026-07-15T16:54:02.720067+00:00",
+  "completed_at": "2026-07-15T17:03:02.243836+00:00",
+  "grammars": {
+    "3r_450_900.b450.r00": {
+      "status": "complete",
+      "config_hash": "40439b710667a827c5f5534a7012df49c40554719b89e543ec77e7a8538f17a7",
+      "path": "outputs/evaluation/3r_450_900/grammars/3r_450_900.b450.r00.json",
+      "sha256": "505cc2f9418061ad32a98f25c2431b177c08a09daebde58d4f3a7e3ad5bd1462",
+      "requested_seed": 724379523,
+      "actual_seed": 724379523
+    },
+    "3r_450_900.b450.r01": {
+      "status": "complete",
+      "config_hash": "0f23992e860f5402f4b61462edc74036988781782c1e45b5b5c0a165e3067bcb",
+      "path": "outputs/evaluation/3r_450_900/grammars/3r_450_900.b450.r01.json",
+      "sha256": "e5df485b2fd7df94349acf2fb1640966d52b8fe4c456dbace2d534d9ec322049",
+      "requested_seed": 1784408378,
+      "actual_seed": 1784408378
+    },
+    "3r_450_900.b450.r02": {
+      "status": "complete",
+      "config_hash": "986fb655ae08084a337be18a70e9bb20f5e1e7403975d5405b1cf079ec8494ee",
+      "path": "outputs/evaluation/3r_450_900/grammars/3r_450_900.b450.r02.json",
+      "sha256": "ba4fd252e633af199cfa3d8edc4a783b9b35a9556c33b0bb5b4f8b99de027500",
+      "requested_seed": 1648189184,
+      "actual_seed": 1648189184
+    },
+    "3r_450_900.b900.r00": {
+      "status": "complete",
+      "config_hash": "cb739921203eb4d5330aa2724e7ce79a11453c4d10634418522f4b7e36b4ef78",
+      "path": "outputs/evaluation/3r_450_900/grammars/3r_450_900.b900.r00.json",
+      "sha256": "24b5231c201cbcbfc112b20e34fbceacf3fa9e0e6a0616b8a038799aeecf44f2",
+      "requested_seed": 1212719608,
+      "actual_seed": 1212719608
+    },
+    "3r_450_900.b900.r01": {
+      "status": "complete",
+      "config_hash": "73f286ddac5b53cb467cf50ca80ea7f5ac4215ed008e30fe067861695a4029bf",
+      "path": "outputs/evaluation/3r_450_900/grammars/3r_450_900.b900.r01.json",
+      "sha256": "37975f9c88ad73f5b92ac0ad4e919a8f7c5f0abcb9db745e2c0028b96bf70968",
+      "requested_seed": 1643721235,
+      "actual_seed": 1643721235
+    },
+    "3r_450_900.b900.r02": {
+      "status": "complete",
+      "config_hash": "3f427240dec2eb9295737f7255212abd61755a4f6b33fe483a6d788c87f276b9",
+      "path": "outputs/evaluation/3r_450_900/grammars/3r_450_900.b900.r02.json",
+      "sha256": "9e84e50b780183b2ec55f51d7d1707b0fbeba10346c46166a88cfcf8e462ceda",
+      "requested_seed": 1922912688,
+      "actual_seed": 1922912688
+    }
+  },
+  "scenarios": {
+    "3r_450_900.b450.r00": {
+      "status": "complete",
+      "config_hash": "b1aff3e2a20f7dbec046d07b6f154b9487601e14ec913e2657fe16eae9396db1",
+      "path": "outputs/evaluation/3r_450_900/scenarios/3r_450_900.b450.r00.json",
+      "sha256": "fd54e4885d3a04e8923dc381f9186e83831ebbe9f82f16ce6205e1fb9629f41c",
+      "board_depth": 449
+    },
+    "3r_450_900.b450.r01": {
+      "status": "complete",
+      "config_hash": "4f7c395e16935960715a570ab190ca69b3ec46e6c6a0f19ea50c56b4ba77f295",
+      "path": "outputs/evaluation/3r_450_900/scenarios/3r_450_900.b450.r01.json",
+      "sha256": "974ed3e10093dfc1b9927db9be351472d5ab9f5d134fcf7c69b32107919d7e06",
+      "board_depth": 449
+    },
+    "3r_450_900.b450.r02": {
+      "status": "complete",
+      "config_hash": "96928b7c5a60daac6c75c6aea4c06af7dd3b77176940b7b68b28e6a2911a8086",
+      "path": "outputs/evaluation/3r_450_900/scenarios/3r_450_900.b450.r02.json",
+      "sha256": "7dbfa624c2e4351a9353fa772536aaa3b02d6e284e0bc858dd8793926a86f913",
+      "board_depth": 449
+    },
+    "3r_450_900.b900.r00": {
+      "status": "complete",
+      "config_hash": "fdc63d865b06c781ed067e557d4c80a8e132401e54981356d971a2830c1b0e3e",
+      "path": "outputs/evaluation/3r_450_900/scenarios/3r_450_900.b900.r00.json",
+      "sha256": "a04d74dfe31297c25c394fd6981728a0fe4105ce32ea09d7c2c6296f92296ecf",
+      "board_depth": 899
+    },
+    "3r_450_900.b900.r01": {
+      "status": "complete",
+      "config_hash": "8c28409840145d0a9afb28bae9945fcbb7772575f425099374ce72df0a7710c8",
+      "path": "outputs/evaluation/3r_450_900/scenarios/3r_450_900.b900.r01.json",
+      "sha256": "67d343ee60846727831cc61c244c64999fcd58441890471677510535d011a34b",
+      "board_depth": 899
+    },
+    "3r_450_900.b900.r02": {
+      "status": "complete",
+      "config_hash": "1426c314436c2726e9ce207a2c4bb97d7fc993cd0edd276291ee085b5891ebe3",
+      "path": "outputs/evaluation/3r_450_900/scenarios/3r_450_900.b900.r02.json",
+      "sha256": "f91fd46649fdc60e8f6a37c7f7cba14e183d47aceb22ecb53b456cd699d43af1",
+      "board_depth": 899
+    }
+  },
+  "cases": {
+    "3r_450_900.b450.r00": {
+      "status": "complete",
+      "config_hash": "ef2546a4f0d7038bbe5859fec58021b9157c2332e89078ee9de85fc6cd682687",
+      "path": "outputs/evaluation/3r_450_900/cases/3r_450_900.b450.r00.json",
+      "sha256": "e62749a921a467881103f5838e25d2732e4cfdda21396d871c93e7e0ca2b9f9a",
+      "board_size": 450
+    },
+    "3r_450_900.b450.r01": {
+      "status": "complete",
+      "config_hash": "d099450c98da8d950d45930dc5ff17c00a656783796f0a944892ee1d17dea3a4",
+      "path": "outputs/evaluation/3r_450_900/cases/3r_450_900.b450.r01.json",
+      "sha256": "ca7dcd2f82e9ee1f29a6fb06844bac612bcf35d0746ee01d8a8aefe07f21c636",
+      "board_size": 450
+    },
+    "3r_450_900.b450.r02": {
+      "status": "complete",
+      "config_hash": "b015718190972096aff6c539e31b1e5a93f6b8b2aabce9a9558e0c8c67db6ecc",
+      "path": "outputs/evaluation/3r_450_900/cases/3r_450_900.b450.r02.json",
+      "sha256": "8f17676878114b5603720b43167fa919310b1d6590c22c66625e4ab2d3f03df6",
+      "board_size": 450
+    },
+    "3r_450_900.b900.r00": {
+      "status": "complete",
+      "config_hash": "472984c960919ac9e1cc098626a494f64f6654cc8b80d2dbbaf8dedf3c4dd4a1",
+      "path": "outputs/evaluation/3r_450_900/cases/3r_450_900.b900.r00.json",
+      "sha256": "eaa50d9f9686e3b4f1ad1f7a1769ff936ee951598f45f72be1e2aaa23d6504bc",
+      "board_size": 900
+    },
+    "3r_450_900.b900.r01": {
+      "status": "complete",
+      "config_hash": "fd178b299c7a93aba8e2346519399e4c0de81d65dee69e8680013228d1719491",
+      "path": "outputs/evaluation/3r_450_900/cases/3r_450_900.b900.r01.json",
+      "sha256": "5cab93ccac5e5a25cc80054e752633650a87715f9668ea7b2732bb8699201f0f",
+      "board_size": 900
+    },
+    "3r_450_900.b900.r02": {
+      "status": "complete",
+      "config_hash": "b322c75521add1cc699aae5eb5b3bb7aea6e5e283f2f3c5025f394977e56f6b8",
+      "path": "outputs/evaluation/3r_450_900/cases/3r_450_900.b900.r02.json",
+      "sha256": "4e7fd780a715b64d6cd2ffaa37d8226ff080ee0aba0de548048203ffffdb7415",
+      "board_size": 900
+    }
+  },
+  "failures": {},
+  "schemas": {
+    "evaluation-case": {
+      "path": "outputs/evaluation/3r_450_900/schemas/evaluation-case.schema.json",
+      "sha256": "57c2b3fa7250d46b818c3d0af97162d8c835417e3fc671ac0fcb04945cbef759"
+    },
+    "decomposition-request": {
+      "path": "outputs/evaluation/3r_450_900/schemas/decomposition-request.schema.json",
+      "sha256": "a4686546efd73470e18cce7421c37748d9708ab9662e8dfa7bc52bc89286da6d"
+    },
+    "decomposition-result": {
+      "path": "outputs/evaluation/3r_450_900/schemas/decomposition-result.schema.json",
+      "sha256": "25c55c2abddf3776b059591b966baff55deca9e7197cfbfba2b181970b0ac709"
+    }
+  }
+}

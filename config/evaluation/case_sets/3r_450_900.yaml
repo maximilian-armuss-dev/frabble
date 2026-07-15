@@ -1,0 +1,7 @@
+generation_config: evaluation_base_sanity_check
+grammar_config: evaluation_base_grammar
+root_seed: 1337
+sampling_rounds: 3
+board_sizes:
+  - 450
+  - 900

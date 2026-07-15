@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "job_id": "3r_450_900.b450.r01__openai_gpt-5__high__forbidden-snippets",
+  "case_file": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/3r_450_900/cases/3r_450_900.b450.r01.json",
+  "model": "openai_gpt-5",
+  "reasoning_effort": "high",
+  "model_config": {
+    "model": "openai/gpt-5",
+    "configured_model": "openai/gpt-5",
+    "backend": "litellm",
+    "reasoning_effort": "high",
+    "reasoning": null,
+    "provider": null,
+    "max_completion_tokens": 32384,
+    "request_max_tokens": null,
+    "timeout_seconds": 3600.0,
+    "provider_max_retries": 0
+  },
+  "language_representation": "forbidden-snippets",
+  "status": "transport_error",
+  "retryable": false,
+  "retry_count": 1,
+  "error_type": "Timeout",
+  "error": "litellm.Timeout: APITimeoutError - Request timed out. Error_str: Request timed out. - timeout value=3600.0, time taken=3600.07 seconds",
+  "http_status_code": 408,
+  "timestamp": "2026-07-15T18:18:05.438686+00:00",
+  "error_retryable": true,
+  "request_attempt_count": 2,
+  "llm_elapsed_seconds_total": 4251.426250499018,
+  "retry_wait_seconds_total": 1.952073220668017,
+  "failed_attempts": [
+    {
+      "attempt_index": 0,
+      "elapsed_seconds": 651.3644360410108,
+      "error_type": "InternalServerError",
+      "error": "litellm.InternalServerError: InternalServerError: OpenAIException - Connection error.",
+      "retryable": true,
+      "http_status_code": 500,
+      "retry_delay_seconds": 1.952073220668017
+    },
+    {
+      "attempt_index": 1,
+      "elapsed_seconds": 3600.0618144580076,
+      "error_type": "Timeout",
+      "error": "litellm.Timeout: APITimeoutError - Request timed out. Error_str: Request timed out. - timeout value=3600.0, time taken=3600.07 seconds",
+      "retryable": true,
+      "http_status_code": 408
+    }
+  ]
+}

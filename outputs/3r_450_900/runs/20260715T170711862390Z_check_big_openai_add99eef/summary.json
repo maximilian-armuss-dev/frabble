@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "total_attempts": 6,
+  "completed": 5,
+  "passed": 4,
+  "failed": 1,
+  "pass_rate": 0.8,
+  "transport_errors": 1,
+  "primary_failures": {
+    "truncated": 1
+  },
+  "format_robust": {
+    "passed": 4,
+    "pass_rate": 0.8,
+    "recovered": 0,
+    "primary_failures": {
+      "truncated": 1
+    }
+  },
+  "failed_constraints": {
+    "parse_ok": 1,
+    "sequence_valid": 1,
+    "min_length_fulfilled": 1,
+    "spatial_valid": 1,
+    "overlap_valid": 1,
+    "no_word_extension": 1,
+    "cross_words_valid": 0,
+    "rack_valid": 0
+  },
+  "by_board_size": {
+    "450": {
+      "total": 2,
+      "passed": 1,
+      "failed": 1,
+      "transport_errors": 1,
+      "pass_rate": 0.5
+    },
+    "900": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "transport_errors": 0,
+      "pass_rate": 1.0
+    }
+  },
+  "by_model": {
+    "openai_gpt-5": {
+      "total": 5,
+      "passed": 4,
+      "failed": 1,
+      "transport_errors": 1,
+      "pass_rate": 0.8
+    }
+  },
+  "by_group": [
+    {
+      "board_size": 450,
+      "model": "openai_gpt-5",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "high",
+      "total": 2,
+      "passed": 1,
+      "failed": 1,
+      "pass_rate": 0.5,
+      "transport_errors": 1
+    },
+    {
+      "board_size": 900,
+      "model": "openai_gpt-5",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "high",
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "pass_rate": 1.0,
+      "transport_errors": 0
+    }
+  ]
+}
