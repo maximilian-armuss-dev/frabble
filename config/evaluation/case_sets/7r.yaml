@@ -1,7 +1,7 @@
 generation_config: evaluation_base
 grammar_config: evaluation_base_grammar
-root_seed: 2425
-sampling_rounds: 1
+root_seed: 1337
+sampling_rounds: 7
 board_sizes:
   - 1
   - 5

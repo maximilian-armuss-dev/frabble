@@ -8,6 +8,6 @@ models:
   or_kimi-k2-6: [all]
   or_qwen3-7-max: [1]
 execution:
-  max_concurrency: 35
-  max_concurrency_per_model: 5
+  max_concurrency: 42
+  max_concurrency_per_model: 6
   max_retries: 1
