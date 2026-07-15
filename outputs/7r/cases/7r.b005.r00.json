@@ -1,0 +1,561 @@
+{
+  "schema_version": 1,
+  "case_id": "7r.b005.r00",
+  "case_set": "7r",
+  "board_size": 5,
+  "sampling_round": 0,
+  "seeds": {
+    "grammar_requested": 1116787967,
+    "grammar_used": 1116787967,
+    "board": 1623638821
+  },
+  "parameters": {
+    "grammar": {
+      "alphabet_case": "upper",
+      "alphabet_type": "letters",
+      "forbidden_fraction": 0.4,
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      },
+      "config_name": "7r.b005.r00",
+      "alphabet_size": 8,
+      "k": 3,
+      "min_word_length": 3,
+      "seed": 1116787967,
+      "output_path": null,
+      "show_stats": false
+    },
+    "generation": {
+      "config_name": "7r.b005.r00",
+      "dimensions": 2,
+      "seed": 1623638821,
+      "grammar": null,
+      "grammar_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/grammars/7r.b005.r00.json",
+      "initial_word_axis": 0,
+      "initial_word_length": 5,
+      "length_distribution": {
+        "start": 3,
+        "end": 6
+      },
+      "fixed_final_transition_length": 6,
+      "top_anchor_count": 40,
+      "max_anchor_count": null,
+      "top_template_count": 200,
+      "target_witness_count": 5,
+      "scoring": {
+        "anchor_centroid_weight": 0.8,
+        "template_centroid_weight": 1.2,
+        "template_local_density_penalty_weight": 0.6
+      },
+      "additional_rack_noise": 0,
+      "output_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/scenarios/7r.b005.r00.json",
+      "include_search_logs": false
+    },
+    "board_depth": 4
+  },
+  "grammar": {
+    "schema_version": 2,
+    "type": "sl",
+    "name": "7r.b005.r00",
+    "alphabet": [
+      "A",
+      "C",
+      "G",
+      "L",
+      "O",
+      "R",
+      "V",
+      "W"
+    ],
+    "k": 3,
+    "forbidden": [
+      "AAG",
+      "AAO",
+      "AAR",
+      "AAW",
+      "ACA",
+      "ACG",
+      "ACO",
+      "ACR",
+      "AGA",
+      "ALL",
+      "AOA",
+      "AOC",
+      "AOO",
+      "AOV",
+      "AOW",
+      "ARG",
+      "ARL",
+      "ARW",
+      "AVC",
+      "AWC",
+      "AWL",
+      "AWO",
+      "CAC",
+      "CAG",
+      "CAO",
+      "CAR",
+      "CCC",
+      "CCL",
+      "CGV",
+      "CLL",
+      "CLO",
+      "CLV",
+      "CLW",
+      "COA",
+      "COG",
+      "CRA",
+      "CRG",
+      "CRL",
+      "CRR",
+      "CRW",
+      "CVC",
+      "CVG",
+      "CVL",
+      "CVO",
+      "CVV",
+      "CVW",
+      "CWC",
+      "CWG",
+      "CWO",
+      "GAL",
+      "GCC",
+      "GCW",
+      "GGA",
+      "GGC",
+      "GGO",
+      "GGW",
+      "GLC",
+      "GLG",
+      "GLL",
+      "GOG",
+      "GOO",
+      "GOR",
+      "GOW",
+      "GRO",
+      "GRR",
+      "GVC",
+      "GVG",
+      "GWC",
+      "LAA",
+      "LAC",
+      "LAG",
+      "LAV",
+      "LCA",
+      "LCC",
+      "LCG",
+      "LCL",
+      "LCR",
+      "LCV",
+      "LCW",
+      "LGA",
+      "LGC",
+      "LGG",
+      "LGO",
+      "LGR",
+      "LGW",
+      "LLL",
+      "LLR",
+      "LLV",
+      "LLW",
+      "LOA",
+      "LOC",
+      "LOG",
+      "LOO",
+      "LRA",
+      "LRC",
+      "LRG",
+      "LRL",
+      "LRO",
+      "LRR",
+      "LVC",
+      "LVL",
+      "LVV",
+      "LWL",
+      "LWR",
+      "LWV",
+      "LWW",
+      "OAC",
+      "OAG",
+      "OAV",
+      "OAW",
+      "OCA",
+      "OCC",
+      "OCL",
+      "OCV",
+      "OLA",
+      "OLG",
+      "OLL",
+      "OOG",
+      "OOV",
+      "ORA",
+      "ORG",
+      "ORL",
+      "ORO",
+      "ORR",
+      "OVA",
+      "OVL",
+      "OVR",
+      "OWG",
+      "OWO",
+      "OWR",
+      "RAG",
+      "RAL",
+      "RAV",
+      "RCC",
+      "RCL",
+      "RCR",
+      "RCV",
+      "RCW",
+      "RGG",
+      "RGO",
+      "RGR",
+      "RGV",
+      "RGW",
+      "RLC",
+      "RLO",
+      "RLR",
+      "RLV",
+      "ROG",
+      "RRG",
+      "RVO",
+      "RVR",
+      "RWA",
+      "RWG",
+      "RWL",
+      "RWW",
+      "VAL",
+      "VCA",
+      "VCL",
+      "VGA",
+      "VGC",
+      "VGR",
+      "VGV",
+      "VLC",
+      "VLG",
+      "VLL",
+      "VLO",
+      "VLR",
+      "VOA",
+      "VOC",
+      "VOG",
+      "VOL",
+      "VOO",
+      "VOR",
+      "VRA",
+      "VRG",
+      "VRO",
+      "VVR",
+      "VVW",
+      "VWG",
+      "VWW",
+      "WAA",
+      "WAG",
+      "WAO",
+      "WAR",
+      "WCC",
+      "WCG",
+      "WCV",
+      "WGO",
+      "WGR",
+      "WLG",
+      "WLR",
+      "WLV",
+      "WLW",
+      "WOG",
+      "WOW",
+      "WRG",
+      "WRL",
+      "WRO",
+      "WRV",
+      "WVA",
+      "WVC",
+      "WVL",
+      "WVO",
+      "WVR",
+      "WVV",
+      "WWG",
+      "WWR",
+      "WWV"
+    ],
+    "min_word_length": 3,
+    "letter_scores": {
+      "A": 2,
+      "C": 4,
+      "G": 2,
+      "L": 3,
+      "O": 5,
+      "R": 1,
+      "V": 5,
+      "W": 2
+    },
+    "seed": 1116787967,
+    "sampling_config": {
+      "alphabet_size": 8,
+      "forbidden_fraction": 0.4,
+      "alphabet_case": "upper",
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      }
+    }
+  },
+  "board": {
+    "dimensions": 2,
+    "occupied": [
+      [
+        [
+          -4,
+          4
+        ],
+        "G"
+      ],
+      [
+        [
+          -3,
+          4
+        ],
+        "L"
+      ],
+      [
+        [
+          -2,
+          0
+        ],
+        "C"
+      ],
+      [
+        [
+          -2,
+          4
+        ],
+        "V"
+      ],
+      [
+        [
+          -1,
+          0
+        ],
+        "A"
+      ],
+      [
+        [
+          -1,
+          1
+        ],
+        "A"
+      ],
+      [
+        [
+          -1,
+          2
+        ],
+        "C"
+      ],
+      [
+        [
+          -1,
+          4
+        ],
+        "A"
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        "A"
+      ],
+      [
+        [
+          0,
+          2
+        ],
+        "G"
+      ],
+      [
+        [
+          0,
+          4
+        ],
+        "V"
+      ],
+      [
+        [
+          1,
+          -1
+        ],
+        "V"
+      ],
+      [
+        [
+          1,
+          0
+        ],
+        "L"
+      ],
+      [
+        [
+          1,
+          1
+        ],
+        "A"
+      ],
+      [
+        [
+          1,
+          2
+        ],
+        "L"
+      ],
+      [
+        [
+          1,
+          3
+        ],
+        "O"
+      ],
+      [
+        [
+          1,
+          4
+        ],
+        "W"
+      ],
+      [
+        [
+          2,
+          0
+        ],
+        "R"
+      ],
+      [
+        [
+          2,
+          2
+        ],
+        "O"
+      ],
+      [
+        [
+          3,
+          2
+        ],
+        "R"
+      ]
+    ],
+    "segments": [
+      {
+        "start": [
+          -2,
+          0
+        ],
+        "axis": 0,
+        "sequence": [
+          "C",
+          "A",
+          "A",
+          "L",
+          "R"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          0
+        ],
+        "axis": 1,
+        "sequence": [
+          "A",
+          "A",
+          "C"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          2
+        ],
+        "axis": 0,
+        "sequence": [
+          "C",
+          "G",
+          "L",
+          "O",
+          "R"
+        ]
+      },
+      {
+        "start": [
+          1,
+          -1
+        ],
+        "axis": 1,
+        "sequence": [
+          "V",
+          "L",
+          "A",
+          "L",
+          "O",
+          "W"
+        ]
+      },
+      {
+        "start": [
+          -4,
+          4
+        ],
+        "axis": 0,
+        "sequence": [
+          "G",
+          "L",
+          "V",
+          "A",
+          "V",
+          "W"
+        ]
+      }
+    ]
+  },
+  "rack": [
+    "G",
+    "O",
+    "V",
+    "V",
+    "W"
+  ],
+  "ground_truth_move": {
+    "start": [
+      3,
+      2
+    ],
+    "axis": 1,
+    "sequence": [
+      "R",
+      "O",
+      "V",
+      "W",
+      "V",
+      "G"
+    ]
+  },
+  "provenance": {
+    "grammar_artifact": "outputs/evaluation/7r/grammars/7r.b005.r00.json",
+    "scenario_artifact": "outputs/evaluation/7r/scenarios/7r.b005.r00.json",
+    "grammar_sha256": "58a9e93d259926b0a4553e7aff9d3b86c988539df2b80120242723ff81529b06",
+    "scenario_sha256": "2e281f7ac0138e7c272d583e5674c04527f10e25ad478e0bba27e1e90e486754",
+    "case_set_config_sha256": "c7325b5eec899ae65a47292f96ff96b047a815fd16ce25dec2b198da3c92ce61",
+    "git_revision": "3a8671e9aae486874c5c9bb467b20501f6642261"
+  }
+}

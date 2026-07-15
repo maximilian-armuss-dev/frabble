@@ -1,0 +1,563 @@
+{
+  "schema_version": 1,
+  "case_id": "7r.b005.r03",
+  "case_set": "7r",
+  "board_size": 5,
+  "sampling_round": 3,
+  "seeds": {
+    "grammar_requested": 658346234,
+    "grammar_used": 658346234,
+    "board": 1638260581
+  },
+  "parameters": {
+    "grammar": {
+      "alphabet_case": "upper",
+      "alphabet_type": "letters",
+      "forbidden_fraction": 0.4,
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      },
+      "config_name": "7r.b005.r03",
+      "alphabet_size": 8,
+      "k": 3,
+      "min_word_length": 3,
+      "seed": 658346234,
+      "output_path": null,
+      "show_stats": false
+    },
+    "generation": {
+      "config_name": "7r.b005.r03",
+      "dimensions": 2,
+      "seed": 1638260581,
+      "grammar": null,
+      "grammar_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/grammars/7r.b005.r03.json",
+      "initial_word_axis": 0,
+      "initial_word_length": 5,
+      "length_distribution": {
+        "start": 3,
+        "end": 6
+      },
+      "fixed_final_transition_length": 6,
+      "top_anchor_count": 40,
+      "max_anchor_count": null,
+      "top_template_count": 200,
+      "target_witness_count": 5,
+      "scoring": {
+        "anchor_centroid_weight": 0.8,
+        "template_centroid_weight": 1.2,
+        "template_local_density_penalty_weight": 0.6
+      },
+      "additional_rack_noise": 0,
+      "output_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/scenarios/7r.b005.r03.json",
+      "include_search_logs": false
+    },
+    "board_depth": 4
+  },
+  "grammar": {
+    "schema_version": 2,
+    "type": "sl",
+    "name": "7r.b005.r03",
+    "alphabet": [
+      "B",
+      "J",
+      "P",
+      "S",
+      "V",
+      "W",
+      "X",
+      "Y"
+    ],
+    "k": 3,
+    "forbidden": [
+      "BBP",
+      "BBS",
+      "BBX",
+      "BJY",
+      "BPJ",
+      "BPS",
+      "BSJ",
+      "BSP",
+      "BSS",
+      "BSW",
+      "BSX",
+      "BSY",
+      "BVB",
+      "BVP",
+      "BVS",
+      "BVY",
+      "BWV",
+      "BWW",
+      "BXP",
+      "BXV",
+      "BXX",
+      "BXY",
+      "BYJ",
+      "BYV",
+      "BYX",
+      "JBV",
+      "JBW",
+      "JJW",
+      "JPB",
+      "JPP",
+      "JPS",
+      "JPV",
+      "JPX",
+      "JPY",
+      "JSJ",
+      "JSV",
+      "JVJ",
+      "JVP",
+      "JVV",
+      "JVX",
+      "JWB",
+      "JWJ",
+      "JWP",
+      "JWS",
+      "JWV",
+      "JWW",
+      "JWX",
+      "JWY",
+      "JXW",
+      "JXY",
+      "JYB",
+      "JYJ",
+      "JYS",
+      "PBP",
+      "PBW",
+      "PBX",
+      "PJB",
+      "PJP",
+      "PJS",
+      "PJV",
+      "PJW",
+      "PJX",
+      "PPP",
+      "PPW",
+      "PSS",
+      "PSY",
+      "PVB",
+      "PVJ",
+      "PVP",
+      "PVS",
+      "PVV",
+      "PVY",
+      "PXB",
+      "PXJ",
+      "PYY",
+      "SBS",
+      "SBV",
+      "SBW",
+      "SJB",
+      "SJJ",
+      "SJS",
+      "SJW",
+      "SJY",
+      "SPJ",
+      "SPS",
+      "SSB",
+      "SSJ",
+      "SSS",
+      "SSV",
+      "SSW",
+      "SVJ",
+      "SWB",
+      "SWP",
+      "SWS",
+      "SWY",
+      "SXP",
+      "SXX",
+      "SYB",
+      "SYJ",
+      "SYS",
+      "SYV",
+      "SYW",
+      "SYX",
+      "SYY",
+      "VBB",
+      "VBW",
+      "VJB",
+      "VJJ",
+      "VJP",
+      "VJS",
+      "VJV",
+      "VJY",
+      "VPJ",
+      "VPS",
+      "VPV",
+      "VPX",
+      "VVJ",
+      "VXJ",
+      "VXP",
+      "VXV",
+      "VXX",
+      "VYB",
+      "VYV",
+      "VYY",
+      "WBB",
+      "WBV",
+      "WBW",
+      "WBY",
+      "WJB",
+      "WJV",
+      "WJW",
+      "WJX",
+      "WJY",
+      "WPJ",
+      "WPS",
+      "WPV",
+      "WPW",
+      "WSV",
+      "WSX",
+      "WSY",
+      "WVP",
+      "WVW",
+      "WVX",
+      "WWJ",
+      "WWP",
+      "WXB",
+      "WXW",
+      "WYJ",
+      "WYW",
+      "WYX",
+      "WYY",
+      "XBB",
+      "XBJ",
+      "XBV",
+      "XBX",
+      "XJB",
+      "XJV",
+      "XJX",
+      "XPJ",
+      "XPP",
+      "XPV",
+      "XPY",
+      "XSP",
+      "XSV",
+      "XSY",
+      "XVB",
+      "XVJ",
+      "XVV",
+      "XWJ",
+      "XWS",
+      "XWX",
+      "XWY",
+      "XXB",
+      "XXV",
+      "XXW",
+      "XXX",
+      "XYJ",
+      "XYV",
+      "XYY",
+      "YBP",
+      "YBW",
+      "YBX",
+      "YJB",
+      "YJJ",
+      "YJS",
+      "YJW",
+      "YJY",
+      "YPV",
+      "YPW",
+      "YPX",
+      "YPY",
+      "YSB",
+      "YSJ",
+      "YSW",
+      "YVJ",
+      "YVP",
+      "YVS",
+      "YVV",
+      "YVW",
+      "YWP",
+      "YWW",
+      "YWX",
+      "YXB",
+      "YXP",
+      "YXS",
+      "YXW",
+      "YXX",
+      "YYJ",
+      "YYW",
+      "YYY"
+    ],
+    "min_word_length": 3,
+    "letter_scores": {
+      "B": 2,
+      "J": 2,
+      "P": 2,
+      "S": 2,
+      "V": 1,
+      "W": 2,
+      "X": 1,
+      "Y": 1
+    },
+    "seed": 658346234,
+    "sampling_config": {
+      "alphabet_size": 8,
+      "forbidden_fraction": 0.4,
+      "alphabet_case": "upper",
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      }
+    }
+  },
+  "board": {
+    "dimensions": 2,
+    "occupied": [
+      [
+        [
+          -2,
+          0
+        ],
+        "Y"
+      ],
+      [
+        [
+          -2,
+          2
+        ],
+        "J"
+      ],
+      [
+        [
+          -1,
+          -2
+        ],
+        "X"
+      ],
+      [
+        [
+          -1,
+          -1
+        ],
+        "W"
+      ],
+      [
+        [
+          -1,
+          0
+        ],
+        "B"
+      ],
+      [
+        [
+          -1,
+          1
+        ],
+        "S"
+      ],
+      [
+        [
+          -1,
+          2
+        ],
+        "V"
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        "J"
+      ],
+      [
+        [
+          0,
+          1
+        ],
+        "J"
+      ],
+      [
+        [
+          0,
+          2
+        ],
+        "S"
+      ],
+      [
+        [
+          1,
+          -2
+        ],
+        "J"
+      ],
+      [
+        [
+          1,
+          -1
+        ],
+        "J"
+      ],
+      [
+        [
+          1,
+          0
+        ],
+        "S"
+      ],
+      [
+        [
+          1,
+          1
+        ],
+        "P"
+      ],
+      [
+        [
+          1,
+          2
+        ],
+        "P"
+      ],
+      [
+        [
+          1,
+          3
+        ],
+        "X"
+      ],
+      [
+        [
+          2,
+          0
+        ],
+        "X"
+      ],
+      [
+        [
+          2,
+          1
+        ],
+        "J"
+      ],
+      [
+        [
+          2,
+          2
+        ],
+        "W"
+      ],
+      [
+        [
+          3,
+          1
+        ],
+        "Y"
+      ]
+    ],
+    "segments": [
+      {
+        "start": [
+          -2,
+          0
+        ],
+        "axis": 0,
+        "sequence": [
+          "Y",
+          "B",
+          "J",
+          "S",
+          "X"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          -2
+        ],
+        "axis": 1,
+        "sequence": [
+          "X",
+          "W",
+          "B",
+          "S",
+          "V"
+        ]
+      },
+      {
+        "start": [
+          1,
+          -2
+        ],
+        "axis": 1,
+        "sequence": [
+          "J",
+          "J",
+          "S",
+          "P",
+          "P",
+          "X"
+        ]
+      },
+      {
+        "start": [
+          -2,
+          2
+        ],
+        "axis": 0,
+        "sequence": [
+          "J",
+          "V",
+          "S",
+          "P",
+          "W"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          1
+        ],
+        "axis": 0,
+        "sequence": [
+          "S",
+          "J",
+          "P",
+          "J",
+          "Y"
+        ]
+      }
+    ]
+  },
+  "rack": [
+    "B",
+    "S",
+    "V",
+    "Y"
+  ],
+  "ground_truth_move": {
+    "start": [
+      -1,
+      -2
+    ],
+    "axis": 0,
+    "sequence": [
+      "X",
+      "S",
+      "J",
+      "V",
+      "B",
+      "Y"
+    ]
+  },
+  "provenance": {
+    "grammar_artifact": "outputs/evaluation/7r/grammars/7r.b005.r03.json",
+    "scenario_artifact": "outputs/evaluation/7r/scenarios/7r.b005.r03.json",
+    "grammar_sha256": "8395153f429a3501c9bc15e328934368e32abf08b9f258f4283ef869f3686f8e",
+    "scenario_sha256": "d85c1fb028fb0ce94136857e429e6c8a401b142dc767f74802c4a7bfbd4ce8b9",
+    "case_set_config_sha256": "c7325b5eec899ae65a47292f96ff96b047a815fd16ce25dec2b198da3c92ce61",
+    "git_revision": "3a8671e9aae486874c5c9bb467b20501f6642261"
+  }
+}

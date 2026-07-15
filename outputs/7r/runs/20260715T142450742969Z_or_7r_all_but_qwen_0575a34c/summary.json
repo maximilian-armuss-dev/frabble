@@ -1,0 +1,457 @@
+{
+  "schema_version": 1,
+  "total_attempts": 217,
+  "completed": 0,
+  "passed": 0,
+  "failed": 0,
+  "pass_rate": null,
+  "transport_errors": 217,
+  "primary_failures": {},
+  "format_robust": {
+    "passed": 0,
+    "pass_rate": null,
+    "recovered": 0,
+    "primary_failures": {}
+  },
+  "failed_constraints": {
+    "parse_ok": 0,
+    "sequence_valid": 0,
+    "min_length_fulfilled": 0,
+    "spatial_valid": 0,
+    "overlap_valid": 0,
+    "no_word_extension": 0,
+    "cross_words_valid": 0,
+    "rack_valid": 0
+  },
+  "by_board_size": {
+    "1": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "transport_errors": 49,
+      "pass_rate": null
+    },
+    "10": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "transport_errors": 42,
+      "pass_rate": null
+    },
+    "450": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "transport_errors": 42,
+      "pass_rate": null
+    },
+    "5": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "transport_errors": 42,
+      "pass_rate": null
+    },
+    "900": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "transport_errors": 42,
+      "pass_rate": null
+    }
+  },
+  "by_model": {
+    "or_claude-opus-4-8": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "transport_errors": 35,
+      "pass_rate": null
+    },
+    "or_deepseek-v4-pro": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "transport_errors": 35,
+      "pass_rate": null
+    },
+    "or_gemini-3-1-pro": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "transport_errors": 35,
+      "pass_rate": null
+    },
+    "or_gpt-5-5": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "transport_errors": 35,
+      "pass_rate": null
+    },
+    "or_grok-4-3": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "transport_errors": 35,
+      "pass_rate": null
+    },
+    "or_kimi-k2-6": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "transport_errors": 35,
+      "pass_rate": null
+    },
+    "or_qwen3-7-max": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "transport_errors": 7,
+      "pass_rate": null
+    }
+  },
+  "by_group": [
+    {
+      "board_size": 1,
+      "model": "or_claude-opus-4-8",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 1,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 1,
+      "model": "or_gemini-3-1-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 1,
+      "model": "or_gpt-5-5",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 1,
+      "model": "or_grok-4-3",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 1,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 1,
+      "model": "or_qwen3-7-max",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 10,
+      "model": "or_claude-opus-4-8",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 10,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 10,
+      "model": "or_gemini-3-1-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 10,
+      "model": "or_gpt-5-5",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 10,
+      "model": "or_grok-4-3",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 10,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 450,
+      "model": "or_claude-opus-4-8",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 450,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 450,
+      "model": "or_gemini-3-1-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 450,
+      "model": "or_gpt-5-5",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 450,
+      "model": "or_grok-4-3",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 450,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 5,
+      "model": "or_claude-opus-4-8",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 5,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 5,
+      "model": "or_gemini-3-1-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 5,
+      "model": "or_gpt-5-5",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 5,
+      "model": "or_grok-4-3",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 5,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 900,
+      "model": "or_claude-opus-4-8",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 900,
+      "model": "or_deepseek-v4-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 900,
+      "model": "or_gemini-3-1-pro",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 900,
+      "model": "or_gpt-5-5",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 900,
+      "model": "or_grok-4-3",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    },
+    {
+      "board_size": 900,
+      "model": "or_kimi-k2-6",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "xhigh",
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "pass_rate": null,
+      "transport_errors": 7
+    }
+  ]
+}

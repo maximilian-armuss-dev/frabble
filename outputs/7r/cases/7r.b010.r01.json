@@ -1,0 +1,715 @@
+{
+  "schema_version": 1,
+  "case_id": "7r.b010.r01",
+  "case_set": "7r",
+  "board_size": 10,
+  "sampling_round": 1,
+  "seeds": {
+    "grammar_requested": 903443359,
+    "grammar_used": 903443359,
+    "board": 672761239
+  },
+  "parameters": {
+    "grammar": {
+      "alphabet_case": "upper",
+      "alphabet_type": "letters",
+      "forbidden_fraction": 0.4,
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      },
+      "config_name": "7r.b010.r01",
+      "alphabet_size": 8,
+      "k": 3,
+      "min_word_length": 3,
+      "seed": 903443359,
+      "output_path": null,
+      "show_stats": false
+    },
+    "generation": {
+      "config_name": "7r.b010.r01",
+      "dimensions": 2,
+      "seed": 672761239,
+      "grammar": null,
+      "grammar_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/grammars/7r.b010.r01.json",
+      "initial_word_axis": 0,
+      "initial_word_length": 5,
+      "length_distribution": {
+        "start": 3,
+        "end": 6
+      },
+      "fixed_final_transition_length": 6,
+      "top_anchor_count": 40,
+      "max_anchor_count": null,
+      "top_template_count": 200,
+      "target_witness_count": 10,
+      "scoring": {
+        "anchor_centroid_weight": 0.8,
+        "template_centroid_weight": 1.2,
+        "template_local_density_penalty_weight": 0.6
+      },
+      "additional_rack_noise": 0,
+      "output_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/scenarios/7r.b010.r01.json",
+      "include_search_logs": false
+    },
+    "board_depth": 9
+  },
+  "grammar": {
+    "schema_version": 2,
+    "type": "sl",
+    "name": "7r.b010.r01",
+    "alphabet": [
+      "D",
+      "E",
+      "J",
+      "K",
+      "P",
+      "U",
+      "W",
+      "X"
+    ],
+    "k": 3,
+    "forbidden": [
+      "DDJ",
+      "DDW",
+      "DDX",
+      "DEE",
+      "DEJ",
+      "DEX",
+      "DJD",
+      "DJP",
+      "DJW",
+      "DJX",
+      "DKD",
+      "DKE",
+      "DKU",
+      "DPD",
+      "DPE",
+      "DPJ",
+      "DPU",
+      "DPW",
+      "DPX",
+      "DUJ",
+      "DUP",
+      "DUW",
+      "DUX",
+      "DWE",
+      "DWJ",
+      "DWK",
+      "DWU",
+      "DWW",
+      "DWX",
+      "EDD",
+      "EDE",
+      "EDK",
+      "EDW",
+      "EEE",
+      "EEK",
+      "EEX",
+      "EJE",
+      "EJK",
+      "EJP",
+      "EJU",
+      "EJX",
+      "EKD",
+      "EKJ",
+      "EKP",
+      "EPE",
+      "EPJ",
+      "EPK",
+      "EPP",
+      "EUD",
+      "EUJ",
+      "EUP",
+      "EUU",
+      "EWE",
+      "EWJ",
+      "EWU",
+      "EWW",
+      "EXJ",
+      "EXK",
+      "EXP",
+      "EXW",
+      "EXX",
+      "JDD",
+      "JDX",
+      "JEP",
+      "JJD",
+      "JJU",
+      "JKJ",
+      "JKK",
+      "JPD",
+      "JPE",
+      "JPJ",
+      "JPK",
+      "JPP",
+      "JPW",
+      "JUE",
+      "JUJ",
+      "JUP",
+      "JUW",
+      "JUX",
+      "JWE",
+      "JXD",
+      "JXJ",
+      "JXW",
+      "JXX",
+      "KDP",
+      "KED",
+      "KEK",
+      "KEP",
+      "KEU",
+      "KEX",
+      "KJK",
+      "KJX",
+      "KKD",
+      "KKE",
+      "KKX",
+      "KPJ",
+      "KPX",
+      "KWE",
+      "KWK",
+      "KWU",
+      "KWW",
+      "KXD",
+      "KXJ",
+      "PDP",
+      "PDU",
+      "PDX",
+      "PED",
+      "PEE",
+      "PEJ",
+      "PEP",
+      "PEU",
+      "PEW",
+      "PEX",
+      "PJJ",
+      "PJU",
+      "PJW",
+      "PKD",
+      "PKE",
+      "PKU",
+      "PPD",
+      "PPE",
+      "PPJ",
+      "PPK",
+      "PPP",
+      "PUD",
+      "PUJ",
+      "PUK",
+      "PUU",
+      "PUX",
+      "PWD",
+      "PWE",
+      "PWK",
+      "PWP",
+      "PWW",
+      "PWX",
+      "PXD",
+      "PXJ",
+      "PXW",
+      "UDP",
+      "UDU",
+      "UDX",
+      "UED",
+      "UEE",
+      "UEP",
+      "UEU",
+      "UJD",
+      "UJU",
+      "UJW",
+      "UKD",
+      "UKK",
+      "UKU",
+      "UKW",
+      "UKX",
+      "UPD",
+      "UPJ",
+      "UPK",
+      "UPX",
+      "UUD",
+      "UUJ",
+      "UUW",
+      "UXD",
+      "UXJ",
+      "UXK",
+      "UXU",
+      "WDJ",
+      "WDP",
+      "WDU",
+      "WDW",
+      "WEE",
+      "WEU",
+      "WJE",
+      "WJU",
+      "WJW",
+      "WKJ",
+      "WKK",
+      "WKW",
+      "WKX",
+      "WPE",
+      "WPJ",
+      "WPP",
+      "WUE",
+      "WUJ",
+      "WUU",
+      "WWD",
+      "WWJ",
+      "WWP",
+      "WWU",
+      "WWX",
+      "WXJ",
+      "WXP",
+      "WXX",
+      "XDD",
+      "XDJ",
+      "XDK",
+      "XDU",
+      "XEW",
+      "XJD",
+      "XJK",
+      "XJW",
+      "XKD",
+      "XKE",
+      "XKW",
+      "XKX",
+      "XPE",
+      "XPJ",
+      "XPK",
+      "XPU",
+      "XPX",
+      "XUD",
+      "XUK",
+      "XUU",
+      "XUW",
+      "XWD",
+      "XWE",
+      "XWK",
+      "XWU",
+      "XXJ",
+      "XXP",
+      "XXU",
+      "XXW",
+      "XXX"
+    ],
+    "min_word_length": 3,
+    "letter_scores": {
+      "D": 1,
+      "E": 1,
+      "J": 1,
+      "K": 1,
+      "P": 2,
+      "U": 2,
+      "W": 2,
+      "X": 2
+    },
+    "seed": 903443359,
+    "sampling_config": {
+      "alphabet_size": 8,
+      "forbidden_fraction": 0.4,
+      "alphabet_case": "upper",
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      }
+    }
+  },
+  "board": {
+    "dimensions": 2,
+    "occupied": [
+      [
+        [
+          -4,
+          6
+        ],
+        "W"
+      ],
+      [
+        [
+          -3,
+          6
+        ],
+        "K"
+      ],
+      [
+        [
+          -2,
+          0
+        ],
+        "K"
+      ],
+      [
+        [
+          -2,
+          2
+        ],
+        "U"
+      ],
+      [
+        [
+          -2,
+          3
+        ],
+        "W"
+      ],
+      [
+        [
+          -2,
+          4
+        ],
+        "E"
+      ],
+      [
+        [
+          -2,
+          6
+        ],
+        "E"
+      ],
+      [
+        [
+          -1,
+          -1
+        ],
+        "P"
+      ],
+      [
+        [
+          -1,
+          0
+        ],
+        "X"
+      ],
+      [
+        [
+          -1,
+          1
+        ],
+        "E"
+      ],
+      [
+        [
+          -1,
+          2
+        ],
+        "K"
+      ],
+      [
+        [
+          -1,
+          4
+        ],
+        "W"
+      ],
+      [
+        [
+          -1,
+          5
+        ],
+        "E"
+      ],
+      [
+        [
+          -1,
+          6
+        ],
+        "W"
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        "X"
+      ],
+      [
+        [
+          0,
+          1
+        ],
+        "U"
+      ],
+      [
+        [
+          0,
+          2
+        ],
+        "P"
+      ],
+      [
+        [
+          0,
+          3
+        ],
+        "E"
+      ],
+      [
+        [
+          0,
+          4
+        ],
+        "K"
+      ],
+      [
+        [
+          0,
+          6
+        ],
+        "X"
+      ],
+      [
+        [
+          1,
+          0
+        ],
+        "D"
+      ],
+      [
+        [
+          1,
+          1
+        ],
+        "X"
+      ],
+      [
+        [
+          1,
+          2
+        ],
+        "W"
+      ],
+      [
+        [
+          1,
+          4
+        ],
+        "U"
+      ],
+      [
+        [
+          2,
+          0
+        ],
+        "P"
+      ],
+      [
+        [
+          2,
+          2
+        ],
+        "U"
+      ],
+      [
+        [
+          2,
+          3
+        ],
+        "W"
+      ],
+      [
+        [
+          2,
+          4
+        ],
+        "U"
+      ],
+      [
+        [
+          2,
+          5
+        ],
+        "X"
+      ],
+      [
+        [
+          2,
+          6
+        ],
+        "X"
+      ],
+      [
+        [
+          2,
+          7
+        ],
+        "K"
+      ]
+    ],
+    "segments": [
+      {
+        "start": [
+          -2,
+          0
+        ],
+        "axis": 0,
+        "sequence": [
+          "K",
+          "X",
+          "X",
+          "D",
+          "P"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          -1
+        ],
+        "axis": 1,
+        "sequence": [
+          "P",
+          "X",
+          "E",
+          "K"
+        ]
+      },
+      {
+        "start": [
+          1,
+          0
+        ],
+        "axis": 1,
+        "sequence": [
+          "D",
+          "X",
+          "W"
+        ]
+      },
+      {
+        "start": [
+          -2,
+          2
+        ],
+        "axis": 0,
+        "sequence": [
+          "U",
+          "K",
+          "P",
+          "W",
+          "U"
+        ]
+      },
+      {
+        "start": [
+          0,
+          0
+        ],
+        "axis": 1,
+        "sequence": [
+          "X",
+          "U",
+          "P",
+          "E",
+          "K"
+        ]
+      },
+      {
+        "start": [
+          -2,
+          2
+        ],
+        "axis": 1,
+        "sequence": [
+          "U",
+          "W",
+          "E"
+        ]
+      },
+      {
+        "start": [
+          -2,
+          4
+        ],
+        "axis": 0,
+        "sequence": [
+          "E",
+          "W",
+          "K",
+          "U",
+          "U"
+        ]
+      },
+      {
+        "start": [
+          2,
+          2
+        ],
+        "axis": 1,
+        "sequence": [
+          "U",
+          "W",
+          "U",
+          "X",
+          "X",
+          "K"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          4
+        ],
+        "axis": 1,
+        "sequence": [
+          "W",
+          "E",
+          "W"
+        ]
+      },
+      {
+        "start": [
+          -4,
+          6
+        ],
+        "axis": 0,
+        "sequence": [
+          "W",
+          "K",
+          "E",
+          "W",
+          "X"
+        ]
+      }
+    ]
+  },
+  "rack": [
+    "J",
+    "K",
+    "P",
+    "U",
+    "W"
+  ],
+  "ground_truth_move": {
+    "start": [
+      -4,
+      1
+    ],
+    "axis": 1,
+    "sequence": [
+      "U",
+      "J",
+      "K",
+      "W",
+      "P",
+      "W"
+    ]
+  },
+  "provenance": {
+    "grammar_artifact": "outputs/evaluation/7r/grammars/7r.b010.r01.json",
+    "scenario_artifact": "outputs/evaluation/7r/scenarios/7r.b010.r01.json",
+    "grammar_sha256": "9c6656cb00a34aab991a9bf814c28409ee3608689e85741fce07356fbdc4d641",
+    "scenario_sha256": "38f626567282bb8a3d31610cbe66682475af5f27ae4ed1f30bfb8707cd62c317",
+    "case_set_config_sha256": "c7325b5eec899ae65a47292f96ff96b047a815fd16ce25dec2b198da3c92ce61",
+    "git_revision": "3a8671e9aae486874c5c9bb467b20501f6642261"
+  }
+}

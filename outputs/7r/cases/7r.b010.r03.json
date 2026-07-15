@@ -1,0 +1,689 @@
+{
+  "schema_version": 1,
+  "case_id": "7r.b010.r03",
+  "case_set": "7r",
+  "board_size": 10,
+  "sampling_round": 3,
+  "seeds": {
+    "grammar_requested": 879737673,
+    "grammar_used": 879737673,
+    "board": 579976604
+  },
+  "parameters": {
+    "grammar": {
+      "alphabet_case": "upper",
+      "alphabet_type": "letters",
+      "forbidden_fraction": 0.4,
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      },
+      "config_name": "7r.b010.r03",
+      "alphabet_size": 8,
+      "k": 3,
+      "min_word_length": 3,
+      "seed": 879737673,
+      "output_path": null,
+      "show_stats": false
+    },
+    "generation": {
+      "config_name": "7r.b010.r03",
+      "dimensions": 2,
+      "seed": 579976604,
+      "grammar": null,
+      "grammar_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/grammars/7r.b010.r03.json",
+      "initial_word_axis": 0,
+      "initial_word_length": 5,
+      "length_distribution": {
+        "start": 3,
+        "end": 6
+      },
+      "fixed_final_transition_length": 6,
+      "top_anchor_count": 40,
+      "max_anchor_count": null,
+      "top_template_count": 200,
+      "target_witness_count": 10,
+      "scoring": {
+        "anchor_centroid_weight": 0.8,
+        "template_centroid_weight": 1.2,
+        "template_local_density_penalty_weight": 0.6
+      },
+      "additional_rack_noise": 0,
+      "output_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/scenarios/7r.b010.r03.json",
+      "include_search_logs": false
+    },
+    "board_depth": 9
+  },
+  "grammar": {
+    "schema_version": 2,
+    "type": "sl",
+    "name": "7r.b010.r03",
+    "alphabet": [
+      "B",
+      "G",
+      "I",
+      "N",
+      "O",
+      "P",
+      "S",
+      "Z"
+    ],
+    "k": 3,
+    "forbidden": [
+      "BBG",
+      "BBS",
+      "BGB",
+      "BGG",
+      "BGO",
+      "BGP",
+      "BGS",
+      "BGZ",
+      "BIB",
+      "BIS",
+      "BNB",
+      "BNP",
+      "BOG",
+      "BOP",
+      "BOZ",
+      "BPI",
+      "BPN",
+      "BPO",
+      "BSB",
+      "BSN",
+      "BSP",
+      "BSS",
+      "BZB",
+      "BZO",
+      "BZS",
+      "GBG",
+      "GBI",
+      "GBN",
+      "GBO",
+      "GBS",
+      "GBZ",
+      "GGG",
+      "GGN",
+      "GIG",
+      "GIZ",
+      "GNZ",
+      "GPB",
+      "GPZ",
+      "GSP",
+      "GSZ",
+      "GZN",
+      "GZS",
+      "IBI",
+      "IBN",
+      "IBS",
+      "IBZ",
+      "IGG",
+      "IGP",
+      "IGS",
+      "IIG",
+      "III",
+      "ING",
+      "INI",
+      "INO",
+      "INZ",
+      "IOB",
+      "IOI",
+      "IOZ",
+      "IPB",
+      "IPG",
+      "IPI",
+      "IPN",
+      "IPO",
+      "IPZ",
+      "ISG",
+      "ISS",
+      "IZI",
+      "NBO",
+      "NBS",
+      "NGI",
+      "NGP",
+      "NIG",
+      "NIO",
+      "NIP",
+      "NIZ",
+      "NNG",
+      "NNI",
+      "NNN",
+      "NOI",
+      "NOP",
+      "NPN",
+      "NSB",
+      "NSN",
+      "NSO",
+      "NSP",
+      "NZB",
+      "NZI",
+      "NZO",
+      "OBB",
+      "OBP",
+      "OBS",
+      "OGB",
+      "OGG",
+      "OGI",
+      "OGN",
+      "OGO",
+      "OGS",
+      "OGZ",
+      "OIB",
+      "OII",
+      "OIP",
+      "ONI",
+      "ONN",
+      "ONO",
+      "ONP",
+      "ONS",
+      "OOB",
+      "OOG",
+      "OOI",
+      "OON",
+      "OOO",
+      "OPB",
+      "OSB",
+      "OSI",
+      "OSN",
+      "OSS",
+      "OZI",
+      "OZN",
+      "OZS",
+      "PBB",
+      "PBG",
+      "PBN",
+      "PBP",
+      "PBS",
+      "PGB",
+      "PGN",
+      "PGO",
+      "PGS",
+      "PIG",
+      "PIZ",
+      "PNG",
+      "PNP",
+      "PNS",
+      "POI",
+      "PPB",
+      "PPI",
+      "PPN",
+      "PPO",
+      "PSG",
+      "PSP",
+      "PZI",
+      "SBI",
+      "SGB",
+      "SGG",
+      "SGS",
+      "SIP",
+      "SIS",
+      "SIZ",
+      "SNN",
+      "SNO",
+      "SNS",
+      "SNZ",
+      "SON",
+      "SOP",
+      "SPS",
+      "SPZ",
+      "SSG",
+      "SZG",
+      "SZN",
+      "SZO",
+      "SZP",
+      "SZZ",
+      "ZBI",
+      "ZBO",
+      "ZGG",
+      "ZGI",
+      "ZGO",
+      "ZIG",
+      "ZIN",
+      "ZNB",
+      "ZNG",
+      "ZNN",
+      "ZNP",
+      "ZNZ",
+      "ZOB",
+      "ZOI",
+      "ZOO",
+      "ZOP",
+      "ZOZ",
+      "ZPG",
+      "ZPI",
+      "ZPS",
+      "ZSN",
+      "ZSO",
+      "ZZB",
+      "ZZP",
+      "ZZS"
+    ],
+    "min_word_length": 3,
+    "letter_scores": {
+      "B": 2,
+      "G": 1,
+      "I": 1,
+      "N": 1,
+      "O": 3,
+      "P": 4,
+      "S": 1,
+      "Z": 1
+    },
+    "seed": 879737673,
+    "sampling_config": {
+      "alphabet_size": 8,
+      "forbidden_fraction": 0.4,
+      "alphabet_case": "upper",
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      }
+    }
+  },
+  "board": {
+    "dimensions": 2,
+    "occupied": [
+      [
+        [
+          -2,
+          -2
+        ],
+        "Z"
+      ],
+      [
+        [
+          -2,
+          0
+        ],
+        "I"
+      ],
+      [
+        [
+          -1,
+          -2
+        ],
+        "G"
+      ],
+      [
+        [
+          -1,
+          -1
+        ],
+        "N"
+      ],
+      [
+        [
+          -1,
+          0
+        ],
+        "N"
+      ],
+      [
+        [
+          -1,
+          1
+        ],
+        "S"
+      ],
+      [
+        [
+          -1,
+          2
+        ],
+        "S"
+      ],
+      [
+        [
+          0,
+          -4
+        ],
+        "Z"
+      ],
+      [
+        [
+          0,
+          -2
+        ],
+        "Z"
+      ],
+      [
+        [
+          0,
+          -1
+        ],
+        "I"
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        "P"
+      ],
+      [
+        [
+          0,
+          2
+        ],
+        "P"
+      ],
+      [
+        [
+          1,
+          -4
+        ],
+        "Z"
+      ],
+      [
+        [
+          1,
+          -2
+        ],
+        "Z"
+      ],
+      [
+        [
+          1,
+          -1
+        ],
+        "I"
+      ],
+      [
+        [
+          1,
+          0
+        ],
+        "O"
+      ],
+      [
+        [
+          1,
+          1
+        ],
+        "P"
+      ],
+      [
+        [
+          1,
+          2
+        ],
+        "I"
+      ],
+      [
+        [
+          2,
+          -4
+        ],
+        "Z"
+      ],
+      [
+        [
+          2,
+          -3
+        ],
+        "I"
+      ],
+      [
+        [
+          2,
+          -2
+        ],
+        "O"
+      ],
+      [
+        [
+          2,
+          0
+        ],
+        "P"
+      ],
+      [
+        [
+          2,
+          1
+        ],
+        "I"
+      ],
+      [
+        [
+          2,
+          2
+        ],
+        "B"
+      ],
+      [
+        [
+          3,
+          -4
+        ],
+        "I"
+      ],
+      [
+        [
+          3,
+          1
+        ],
+        "N"
+      ],
+      [
+        [
+          4,
+          -4
+        ],
+        "S"
+      ],
+      [
+        [
+          4,
+          -3
+        ],
+        "P"
+      ],
+      [
+        [
+          4,
+          -2
+        ],
+        "P"
+      ],
+      [
+        [
+          4,
+          -1
+        ],
+        "S"
+      ],
+      [
+        [
+          4,
+          0
+        ],
+        "Z"
+      ],
+      [
+        [
+          4,
+          1
+        ],
+        "B"
+      ]
+    ],
+    "segments": [
+      {
+        "start": [
+          -2,
+          0
+        ],
+        "axis": 0,
+        "sequence": [
+          "I",
+          "N",
+          "P",
+          "O",
+          "P"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          -2
+        ],
+        "axis": 1,
+        "sequence": [
+          "G",
+          "N",
+          "N",
+          "S",
+          "S"
+        ]
+      },
+      {
+        "start": [
+          1,
+          -2
+        ],
+        "axis": 1,
+        "sequence": [
+          "Z",
+          "I",
+          "O",
+          "P",
+          "I"
+        ]
+      },
+      {
+        "start": [
+          -2,
+          -2
+        ],
+        "axis": 0,
+        "sequence": [
+          "Z",
+          "G",
+          "Z",
+          "Z",
+          "O"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          -1
+        ],
+        "axis": 0,
+        "sequence": [
+          "N",
+          "I",
+          "I"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          2
+        ],
+        "axis": 0,
+        "sequence": [
+          "S",
+          "P",
+          "I",
+          "B"
+        ]
+      },
+      {
+        "start": [
+          1,
+          1
+        ],
+        "axis": 0,
+        "sequence": [
+          "P",
+          "I",
+          "N",
+          "B"
+        ]
+      },
+      {
+        "start": [
+          4,
+          -4
+        ],
+        "axis": 1,
+        "sequence": [
+          "S",
+          "P",
+          "P",
+          "S",
+          "Z",
+          "B"
+        ]
+      },
+      {
+        "start": [
+          0,
+          -4
+        ],
+        "axis": 0,
+        "sequence": [
+          "Z",
+          "Z",
+          "Z",
+          "I",
+          "S"
+        ]
+      },
+      {
+        "start": [
+          2,
+          -4
+        ],
+        "axis": 1,
+        "sequence": [
+          "Z",
+          "I",
+          "O"
+        ]
+      }
+    ]
+  },
+  "rack": [
+    "B",
+    "P",
+    "Z",
+    "Z",
+    "Z"
+  ],
+  "ground_truth_move": {
+    "start": [
+      -2,
+      -7
+    ],
+    "axis": 1,
+    "sequence": [
+      "B",
+      "P",
+      "Z",
+      "Z",
+      "Z",
+      "Z"
+    ]
+  },
+  "provenance": {
+    "grammar_artifact": "outputs/evaluation/7r/grammars/7r.b010.r03.json",
+    "scenario_artifact": "outputs/evaluation/7r/scenarios/7r.b010.r03.json",
+    "grammar_sha256": "01587e33d20d18a224a9bb0ef69333e8faeb47444b80143bc4a96686e534cc82",
+    "scenario_sha256": "865ce9c6aa3f399dc2f8af65051e746157515a28461c386c3fc42cb46e8aac24",
+    "case_set_config_sha256": "c7325b5eec899ae65a47292f96ff96b047a815fd16ce25dec2b198da3c92ce61",
+    "git_revision": "3a8671e9aae486874c5c9bb467b20501f6642261"
+  }
+}

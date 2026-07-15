@@ -1,0 +1,746 @@
+{
+  "schema_version": 1,
+  "case_id": "7r.b010.r06",
+  "case_set": "7r",
+  "board_size": 10,
+  "sampling_round": 6,
+  "seeds": {
+    "grammar_requested": 1706246472,
+    "grammar_used": 1706246472,
+    "board": 134834568
+  },
+  "parameters": {
+    "grammar": {
+      "alphabet_case": "upper",
+      "alphabet_type": "letters",
+      "forbidden_fraction": 0.4,
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      },
+      "config_name": "7r.b010.r06",
+      "alphabet_size": 8,
+      "k": 3,
+      "min_word_length": 3,
+      "seed": 1706246472,
+      "output_path": null,
+      "show_stats": false
+    },
+    "generation": {
+      "config_name": "7r.b010.r06",
+      "dimensions": 2,
+      "seed": 134834568,
+      "grammar": null,
+      "grammar_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/grammars/7r.b010.r06.json",
+      "initial_word_axis": 0,
+      "initial_word_length": 5,
+      "length_distribution": {
+        "start": 3,
+        "end": 6
+      },
+      "fixed_final_transition_length": 6,
+      "top_anchor_count": 40,
+      "max_anchor_count": null,
+      "top_template_count": 200,
+      "target_witness_count": 10,
+      "scoring": {
+        "anchor_centroid_weight": 0.8,
+        "template_centroid_weight": 1.2,
+        "template_local_density_penalty_weight": 0.6
+      },
+      "additional_rack_noise": 0,
+      "output_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/scenarios/7r.b010.r06.json",
+      "include_search_logs": false
+    },
+    "board_depth": 9
+  },
+  "grammar": {
+    "schema_version": 2,
+    "type": "sl",
+    "name": "7r.b010.r06",
+    "alphabet": [
+      "C",
+      "F",
+      "I",
+      "M",
+      "O",
+      "R",
+      "S",
+      "Z"
+    ],
+    "k": 3,
+    "forbidden": [
+      "CCF",
+      "CFC",
+      "CFF",
+      "CFI",
+      "CFM",
+      "CFR",
+      "CFZ",
+      "CIF",
+      "CIM",
+      "CIO",
+      "CIR",
+      "CMI",
+      "CMR",
+      "CMS",
+      "CMZ",
+      "COI",
+      "CRC",
+      "CRI",
+      "CRM",
+      "CRO",
+      "CRS",
+      "CSC",
+      "CSF",
+      "CSO",
+      "CSR",
+      "CZF",
+      "CZM",
+      "CZR",
+      "CZS",
+      "CZZ",
+      "FCC",
+      "FCO",
+      "FCZ",
+      "FFC",
+      "FFF",
+      "FFI",
+      "FIC",
+      "FII",
+      "FIM",
+      "FMF",
+      "FMZ",
+      "FOF",
+      "FOI",
+      "FOO",
+      "FOS",
+      "FRF",
+      "FRR",
+      "FSC",
+      "FSM",
+      "FSR",
+      "FZC",
+      "FZI",
+      "FZO",
+      "FZR",
+      "FZS",
+      "ICF",
+      "ICI",
+      "ICO",
+      "ICS",
+      "ICZ",
+      "IFC",
+      "IFS",
+      "IMC",
+      "IMF",
+      "IMI",
+      "IMS",
+      "IOI",
+      "IOO",
+      "IOS",
+      "IOZ",
+      "IRC",
+      "IRF",
+      "IRI",
+      "IRM",
+      "IRR",
+      "IRZ",
+      "ISM",
+      "ISO",
+      "ISR",
+      "ISS",
+      "IZF",
+      "IZM",
+      "IZO",
+      "IZS",
+      "MCC",
+      "MCI",
+      "MCM",
+      "MCR",
+      "MFC",
+      "MFI",
+      "MFO",
+      "MFZ",
+      "MII",
+      "MIO",
+      "MMM",
+      "MMR",
+      "MMS",
+      "MOS",
+      "MRF",
+      "MSF",
+      "MSM",
+      "MSR",
+      "MSS",
+      "MZM",
+      "MZZ",
+      "OCC",
+      "OCM",
+      "OCR",
+      "OCS",
+      "OCZ",
+      "OFI",
+      "OFM",
+      "OFO",
+      "OIF",
+      "OIM",
+      "OIO",
+      "OOS",
+      "ORF",
+      "ORI",
+      "ORM",
+      "ORO",
+      "ORS",
+      "OSF",
+      "OZI",
+      "OZO",
+      "RCC",
+      "RCF",
+      "RCI",
+      "RCM",
+      "RCS",
+      "RFI",
+      "RFM",
+      "RFO",
+      "RFR",
+      "RFS",
+      "RIC",
+      "RII",
+      "RIM",
+      "RIO",
+      "RIS",
+      "RIZ",
+      "RMF",
+      "ROI",
+      "ROM",
+      "ROO",
+      "ROS",
+      "ROZ",
+      "RRF",
+      "RRM",
+      "RRO",
+      "RRZ",
+      "RSI",
+      "RSO",
+      "RSS",
+      "RSZ",
+      "RZC",
+      "RZM",
+      "RZS",
+      "SCF",
+      "SCR",
+      "SCS",
+      "SFM",
+      "SIF",
+      "SII",
+      "SMC",
+      "SMM",
+      "SMR",
+      "SMS",
+      "SOO",
+      "SOR",
+      "SOS",
+      "SOZ",
+      "SRI",
+      "SSM",
+      "SSO",
+      "SSS",
+      "SZI",
+      "SZR",
+      "ZCO",
+      "ZCZ",
+      "ZFM",
+      "ZFR",
+      "ZFS",
+      "ZIC",
+      "ZIS",
+      "ZMI",
+      "ZMS",
+      "ZOC",
+      "ZOF",
+      "ZOR",
+      "ZOZ",
+      "ZRC",
+      "ZRO",
+      "ZRZ",
+      "ZSI",
+      "ZSZ",
+      "ZZI",
+      "ZZM",
+      "ZZR",
+      "ZZS",
+      "ZZZ"
+    ],
+    "min_word_length": 3,
+    "letter_scores": {
+      "C": 1,
+      "F": 3,
+      "I": 2,
+      "M": 3,
+      "O": 2,
+      "R": 1,
+      "S": 5,
+      "Z": 2
+    },
+    "seed": 1706246472,
+    "sampling_config": {
+      "alphabet_size": 8,
+      "forbidden_fraction": 0.4,
+      "alphabet_case": "upper",
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      }
+    }
+  },
+  "board": {
+    "dimensions": 2,
+    "occupied": [
+      [
+        [
+          -6,
+          -2
+        ],
+        "M"
+      ],
+      [
+        [
+          -5,
+          -5
+        ],
+        "Z"
+      ],
+      [
+        [
+          -5,
+          -2
+        ],
+        "S"
+      ],
+      [
+        [
+          -4,
+          -5
+        ],
+        "I"
+      ],
+      [
+        [
+          -4,
+          -2
+        ],
+        "C"
+      ],
+      [
+        [
+          -4,
+          -1
+        ],
+        "R"
+      ],
+      [
+        [
+          -4,
+          0
+        ],
+        "F"
+      ],
+      [
+        [
+          -3,
+          -7
+        ],
+        "R"
+      ],
+      [
+        [
+          -3,
+          -6
+        ],
+        "M"
+      ],
+      [
+        [
+          -3,
+          -5
+        ],
+        "Z"
+      ],
+      [
+        [
+          -3,
+          -4
+        ],
+        "S"
+      ],
+      [
+        [
+          -3,
+          -3
+        ],
+        "C"
+      ],
+      [
+        [
+          -3,
+          -2
+        ],
+        "C"
+      ],
+      [
+        [
+          -2,
+          -4
+        ],
+        "F"
+      ],
+      [
+        [
+          -2,
+          -2
+        ],
+        "Z"
+      ],
+      [
+        [
+          -2,
+          0
+        ],
+        "R"
+      ],
+      [
+        [
+          -1,
+          -4
+        ],
+        "C"
+      ],
+      [
+        [
+          -1,
+          -2
+        ],
+        "I"
+      ],
+      [
+        [
+          -1,
+          -1
+        ],
+        "I"
+      ],
+      [
+        [
+          -1,
+          0
+        ],
+        "S"
+      ],
+      [
+        [
+          -1,
+          1
+        ],
+        "Z"
+      ],
+      [
+        [
+          -1,
+          2
+        ],
+        "M"
+      ],
+      [
+        [
+          0,
+          -7
+        ],
+        "I"
+      ],
+      [
+        [
+          0,
+          -6
+        ],
+        "F"
+      ],
+      [
+        [
+          0,
+          -5
+        ],
+        "M"
+      ],
+      [
+        [
+          0,
+          -4
+        ],
+        "M"
+      ],
+      [
+        [
+          0,
+          -3
+        ],
+        "C"
+      ],
+      [
+        [
+          0,
+          -1
+        ],
+        "R"
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        "M"
+      ],
+      [
+        [
+          0,
+          1
+        ],
+        "S"
+      ],
+      [
+        [
+          0,
+          2
+        ],
+        "O"
+      ],
+      [
+        [
+          1,
+          -4
+        ],
+        "M"
+      ],
+      [
+        [
+          1,
+          -2
+        ],
+        "C"
+      ],
+      [
+        [
+          1,
+          -1
+        ],
+        "S"
+      ],
+      [
+        [
+          1,
+          0
+        ],
+        "Z"
+      ],
+      [
+        [
+          1,
+          1
+        ],
+        "M"
+      ],
+      [
+        [
+          1,
+          2
+        ],
+        "O"
+      ],
+      [
+        [
+          2,
+          0
+        ],
+        "R"
+      ]
+    ],
+    "segments": [
+      {
+        "start": [
+          -2,
+          0
+        ],
+        "axis": 0,
+        "sequence": [
+          "R",
+          "S",
+          "M",
+          "Z",
+          "R"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          -2
+        ],
+        "axis": 1,
+        "sequence": [
+          "I",
+          "I",
+          "S",
+          "Z",
+          "M"
+        ]
+      },
+      {
+        "start": [
+          1,
+          -2
+        ],
+        "axis": 1,
+        "sequence": [
+          "C",
+          "S",
+          "Z",
+          "M",
+          "O"
+        ]
+      },
+      {
+        "start": [
+          0,
+          -1
+        ],
+        "axis": 1,
+        "sequence": [
+          "R",
+          "M",
+          "S",
+          "O"
+        ]
+      },
+      {
+        "start": [
+          -6,
+          -2
+        ],
+        "axis": 0,
+        "sequence": [
+          "M",
+          "S",
+          "C",
+          "C",
+          "Z",
+          "I"
+        ]
+      },
+      {
+        "start": [
+          -4,
+          -2
+        ],
+        "axis": 1,
+        "sequence": [
+          "C",
+          "R",
+          "F"
+        ]
+      },
+      {
+        "start": [
+          -3,
+          -7
+        ],
+        "axis": 1,
+        "sequence": [
+          "R",
+          "M",
+          "Z",
+          "S",
+          "C",
+          "C"
+        ]
+      },
+      {
+        "start": [
+          -3,
+          -4
+        ],
+        "axis": 0,
+        "sequence": [
+          "S",
+          "F",
+          "C",
+          "M",
+          "M"
+        ]
+      },
+      {
+        "start": [
+          -5,
+          -5
+        ],
+        "axis": 0,
+        "sequence": [
+          "Z",
+          "I",
+          "Z"
+        ]
+      },
+      {
+        "start": [
+          0,
+          -7
+        ],
+        "axis": 1,
+        "sequence": [
+          "I",
+          "F",
+          "M",
+          "M",
+          "C"
+        ]
+      }
+    ]
+  },
+  "rack": [
+    "F",
+    "R",
+    "S",
+    "S"
+  ],
+  "ground_truth_move": {
+    "start": [
+      -3,
+      -6
+    ],
+    "axis": 0,
+    "sequence": [
+      "M",
+      "R",
+      "S",
+      "F",
+      "F",
+      "S"
+    ]
+  },
+  "provenance": {
+    "grammar_artifact": "outputs/evaluation/7r/grammars/7r.b010.r06.json",
+    "scenario_artifact": "outputs/evaluation/7r/scenarios/7r.b010.r06.json",
+    "grammar_sha256": "feeaed7fc7e8419a9fe4cc2d59aa165d49fd82e9a0154c9c6a4a4388818829b4",
+    "scenario_sha256": "e31bbf2a4b76333676c752712c185eeee5e9d461f957979589b48f64517946aa",
+    "case_set_config_sha256": "c7325b5eec899ae65a47292f96ff96b047a815fd16ce25dec2b198da3c92ce61",
+    "git_revision": "3a8671e9aae486874c5c9bb467b20501f6642261"
+  }
+}

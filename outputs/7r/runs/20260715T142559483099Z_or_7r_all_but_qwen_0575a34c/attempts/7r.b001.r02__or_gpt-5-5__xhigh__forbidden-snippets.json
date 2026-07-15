@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "job_id": "7r.b001.r02__or_gpt-5-5__xhigh__forbidden-snippets",
+  "case_id": "7r.b001.r02",
+  "case_file": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/cases/7r.b001.r02.json",
+  "board_size": 1,
+  "sampling_round": 2,
+  "model": "or_gpt-5-5",
+  "reasoning_effort": "xhigh",
+  "model_config": {
+    "model": "openai/gpt-5.5",
+    "configured_model": "openrouter/openai/gpt-5.5",
+    "backend": "openrouter",
+    "reasoning_effort": "xhigh",
+    "reasoning": {
+      "effort": "xhigh"
+    },
+    "provider": {
+      "only": [
+        "openai"
+      ],
+      "allow_fallbacks": false,
+      "require_parameters": true
+    },
+    "max_completion_tokens": 32384,
+    "request_max_tokens": 32384,
+    "timeout_seconds": 3600.0,
+    "provider_max_retries": 0
+  },
+  "language_representation": "forbidden-snippets",
+  "status": "complete",
+  "retry_count": 0,
+  "timestamp": "2026-07-15T14:51:12.680318+00:00",
+  "llm_elapsed_seconds": 53.86542316699342,
+  "usage": {
+    "completion_tokens": 2624,
+    "prompt_tokens": 1597,
+    "total_tokens": 4221,
+    "completion_tokens_details": {
+      "audio_tokens": 0,
+      "reasoning_tokens": 2588
+    },
+    "cost": 0.086705,
+    "cost_details": {
+      "upstream_inference_completions_cost": 0.07872,
+      "upstream_inference_prompt_cost": 0.007985,
+      "upstream_inference_cost": 0.086705
+    },
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+      "video_tokens": 0
+    }
+  },
+  "provider_metadata": {
+    "backend": "openrouter-sdk",
+    "response_id": "gen-1784127020-57lA83hkNXmllY8WwtI0",
+    "model": "openai/gpt-5.5",
+    "finish_reason": "stop",
+    "service_tier": "default",
+    "reasoning": "**Evaluating word placement rules**\n\nI’m considering reusing a cell with no words along axis 0, but it seems all are occupied in a horizontal word of length 5, making axis 0 invalid. So, I'll need to select axis 1 for vertical placement, crossing the existing horizontal cells.\n\nThe spaces immediately before and after my submitted sequence must be empty, and a new cell can’t extend any existing word along the perpendicular axis. I’ll need to inspect the arrangements carefully.**Confirming cell placement rules**\n\nI'm analyzing the coordinates for newly placed cells at (x, y), considering their perpendicular neighbors at (x±1, y). Since the existing arrangements are only along y=0, placing anything at y≠0 would have no perpendicular adjacencies unless I arrange multiple placements. \n\nIf I sequence vertically along the same x, there won't be any new horizontal adjacencies. I can reuse a cell that already has a horizontal word; after placing the vertical cell, the maximum horizontal sequence \"DGRTT\" still remains accepted.**Calculating letter scores**\n\nI'm evaluating how to place letters based on some criteria. I need at least two other letters along with a sequence of a minimum of three letters. The maximum length of the rack should be six. \n\nThe score is determined by the anchor value plus the sum of used rack values. The letter scores I have are: C3, M1, and R2. My existing letters total up to 8, and with different anchors, I can get scores of either 10 or 9.**Ensuring Symbol Placement**\n\nI need to ensure that newly placed symbols fit the rack multiplicitives correctly. For example, if I anchor at one R, the new letters C, M, M, and another R plus M give me exactly C, M, M, M, R, which looks good. The maximum is at most 10, which I've confirmed. I also need to output this in JSON format. Before finalizing, I need to check for any potential issues with reused cells in the existing words along the chosen axes.**Aligning New Cells**\n\nI see that the horizontal line using the reused anchor is D, G, R, T, T, which is accepted by the board. Now, for the newly placed cells, I need to check if there are no horizontal neighbors. I'll choose column x=0 for my new cells at specified y positions. It’s important to align the sequence along axis 1. For option A, I’ll use the sequence [\"C\", \"M\", \"M\", \"R\", \"R\", \"M\"], starting at [0, -3] on axis 1.**Clarifying coordinates and setup**\n\nI need to establish the coordinates for a new rack, which are y=-4 C, -3 M, -2 M, -1 R (for new), 0 R (for existing), and 1 M. I’ll keep the trigrams the same. I want to choose the starting point at [0, -3] and make sure the coordinate array is in the correct order, which is [x, y]. Axis1 will advance the coordinate index by 1. Since the existing board has negative x coordinates, it appears that using them is acceptable.",
+    "reasoning_details": [
+      {
+        "summary": "**Evaluating word placement rules**\n\nI’m considering reusing a cell with no words along axis 0, but it seems all are occupied in a horizontal word of length 5, making axis 0 invalid. So, I'll need to select axis 1 for vertical placement, crossing the existing horizontal cells.\n\nThe spaces immediately before and after my submitted sequence must be empty, and a new cell can’t extend any existing word along the perpendicular axis. I’ll need to inspect the arrangements carefully.**Confirming cell placement rules**\n\nI'm analyzing the coordinates for newly placed cells at (x, y), considering their perpendicular neighbors at (x±1, y). Since the existing arrangements are only along y=0, placing anything at y≠0 would have no perpendicular adjacencies unless I arrange multiple placements. \n\nIf I sequence vertically along the same x, there won't be any new horizontal adjacencies. I can reuse a cell that already has a horizontal word; after placing the vertical cell, the maximum horizontal sequence \"DGRTT\" still remains accepted.**Calculating letter scores**\n\nI'm evaluating how to place letters based on some criteria. I need at least two other letters along with a sequence of a minimum of three letters. The maximum length of the rack should be six. \n\nThe score is determined by the anchor value plus the sum of used rack values. The letter scores I have are: C3, M1, and R2. My existing letters total up to 8, and with different anchors, I can get scores of either 10 or 9.**Ensuring Symbol Placement**\n\nI need to ensure that newly placed symbols fit the rack multiplicitives correctly. For example, if I anchor at one R, the new letters C, M, M, and another R plus M give me exactly C, M, M, M, R, which looks good. The maximum is at most 10, which I've confirmed. I also need to output this in JSON format. Before finalizing, I need to check for any potential issues with reused cells in the existing words along the chosen axes.**Aligning New Cells**\n\nI see that the horizontal line using the reused anchor is D, G, R, T, T, which is accepted by the board. Now, for the newly placed cells, I need to check if there are no horizontal neighbors. I'll choose column x=0 for my new cells at specified y positions. It’s important to align the sequence along axis 1. For option A, I’ll use the sequence [\"C\", \"M\", \"M\", \"R\", \"R\", \"M\"], starting at [0, -3] on axis 1.**Clarifying coordinates and setup**\n\nI need to establish the coordinates for a new rack, which are y=-4 C, -3 M, -2 M, -1 R (for new), 0 R (for existing), and 1 M. I’ll keep the trigrams the same. I want to choose the starting point at [0, -3] and make sure the coordinate array is in the correct order, which is [x, y]. Axis1 will advance the coordinate index by 1. Since the existing board has negative x coordinates, it appears that using them is acceptable.",
+        "type": "reasoning.summary",
+        "format": null,
+        "index": 0
+      },
+      {
+        "data": "gAAAAABqV55gZ4-IovWiErQHOBufJRkA_SOxgQwRyLTiqFb-FxL4cCjAdbewjebJ36BAyN-FKuo62Dhe03zDa8RJH2TBOicDM3PYdcePO4YANvXxD3ytatTJJ54P9b5yds-mc8Z7hYrqySzU0ATgHMMM7gFA494KyJiqvlMPtKkXDJ-cvcQDrYW-g8f_qNJNLIKtFnkISlbXSdXFsIC_bA74SmK0NRZyynJF6wx1LLT6h7GSLJRKUe3_dLshYWtQr_FOL4ADo82PV816xoYINUITEcZfNao-yjNvVMtfAnCZLzYrBVzz3qULuf1e4PXO-p8QkZGZ7BhwttAM1iDb_mnNurk_BngJ5fqvwLCLW4q9IMYnla_yEwxaaRlTg-1KxodTT6cZGnVyhm5Z78rx86yAJ3XKYK9nwrqSybSVtwNyByltxtT1ZuRyKH_Zg2c9b_4GlXDjo4efm97Absy209H8CFsiySxSSyQ5XfcgwclUILvy_dHVxijsqsJv_w-xzC17TgbKmTgECE0qdGHEm_3028unh8izGJNtvn10YPRphDhTvIJpVIJLH83fnBIHgyNRlrf-y0IMFIDwQc42T1PN2yGNFMxPKYYkdppGs8fTvCEMljY7lj0RqzO9QqD1P0sWBGYBeMDUVzkRFKttEfazCwuaO2P_Fiq2jcHudlJLKlYqHTQIj5vIfZcR8HW3Pnf8qEI2eDrc5q1MgJVUrU8QWZRieRIOdy1qAvOBBTa63_6xq7ZALQUSczSVZy7_aMlo6VSAjbBmcJqdTx7R0QAWuR1UhBXXkGHt3ZPkl3klrZtPB4mae-W7hw5HlgzxqYXyfV8NTn2Qf_awVZJFm1lvSTrqQowmmle6tO_36rN68d-ygczY-2JI97W0NKQGkUVE1N30m46mf5ICyx2stmVfXYCvYMQ4ECKI25uw8A_zFc6e1LEv70Fr-88JmdfUmwD8XkhGK0jzNsLUtAOI3RGbqVvx7O037ZwZlXwyJa-hEaUB9631O5Im4vzTqJ748cyZFOUGvQT4j-FCnPgnIJwfG-J795b1etLkXuib6Lk2ixvCwy7xxiv3mv4qoMxBfAXgJRQPokIzZMWEzTD9zRcLutPzPYYK3ftA3UdBm6swQkNSKYPzFAgK2bbvkAjRLCJFQF5J60O8lh2XfrzYsPX9H7nPSG1XbJYgRrMOGq4gse7z_OF6lAA6MgHtnBbelie2BBsdgezOz9bW3l7rrmuUn1KYTcTRAFkqAkWWtHStlH2ACPz4UHhRAfnLFYGPd_9Z-s2oCHuMoGHkD8rP4kRIbCF2h9pc1qpSlx34YBYN2vCn8bQtMfOyuFhRjBWJ0b4p5ozAeLcJv0zJZ0wbRLRVUQAVVzBo53x0CsT902bvtPx9DKAg9_luYLn-xacWL_U4YbAO2MHZDTw8ZyTRW_dMyMSBUGe14ViG4It_7pCNWhZI5QdwT0R5zJ9cXLxgufhBHr2D9Ent3tP3JOs87uWcruiz9a7SPIpoi6c7wNw8jzjcjUeVYu_kRvdzZxbklQOg7jB_IDwxl01V2OpGOMTByDMMGAof4CUNDy7Ds9t6Y_xnJJEwZjRH1fKdU76b-387U2A7EZ4uPpCNPDUPsY6lblWGR4V45ZW-GwLjyt8u1kPCSSqsiAMF-5o3ysC2phapnUolKy3vScAIEgKwH39OF0vUexB5_Bk5hH9trZxa23j9f-TpcRcZafXUe4UUleq8cXokjxPUV4RJ-Z4OKL7cupoiWzH-3VOkUwmabHUizm3goXyjUvQcNVGwtuNGX57teaS9Q53XmhsIdYsFOuzmBioziqTrnqSae_iBhzXyFyGDrh7g3uSP6fqaIA9PsZt2voGMdHVNft5gnafjur2rR_FNRz6o-IfqfMU5rJxXmhYCmCEy5fBwpOAKn5JJVLClXQicJEmwxHWlv3Ig9MZiMw5Cu4rp16aZ_2gT7NDfm7iXp5ZBn2qw-je5MeSjzCYRH0o0-T3nlSGSFUkeFEHhdQvLs0a2XpQ5Cuxx0aJN8aOiDRfmRGcUMs75tkpJR1GmMMDDsq_nS06IX7joPabxL17UpLBEXE6ZLOlRfoLHIZ-S3_M-3wHozrbMzTVmlMNv5lpXv02lJLYAUE1MLKd5D6xdURWks0X0VyPAidc0DxyJrSDeeFZfGUJZIC68bNG3_LdJo-Iog-DdmLwgtyl0xpyKHKeFGO_3aP-YYQZ0Pmbkt0G8evHuiAyGF8m-4WqG-DyEBHYYkpaaKyJjxAIT3MhU88hnSxX14jA2uMWkBjqZ7zvVSuCWKcqzlVMxzeD-VbGZNUcgy0rQAbf6VXfHToFk7mR71B-oTjU9tVxdakRugT446AwjUd7CnoWsqDu1fo9kfMurRV6KdfJo7IiZfWeEiQBUqhQcrpA3IkHdW46VZ5YgDSsMmbzkVJkcVTWQVxpVy2EbJJWwSHnhFSg8Sjuzrxgr3y9BkAhj_Tq4oQOZu-1gWSdiskKG4-IWLsrJKuLFQbjlPHJ-RPr-vRmaP0zN2UhOUNy3QkveqIeTaoIPcLzWNAc_-uJiR3RePR-z4Opps8SurYnhK7-9vYKhteSJS6Ks6amCjaOsKGhe33csFs-B_ZaBerpi_ehTHvuTzOPcjW8M3HttEi1sEsBvQiUBdyZy2FSLAVLFEUFNGpmTDwWkgtQAVsF-1oeknyvEAQvDDyvHuGl8TvodkYrrQA48h5gZ90dL1xDp3dPqJSEDrNFTNNn9sh-rnKItBz98kcNG-RGgGO4TL7Eizd-nXmxlmjlN8oJYfw0Ah9ZCgPkNDMJ12ayvuDzIc8k3zSMd5Zq4x07EyyrP_--PrYeURMwp7DeNLHCCD5HZN3zXNeJIX2PD1KOsOfgF_D0U9SgQAyOpc8M7btKFDyE9XElAKGpysG8Mxf9H8WoIE6YTC9IrNuQ6hPU7JKNB5ifUTt4s69bBy8q5jU4QexSTHlfBTVe6-nc077kqH3Y0OPtkZdKCovlVeBwWCA4Mky7c2MUAD7Vcqv1EbFcz8RvhkO0Ur1rGNj-b9zIv-Y_0J4pp1Tky3TaG3rChfok_ts72jHvrmF8uVV-9lHfNsL7QnK2M-hyGz4SHLQ3LE0Non9tE0oWaeS96EMpgdLfg4NvkgHv9lm5JoQUKUcdMVQFw5Qua4BbPP-2cBVsaj7kAnTyzIqx-aXgDdVx1Hel4AwMWsolZm99VeKhptMi8XkR1y7o50LtvRS-Zr-5yqsEgjp6bFxknbvLkEs3w7DUbzzPLmoFM5FAOisY_v2AuHIOsyapp8YFlm2GENniLvcpjH_8Hop1lpnWMerls6CgLRmtMGZqeHh9YE9VVN64K_HqMzPGpupRoCRutYo8u7roH41TpDxvuLjuJ0fBxAmIspWa6PHb2d5auRq1nfSy2AVvb-XFoEGdALtq6xHvJx9csxpCP_LB8kPgVDev22M1SHUpWUypz-xk6ag_AcSKZmcWVcAjjXEI1Z-iHlFFQPNqxpjkAp_hFw_dX0zddBWn3cwQ1RDdxlm8RT6VVwFRncuy67AukfLPmCd_dME6hovzwt-2Q81lbk3o20MaRRakITbjTEUyuRiFFVHNXSf3YllpxIluzcQrBTlSRuqMxnpCe97JVS0nfSc0gRJwZavYdwKO6B8KNvKY0Hryd0AfkigC4HLoenh12TqdR1x_bZdlnewmxpqBxu5I0pi6n1Knvq-JjolLCITalqcx_SU_sooFaTDXtMbZHgp21Ju6owO5M4djz_l2aoxM-Xht6td11WMbMIcqed2jmyXGohsm-z1vxGy9JTjnGelshOjlV6HfkwP3KPLipBrb_cF6xTTSqIHsT-7jxPNiJ0NzxN6gTfJPCnhY5NokmVXc8szkm2Kcgipsn7TfjVlFSUnBt09iol5zvkLaF_xU1lDZeDy6VasCKfSwBoURhZaghxFy_TQOFSalvQa8sCbQBJW9VTPz6PNvWyTN2FtlNA6_MoSE2x5g8pb6k-DxsKSyKKF4iCWvS184_lZtBBTZf6Ppz0JMU1Y8spwbe1BWrYUYzf4e-UhSSQl3hJ3_yRoGs0IC4kQPVg2G2PVtLp15fRYa4ngpuJTTXnKeRnqTfFiydWYczTN89Bl2js8Y6VTu0OcxSZrYd4SnjazSRlp0tNJolJMymvPVQmlcs_OrbL80i-Syrj0Rymwg_G8mPjDuiyB-7Y_eHy5kfoqbYg4dm_4vf9V2AhL17l2zvng7ai-gL9tXUeqDGM6Pea0XDa24wwE-xUxAgGdpVoaW-pMzp2zGTGevq6QEmlGVmdTJ1N9Ph6r9WAf6KPK6rPilsdny2vRT0fHS4p-7O02xLNtHB7HwX6j4PMnu5H1TIYbAE5AJ5nMMCBVafrhooBbHfwbBWFp8jc5TXJqHIriTw_0t7D1C8CmxeM4kri7NP0VM9owRdyyXCx-LIvmDQWl9hhjQyKSFiB89l30evWnjQ_MeTn-ysOiMCh5VvQNqVpzp8NEA-aBv7sMGuZKztU6fpUYHo2t7LAw3B6mh18UeoWCdGX7J2A2JLd7ztPP3qmB8woi4hM1mDVajsNH_DtRhEe-F1GcZRl4B9mnmVl1o5zOKDc3NXrWxd92fwAzlbYls_SSLmv4OlLUtbfvfR6pn1VIeKFpSYq8hj5h3mcxM4pxhjiMwOYWEbbA7bZv1Yhs4wGkz6CATRIF45_vWJhMuNWtDXPEe2ok0ZjfiL59R5Hg0VC3PvjXDxm4gVWi4XA4EyEZ5lP26LVniYjTB2uMSCkzO7w9S0CK6Px6wBhYe3sBlQG7i-CZ6OkwDPi_oR_1YmxeED2YdsDVjMKnN_-omIKHCQaJorbdwYrXk0Mvzsu7fG4Z8y08guvri5X4ROp1hMi2LgoqP3lcswQanbFU6AEvoC39PTuMi7eCdw9kTO4E0QmV2nhiV-Yw2MOq6e9OAFKpaD8CbIJWLpFxaUYOp2JFoJDZS5kJ_SioTduM0XTrFmGB0CLH6DuBJ9JwPMLarAnYVVM-xouSlmPRiioNw8zOG2N03mfVGceFM4METPOq37ajoOMVFAAxxzfZXE9lYNjnfN2ygJLXX6IaC95TKSbYNGZ2ES8XsZodftjGlssX54SeAk4dPCbq9PFGKUrxlk_Er0kmxNDRyF_hW3pCqQVBCfuyhftslUWP5WH-0dqoZgozyx0oOGpL8PujnaOgCq7XlUqYkFBxRLxb9ezjaElntJZAsrLomae56RDzUXwC1-nQ5LfKW-np_8Jss19TQS4eNuqwMQpAVru-sPWnoeVGcGD6yS5iNBTVewMrHm43DL054HzoONzh02wzqGSE578pnJBsKieVkQTWULg81dr9281eGXdVs6-TKwr6IV6Xdy7_It49R1nY4SR4jFJsLFrhoJEoXj7J_y74uJHoHhXXg8hLi_zlWNbvoGH210SHiPDBHP1eYR5EkbFsy5RGlC5YqpvZltQLjiu09wKQhseadwvzz4_rTsdYLPwEzFOZDeXKCr--La5n3HiGOrRNuX_61nbVRoTMKQ_A1cgSG5XBAOP25PDzTQfRdPYY0yL4MKKYFKIpvavHJbuMMks1SoLor8vMn5OmP0ewCVi102SvoeuDEFwDuaRytY1t2aj-STZ6os04RSPojg5jUVJYXXEQ8RH0i71swQDNz-mh8--q7B8OT-1dggx-JJO1jPxREzk_7cDBIsstI8J_46mkcjfRQW1zL3YeHefdzIwhPnEUKgneXoF6YtCpDtUHW3mYdy9RwzgPzqrCPciBqSMD6XPO_MT1rlHa-fhuwjmFh9rumkZgWqQVXf3HOzqccFy8-I9uX_WG6rdYxC54WHLn4RQJYRVv_RjG6s-mICg66uZXAnuz8LooW01MzZ07isUF1zhW-U7Hpml3ADDfn1OhDCa1c8HDtF7B1n0O2cCM1LE3C6neBu148jILACllG_6yzTp5eOwSN7wozgz_1Gu1I1_cxP-xE-b5xiJ1gD_ZwMU_SQW3UdyyOMGg-IoVWqqBnh9zmbdStStAh6C7kXYDlRd9qaFr8A73xTb389pHOVaM2r4B-yh0RzOCfZW8oRYXtsXpTqaS4dRUeEwdgp4UvpGi5tN1Q1U9GRqhrohrGgX-S54GszbH3VVS2rBvkpJmC19_q14yutohtBJiN6bDHuT8mok0qU3Rmtbpb08_zM1AbWKiG4u8bNUEEy1YpRYnl0XNJ2V0gRRqTIler_xbpit54iQqhL9kGHNV5JDJkYhE6HZLFI4-JBc94mamqKgPngAwuxr7avgt3rzVc0Q36a0RJkpkEEKDwPdcunH5W5hCY_d9a9nTXg9SNk4VpYTRBSlWP7JQ9UOqDHByWg92mV7dSskWL8qkMM21Wl0Ru0WiSZCCQehVy_NwJ1nFVxcE7bZFnFrvZrP8EymKlkNUQ7t0rArpQGbfxoo1ExhE7P_SLLgSwHAejBNYaEW75Ki_EfvcdgBHZNrIHwzxWaFOKPWV7cLGYLdo_ZfCreEN2gRINHxXaGohv6YqIv6gU8ZdUbjSWaS5Bha_AiJLPQ8YxTqfthv4p1zXMV-iwsuJ8umLOzalefqzExJzDo4TgJBfvxWL5CY91GA-4yhZMCHxReYJJQBHWU6mliYzC2UJliActSyv2AbaaoRRa87l_IZYyM3XzIF_uRZFdfjtVl67m6SMPgeDMwG7BsTCgvD_C1DqWtLGWtDtrF-rep9gSPNW7W_DU90nLdvosMQoPo1R7cXnhQsvWvSBIeM2RySa-a9f09GtOuAboVoyY3QtlzdQVwbwhErzx5Hm5dw_i8kUWfrCLxYnWbPJlI2eWqcACiL2JOgBs_mLHn6POR_MKhwp4Wg1YtMwWeUZOm1gVrJbHdyxp21kkinRXDEnurQfXIrzuV3NSUX3dXXIskSEsZu8dnacwSPEGYYL_4N0drLO9okAWvXCQe0Ol8ZIJzsivtaYIULWchC1wlxeBd6_2APNr-MajBPJ_9kZUYnH7eKGEDSq1-msyHCuNb2EM76nI5bO-PtHhO1KTK0TkhlBF66nQntbw3ue8qOZZnrEr33_MQdtlHdKoVX_eZwMliCnEedfJPikEl9ADhyFYE-gMN8Y8bhRWHguh8Ui2_vOMTlNiikJ_KPrSiMesjeNNWq57GWOOyI0dP454IAE9faNflHxtZ_IckXUoqBRYnaPe1x66EAMSoDOxTUTqTrYYhGr-AE0g3r51kDv4Zh51xHGB147U_w40lcG63MzacnDRxHV9bd57CDRM0HHzvJ8kwDKMnT4Cp7ieE63crcC0AJzDHQtTI5WdqT5LwCJlLdU4vZFMQYBiSdbCzUQBgPJfWvPHenMQGR759St_I4T8zDq9JmkXKM19OeyIbRTH3i3HB6CPoS9mQdLk6PwmF-ltsZUHwwjJAdBHUvClBYxjiIVq2eVYJfn7qadE409mik31P65Yg39jEjcF9Zr2KFHwxAT5aKuG56Ckkg9RbXSEOY6DfaMlqOHKlzHrDfW9HaUtGIPM9IdpfXv-pXf1SA8tlLhGdBYHqCu9VUZK38TCYrmWom-wyqu6rVD2Ghz1tfU6FK0A-cWoHz9Vxm9aEWaHKwE4ydgmkVQVcq55DwY2KqU0EAjnJBsu1wcRJWjZaYX3xq4VweQxOdLSiM85780IfOZ52fQSEl_PnOX6zISE4IZACeKDv9Hw0Mtm12b-2kKReizeGqEknhvs0aAjT8V2I7nvvKxJ0toy-jgpW3OCv88C6AoEOK5OHTWBvZLav89X_VC6K2x0A8XhdIprAnU2STDKrtgRgOB-GFwszhoTA54Iz8IXDL6vs14CF3FSFI3xa8w1HKsciqt0nHtXcBAbtQOuOTZsRiGgNoPxysR91lqa6UvofCU1yFJSQFpLQCgy9fewgvOOlIkYQBhmCmw1lUV3QWGQ3fadNtUSrJUX9nm2p8j0d6xNhcOR4h1nhjN_iClDHtZ-1E-gBT3B4OJOoj9sLTo3py_Zz710P8JU_hO37_QQWyhjmMpVgn14UERp0kNOH754f6uuANSEcDk69ihK7i9c3i5-Zf0BoQBhi3FApSpI5pGb1Dl1NWJnLfGXS0Go0JBxu9kaelB6VSlSOfmD0TsmIt0TLOZqbLghzokPFkGZOnJj1FF6O0SS2AzrIfLQ11OYJLioifdXt8hU5VNMv0PKPJg9qAA-TkmXb2NQAn_5fRtQNPaUHAV_RJ3RZ3-ahfR22m8z6fDojR1kSRwhUl3SnsZ8y8CwSXVe_aqp2gOkyWTrRcE4MPoFrs1bpsOvBW7OV7WWgiI_PegDrpX_5ms40CeufNMCCqihvacP_2Je7-LK-yIz5SBY1Fk9l_w-EdGmglTwanLbFz9lotPvSW_2J7950BhKtlumCVWb_5QTG1XY2zwN1apFN-VXccaLKI8PW-g4-8izZqCQAhKwTOpYJiA_JNICTZX4d-x1akR1b8fZODm7fIvuu0jBvOGMMlXdzc31OMn-9NqqMdElcAP62L58nFyZifzDtG0rL1cg-We8qgSyfcP3hhwEupemNAOxudRcnp6XE1rjOokwdGVIaUyDQ7KK6xX5tUBfFaDYlYKiOZdr28nD0QI2gziTX1txtxoJwY04udNqyMKNaLW17Fb9KpSpasqBQWw5lgsv2TakTAAESUCZMkqko_k1iSvB54xXgp7rPm2pkGtxgQTvt1bQiFGU_tJpXlc0TxGawMXQVhW3UySrpm-xnddgvzZKSLy8hL41wmyl5e_qTLFL0GBBMJzyrnM75JsgMkIkQXLqJNrIvnbhFyPgf8dFoFrD8hihMQpT574n9eLMtGB2I2aihkP-t46SGSiiTBF7eT8mKfjzvE_uZWL7RCQcSoXmbrSEWuFE13aOAZvMwoSLZ4l7hgQUjfrNCi_wL1aTtZoy5Oe9KmC8GIUxqNAYXtXGC1XKCmaQSdSa-sjTHxsND3-AG-3D19U7OZJVFkD7m-9fMUpkE8ktYgukhpgDgaEtBNwPKUnzI7WKrUS84BGSf0quJiJTR1DS6K9yAlTOcIuDVkwc2LFqwAm_abCWa2f9TAyZ5QFhCg8NpzNJAqWNDi32zUwns-TMD9GAf4MUJSm7PPqaHdGJNoSd8WJkqAewWWWZx6LRvWHTd62K9YrubtPiJN6f2DqqAi76fwIY630kZGqPluQngdMO8Igw8x_2Fop9FlJ-bOtHaAgRGeWh4p2_yOJld6NR1vMJbwPhEPNrjwwBH4AivD7LKgdrM0N0TAueb7bavP2YF4beWgNWWOWBVnW0CJqY_s_VGfmxpkG6h2YJW1yrWkVSF1xvciyB55o_6Ti-ThH_E6w8OmfPYAJQfJrfhWvSlBPsww7o49a3Xy5PPfL9pCpqV9ORoitN5nCGEU_r_sT4iBbyz3o0dWS-ZtMB0myPAmScZR1c2rXq8MUo3VVluMtQNnMrHhzv_aWiuDi46LsB00v7Buz84d2-VrvQyzNZK1wGfGe_tweZxDdPTqdwabDhfsp_SqMDg6pFZXy2UMxYAE_zeYMPfwOyY6zaxg_-AtE9RZLU6TgHLIURtC3LF-GpxU4OPhuwVzIzlHxQ8ymWULIxq9ALyK3xiz3lXPZaDzSoJilcPn-OLTitRvv5FT77fhrcFbqGwADIucKLzR7_J36dKQbancNd3ApE136wUko8PMD0FDoqVbVGPjN_E5o-JIGAkr16WRLjlN7bisM-qz5TK5YXfNUk_D6OvMY8ScVTI2txUhq3ILCZlUt1DY3ZL15T7a0TxTtmNUcW0fhMPBfnxmARTDzVFlz1f0oxdo5Xr1oV6p1neIjmvGoNRHIj27iOAV7WlwMzctOooXEYaG2gxc_zC6eibyLbdVoaJmJUbfZmmfQLdrMSXAq0J1PGHU2hrJD446rJ88573LY-hYGethNOdXifpJ-x0NPZwR6w-79qzO91DUL_iABJ4nKAFfIv9rlV77kDgicwhhYY9dG1o3Nx1otHT4fgLUfpi9b97hRU4loP-e7tYZcmGxYZkHphzKc-6WDIHHpLvkf21ufws55GB7A4jyCvxY_rSXw-acwU9VWog1yCZhRbCwbxWJduwnEtULE_wSR6AsqhlqGCORUnIqHV2GGVakNw50NvcNtHX2Tiam0v9DxT-sRiB439y-js1rc5zqzTEiaajzQiFvJ6E_LBcMS0kRkWgG3LeAjH8RF9AJsnxvQDQ5dizc25gJPkshgud2S-3eq7sxHednm3pjDuwTlWc48tWBaL-7lWyA6Riqo2c7kIWyZMGP72JTlZXWGqCi_QtXcO_G1Dncohf7c4BDQgQdiK1EDVfvK2msfDDRqVJU61uE_QV7OnCJxQjfuRIHRxFlVoDTtaXQxnYMbD2GYG1JACymA2Eyn9vRhiHKnbsM2Il5Or8AZetEaLxGARTOIySisl7coD4sV6qofxvuszSVCaASEA_1qBCc-54EkJw0mghdmEdQ3-fcD49x-uK8n15qX4Y0-U2uVJbCBwPFqO574OsedbbWeQUvu48-zSQVCefZsmgXknjT-vR8JIBC8IDYafJwD9gysb6TgWy7NPyOBYrlNR8ijT0bynrJ9gzqAm_xv6hbDIHZ3xzvuYEkPF-VNec5VVUG2EasNgVjoZ4m1VesPlg5hWQvtkVQpy8Sg5MpyTGXN8EFZYE-Y8JRp23AubepD451VnuwHSy0zjZ7inDA9D5iX76y2pQyFd7lHsX_-PuCKDEKFBtorLXVA3-ZNldvRr3gykJdDmlxyN-JxRAhPmIgv2wrGgjrsV_ayIv6TFF25mqN-LZOPTZ12czgYeMN4nG_htn_NS2Ri1wSRsjEA4tGT9rH0Cf_DFSj_SnHWWS024z7qCnc0kS-WyRu19XcY0RUj9VAKogBdThAvVNSNXrqZlaU_VzcSbPGIR7w3EJYffVn1bYxae9aDuY8jUV1ZnrfZ4p3oFZA_wEvwbW51achojr1v7e4TU9LZjIC0XjY32_bbTRh7A6kujv_VAjg-ZjjGbi7xMcugUBRR6amwWhtWb3F-d9_9tKx5iidW5zbqbh0KWgQOLHefAVRm1_SF0mIkXdBaZrCDEJbGuhBGjuFEI0gkImqA7RVfviGO14eh0deAPofdkKRkk-Vt5N90JE5yRbAYA5vHW3eTMwjujmzZptHpsPbZiS0Ue7AuiXKOIiiyKXoQ1-uacQK_UMa4qMui1Qhvy93QuZsQfT_kvNk9yLDE7lIGD6zA7Wtgnfl8AEgkM5r8Mta4dJaLc8DX3AjyJApo70ZIdnixGBPUCADgGNYbHQ94lp1OCPXCpMeRklc1vjGG0vpueXJMSzcDc0oGEKwx4X3gQjHlE1-MvEBEmoBhPAUjqrOjTV77zKxsTvauUgQBwarrVKN1k7GkM4a6Tp90c37rLpUJg3RwiJRYnUYMLGJ_w5_h5CXnf54MxvuKFyMVF2gJ2Cncl4uJynr4jdmdhMfr7V9xxXbJ8F7bNZN7SmcX0oWeru-zC9XfismM5UDlVS_IudAkjQhw2g1XpN20CcX2e--91e4ZgTMdLLQtOENL8sA87vRg3QZyU5Vt8VfMFhDEzh-T0Pefqsu82-4pvI3KmNRkrO9wkpBzG22-ExMEUs6ZGSOeg9BAdCPzz-qlxcFoNPy6Gz6hT7-aABm441Cu3mEQglhmpxWWWyt_3nU-U_eRp_LKGsdAV0qIyZDhncrGzyURRe3-clt6bsdyz5nNlpirABqWuVhVwbXJ9m4hFcZeNuIPuGVSdkeA6Dlrsf9zTlxo4295jCzqmdMy2WLw73Jamt1UCuDr_S5SyF_fXghDjH8EHSZFGnm6p9_XZ5iJ3lIQhIet9rigbrt6PkCnmGcy_PI70qZOwTOuBs8yG84SPkFOyoAJgqKcigtPg5md8K9BUumKULzokr6AJnCMEFsB5OmZ39XKLcLjcVVZ59324S1hz7g0SkQHPLYeDfETxRk7XDM4UnT431yyt2l_jTBvPYAECk3UutVQ5flcUwvv7WE0SlUwK0_09Oxsu3P5QpmW07oqrsanUeOj7Y3myqn3YhwTwYLKoXydvChWADCRBYEosmgH3OMhpn-vkwh63hi1rp6rVVi5Xr8XjWCN8GsTGpehbHSlJAagC908KvLlSRP3ekzTtWlKBosjV3G3ssD1mmPCapQJGqJEQ46xGWrojzvq47UlYhO1hBiLqREpGu2QwiI3z7ScHK5LtR067J20hhiPJP299JITWzuBnX3bzP0p4VxKvmW2BBwNRBybGaGD3UiqWg6Svr5X7PQzE8hI3AdiLCC-fBxsMP0_bM-fqGEppvlFOStahj4p52BpU4FwqEvEbDENk3k9qABIVAaOHdqLnm8F4-8enU-25OEo_3dSgxCvhd5m5pjbI6kq3096jwIHNzqDfEr39ZpItGbmh7_ZOSS63QQOjejinTZUw8nXiTuTapVf_ipwX6dStzr-Nt3WlILQ-2Pn6c6kQfCkuFLRwq05bgFW1fmf-BxDuMBk5K6-_aZO8R37f3V_jp4pXS1dxbZbVw4DcYxUzrXD2pvfGqlzQNk6tIC1V6lF9PmjmhHykPu1WIActhS-b4QDZGinqws8EQQrjrYwD9SvLT2M-6O96BVQqGEdipekIMuJ2r0jj2dnmQbsUOotv25v1_AN6P9ix2AktWfvlb42uS1JF6w_zgHoBScups41HPtU2pHHiGrIjGwat2iUyHlTXw-1ExpsgKO6C4mkBbUobc_BLmq1ufA-iAO6SD50fAwIR1IL_DM671UX7QNXKyIq7Ee9h_Zha19YLhxoXbgj_EUJySlMowe-57NU8WnNTQ9I85N0UuPa474UQ22eyf4VHCe-pnx1cnmIRon_Fg63j9LvIJxGW4gepjFvZ493vju_60z1B3Zys-r41KRIzlBrMlvFJzxDeYY209repO6H1A5jrNnKvpnso6lbJYF8gIDCN19fD3NWrFL_w4aPR-Bqr0nOsnyNgehwiYEMdbMbqjZRh2tR7_h5JBdd8bC42-dqdoUc0DyVnywAN_O0DnLhM-bR6nYCRjAmf-y6JZBaB9T7TUrAO5eX93q5vh7xJb1pvIZ9jSaxtEJQCASgC_ptrR2gZ36ZF-Eq9jbFjFWhz1R6k77lw-AhPjiZU4MWSfLka8ykYeAPGRc8pNwUW0AVol6EKAOLvJzHq3r4TElmKEl7cKQLG1Ni6ZlWete0PA_ZVbONkQJUVNSw7D6w9b26W_xsRnDUvWMrurOxSBZDpmGefoZqKGA5Q63utyM_bxD5HbOywoIcRS20WDG3f3pGIlXUz0a7emgW0z_e8GdyYAGFjzvEEb7KqN_iBIeWQpdrjQMneZiaICOPVmc5czhlY4W00Mg7mXqSDznA1AlFiSCws7LyuanAAdtf8gVpne4rye1Oxu7d5PWvDFBwd02GiqsDSZnJ-dtIs4GTfDK66Jcv9URdKI9SUjfVooxRzQUdsGSOQ9ADUDSNfNoByiE3EX8gm6UW-bVnBCCoc0ujSHGqwOV8rcgZgEmDq0dTI7xRfBrH3-6p5vtwcNtHpvTAVb4HbNkl5M4UuolAIVdEztzYC8Ebj-Jwt-9UbYWh3izle1skQxUOev9t8rUpOkOfknw-xt7Kdpc2k9-ZQ0Rpp3J-dbuio0kHJvtcceXmwstTYxq-tqExSrK59icNDDyHc4cHCwMTQqgWpfDVdRrI9S7MWqn4uDd5ZW0AZYEhhr6h0NzSEb__fkI6gVcCPaFGGP77szrLtWqpUnJFKNczcl4dl_E5WKbSKqBz4eEdsjm8YvgOwfduCVKNUOkcd7sgexc6x-dII4UcqUriR8V4e3nLND-BBqhMy8Hi4DGiwTWyCfOyXPmFUNxXshtrK2bn8SUvIFUkEwKNQH6pMR0uFPMUGe_tfARW7dF-GYyYuW48drdmLMXWYQ8h1Wo0govqqJ5vCkjbvRD0EbQ0ZLPVyvFZOC1bVigBgoe1JOCEjSLzT01WhduIz3USPxPD6KZ0KxqZNNUiOSj70HJb5HSqM5-q1Th_dD0qRIhhsYNIzbwBM7ju9-OJlTaUFDHFa1t06sglUiEFg60SNkUKsRNlAXnLt4zDkHcFTGhpf0e67WZG2yQNvNZbR5GHUc_CbgNsOTS-06ocnhlqzO3s8C6LFjU7Sw9BbKBxgOVzdZvkkGA4MHvOBLeS2FqU9DoYcvR2ZtHjyJWad7p5-btKfGvD3XpbNvx9RZNOYZwmCeIQO1Amj5aJuZiqgOSf-btEyMF6Om47E1qcC2nieLAe6H8nxKWWUWAJRcCCUU_4bRKshgZJ6lZnEXjgx-phGTwlBd9c7NMEUVmDilIO1aG-ZM0jhmdfPAlAYC5qi02c1n42pCT06YzUey24xX-iFommtu_5AmamWgTjCkz_QxhZzdZbM0SRlgz9T7z6buJFdvEU7w4ECrOmBRgPHG-pi7k2u4hklhmpuayCKpdlZ1G_qocKZoX40_1flaxrcP8rTHw8gxkx6iiPonZzjBRqOy1nhK-JKE3R0GhkTiZhsPgjSyljDD7gyFb96WS3HE_odexNyIE93cOJyL5FyeRtuDWbaBdB3til6poDmxKNSSU3dLaB4XdWosVZzzZt75za4aVQcRl6ZZrX3_yC7Ox4fuYXU8s-QuHTZMsv6nLIXboyR3gk6IP4FlCRdq-uUU1a4ZLcmjWDMKyiqEW3D-sIGqK2r-tXzp7JGNFoz4Xp87ZC4nzI1bste5Dz7yKT0OioWW_uLl-ziUB3t4L-Voultf3niBR30y1WKlqy428zEz9CTTW8Iy4MaQzqk7zVDcwm12LgkB1jq8PAASfOthvIbgcUqHxb7ohx2akhESYl94enlGAwF1ZCNb1b1RSd5GagWOv_S7Wj-ZA-7bqRXD7_oVPliWn7gF3nUjltH5qXccVqr5VS4lf_5FRkx4pAoPRY53O6D2UF5jrIMyxe_K1wtR3m9rOS_HAAs5HojrfApDtQEFwijduOGKCyotNUJbOs96JYwCKPe3pz5r6Fw4VbEOrfR1E1U4YN7TKB_LSFZyG_ShHaRcr8Dc2PAgp7AjARAvF4KZQq_g2cS_q225hw4qCmU3I3TzGER6ReY1dcTMDEAEW-y879xZMuobuV9mysySk--W5pHElyCPYtJevip48_3TRd1IoLIHSFQQ6j4FbEPxBnplJGHzmNZHZDQiVIX1GFzKs9gdaHuA-d_av6HEMCzghncitYEWaL0wM3-ofF-W5i-TgHXXFZKC2dNdgLC3Yz4C_2Ype9qo02aP7GbEaFY3cxsK17ndZgGFN4GVe7mFcvv6I070f-YPEYDLCkOewKG52qYYLtSw3KzJdnMl_hz76zYxAR2dfqErOO8lCBQK0iEINpjc-5MoSvIE1QCJEVSUglOv-9toudfXIMkbhOUOocB_eno7PjctcS8sTh7p_5Xd27ewVSAyWS6J0qItc0oYgw9xjzpbofztMRsEaaXbY4L6AMH3jjANWDC1gr5sBS9FD8VvgxVdTtInfHgRcxiCh9AwJNfIOHoSz_ZYkMBAVs7FFeGq0TdXRBFhgs6sUPYrmBdiG9gBLwlU1L17OsDFymYTuz-PB8NYmJKy3vzaHYqS87OERx5CyenIPKwaR2q0iTAMRgHKmI7hkPOZ5zcP9oxvKcBE3lGmpU7NlXGPU0koob8XgU0caOTc8QuhY-naU3VEtZAvVKpZq0SINw4o4ei-kuAAw1uVcrdzV-hmlEqQ2HoY7lg8L3BR98j8YY8w4tpq6g-sf8M8KZ6xmzuDUVVDot43UWPDhqf6BG743dpg8Tg3JZQ48gDyO-w6euYbW8PE2PmGijE-7fGGGdiq5bsKP6bjMxQQ_6MYNyCFsUOCJYZsDqeFJzgFjERBp8jOvwyKlnTNkohqDPcxNJfR4tf0HH8BfTL4KpN3WVbzwQIgWkOlN6CSquTK0KkbGR_hSWlRScsUAw==",
+        "type": "reasoning.encrypted",
+        "format": null,
+        "id": "rs_090c9ded83261a05016a579e2e1dc48190a62fa456fad3fafa",
+        "index": 1
+      }
+    ],
+    "openrouter": {
+      "attempt": 1,
+      "endpoints": {
+        "available": [
+          {
+            "model": "openai/gpt-5.5-20260423",
+            "provider": "OpenAI",
+            "selected": true
+          }
+        ],
+        "total": 3
+      },
+      "is_byok": false,
+      "region": "MUC",
+      "requested": "openai/gpt-5.5",
+      "strategy": "direct",
+      "summary": "available=1, selected=OpenAI"
+    }
+  },
+  "prompt_sha256": {
+    "system": "450afca5c07974cc8a47b1b3cb35d29d025adf7b8790740ca44d89c5babd91e1",
+    "user": "0a9585c745f60704ab7f40943d3796927573441db8feb0fca6a7b6e8b677aa42",
+    "combined": "1ba5df1e0f34f509002d9b74bc1ab36ad5e31c717d3ddee6ffa09357d0f41c1a"
+  },
+  "system_prompt": "You solve a multidimensional formal-language Scrabble benchmark.\nYour objective is to achieve the highest possible score by placing a single valid move.\nFollow the supplied rules exactly and return only one JSON object with exactly the fields `start`, `axis`, and `sequence`.\n`sequence` must be an array with one single-character symbol per cell, for example:\n{\"start\": [0, 0], \"axis\": 0, \"sequence\": [\"A\", \"B\", \"C\"]}\nDo not merge the symbols into a single string, and do not use tools or add explanations.",
+  "user_prompt": "Your goal is to achieve the highest possible score. Place exactly one contiguous sequence, choosing the valid move that scores the most points.\n\n## Move geometry\n- Coordinates are zero-based vectors with 2 entries.\n- `start` is the first coordinate. `axis` advances one coordinate component per symbol.\n- Axis selects the board dimension along which the sequence advances: axis 0 advances coordinate index 0, axis 1 advances coordinate index 1.\n\n## Validity rules\nA move is valid only if all of the following hold:\n- The submitted sequence must be accepted by the formal language.\n- Existing cells may be reused only with their existing symbol.\n- Reuse at least one existing cell and place at least one new symbol.\n- Only newly placed symbols consume the rack, including multiplicities.\n- You may form new words, but you may not lengthen a word that already exists and is complete on the board:\n    - Do not reuse a cell whose existing word already runs along the chosen axis.\n    - The cells immediately before and after the submitted sequence, along its axis, must be empty.\n    - A newly placed cell must not extend an existing word along any perpendicular axis.\n- After placement, every maximal contiguous line longer than one cell that touches the move, on every axis, must be accepted by the formal language.\n\n## Scoring\n- Each alphabet symbol has a point value, listed below. A valid move scores the sum of the point values of every symbol in its placed sequence, counting both newly placed and reused (overlapping) symbols.\n- An invalid move scores 0.\n\nLetter scores:\n  C: 3\n  D: 1\n  G: 1\n  M: 1\n  R: 2\n  T: 1\n  X: 3\n  Z: 3\n\nFormal language:\nAlphabet: {C, D, G, M, R, T, X, Z}\nk: 3\nMinimum word length: 3\nForbidden snippets: {C C G, C C R, C C T, C C X, C D D, C D R, C D X, C G D, C G M, C G X, C M C, C M D, C M R, C M X, C M Z, C R D, C R G, C R M, C R R, C R X, C R Z, C T G, C T M, C T T, C T Z, C X G, C Z D, C Z M, D C G, D C M, D C X, D C Z, D D C, D D D, D D R, D D T, D D X, D D Z, D G D, D G G, D G X, D G Z, D M G, D M T, D M X, D M Z, D R D, D R T, D T C, D T G, D T R, D X C, D X M, D X Z, D Z G, D Z M, D Z R, D Z T, D Z Z, G C C, G C M, G C R, G C X, G C Z, G D R, G D T, G G G, G M C, G M D, G M G, G M R, G M Z, G R G, G R X, G T C, G T G, G T M, G X G, G X R, G X T, G X Z, G Z C, G Z G, G Z T, G Z X, M C M, M D C, M G C, M G D, M G M, M G X, M G Z, M M M, M R C, M R G, M R M, M T C, M T G, M T M, M T T, M X G, M Z D, M Z G, M Z M, M Z R, M Z Z, R C D, R C M, R C R, R D D, R D T, R D X, R G D, R G R, R M G, R M R, R R R, R T C, R T D, R T M, R T R, R T Z, R X G, R X M, R X Z, R Z Z, T C D, T C R, T D C, T D D, T D T, T G D, T G G, T G M, T G Z, T M G, T M X, T R C, T R G, T R R, T R T, T T G, T T Z, T X T, T X X, T X Z, T Z C, T Z R, T Z X, T Z Z, X C C, X C R, X C T, X D X, X G M, X G X, X M G, X M M, X R R, X R Z, X T D, X T G, X T T, X X T, X X Z, X Z M, X Z R, X Z X, X Z Z, Z C M, Z C R, Z D G, Z D T, Z G R, Z G Z, Z M R, Z M X, Z R C, Z T C, Z T M, Z T Z, Z X C, Z X M, Z X T, Z X Z, Z Z G, Z Z M, Z Z R, Z Z T, Z Z X}\nA sequence is valid iff it has the minimum length of 3 and contains no forbidden snippet.\n\nThe board configuration below is already valid: every existing word on it is accepted by the formal language.\nBoard configuration:\n{\n  \"dimensions\": 2,\n  \"occupied\": [\n    {\n      \"coord\": [\n        -2,\n        0\n      ],\n      \"symbol\": \"D\"\n    },\n    {\n      \"coord\": [\n        -1,\n        0\n      ],\n      \"symbol\": \"G\"\n    },\n    {\n      \"coord\": [\n        0,\n        0\n      ],\n      \"symbol\": \"R\"\n    },\n    {\n      \"coord\": [\n        1,\n        0\n      ],\n      \"symbol\": \"T\"\n    },\n    {\n      \"coord\": [\n        2,\n        0\n      ],\n      \"symbol\": \"T\"\n    }\n  ]\n}\n\nRack:\n[\"C\", \"M\", \"M\", \"M\", \"R\"]\n",
+  "raw_response": "{\"start\":[0,-3],\"axis\":1,\"sequence\":[\"C\",\"M\",\"M\",\"R\",\"R\",\"M\"]}",
+  "parsed_move": {
+    "start": [
+      0,
+      -3
+    ],
+    "axis": 1,
+    "sequence": [
+      "C",
+      "M",
+      "M",
+      "R",
+      "R",
+      "M"
+    ]
+  },
+  "parsed_move_lenient": {
+    "start": [
+      0,
+      -3
+    ],
+    "axis": 1,
+    "sequence": [
+      "C",
+      "M",
+      "M",
+      "R",
+      "R",
+      "M"
+    ]
+  },
+  "evaluation": {
+    "overall": true,
+    "parse_ok": true,
+    "sequence_valid": true,
+    "min_length_fulfilled": true,
+    "spatial_valid": true,
+    "overlap_valid": true,
+    "no_word_extension": true,
+    "cross_words_valid": true,
+    "rack_valid": true,
+    "missing_rack_symbols": {},
+    "rack_symbols_used": 5,
+    "rack_usage_ratio": 1.0,
+    "main_word_length": 6,
+    "overlap_count": 1,
+    "letter_score_total": 10,
+    "failure_type": null,
+    "message": "valid"
+  },
+  "evaluation_format_robust": {
+    "overall": true,
+    "parse_ok": true,
+    "sequence_valid": true,
+    "min_length_fulfilled": true,
+    "spatial_valid": true,
+    "overlap_valid": true,
+    "no_word_extension": true,
+    "cross_words_valid": true,
+    "rack_valid": true,
+    "missing_rack_symbols": {},
+    "rack_symbols_used": 5,
+    "rack_usage_ratio": 1.0,
+    "main_word_length": 6,
+    "overlap_count": 1,
+    "letter_score_total": 10,
+    "failure_type": null,
+    "message": "valid"
+  },
+  "ground_truth_move": {
+    "start": [
+      -1,
+      -2
+    ],
+    "axis": 1,
+    "sequence": [
+      "M",
+      "M",
+      "G",
+      "R",
+      "M",
+      "C"
+    ]
+  },
+  "request_attempt_count": 1,
+  "llm_elapsed_seconds_total": 53.86542316699342,
+  "retry_wait_seconds_total": 0.0,
+  "failed_attempts": []
+}

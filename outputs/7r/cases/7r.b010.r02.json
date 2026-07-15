@@ -1,0 +1,715 @@
+{
+  "schema_version": 1,
+  "case_id": "7r.b010.r02",
+  "case_set": "7r",
+  "board_size": 10,
+  "sampling_round": 2,
+  "seeds": {
+    "grammar_requested": 1725431297,
+    "grammar_used": 1725431297,
+    "board": 1344948842
+  },
+  "parameters": {
+    "grammar": {
+      "alphabet_case": "upper",
+      "alphabet_type": "letters",
+      "forbidden_fraction": 0.4,
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      },
+      "config_name": "7r.b010.r02",
+      "alphabet_size": 8,
+      "k": 3,
+      "min_word_length": 3,
+      "seed": 1725431297,
+      "output_path": null,
+      "show_stats": false
+    },
+    "generation": {
+      "config_name": "7r.b010.r02",
+      "dimensions": 2,
+      "seed": 1344948842,
+      "grammar": null,
+      "grammar_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/grammars/7r.b010.r02.json",
+      "initial_word_axis": 0,
+      "initial_word_length": 5,
+      "length_distribution": {
+        "start": 3,
+        "end": 6
+      },
+      "fixed_final_transition_length": 6,
+      "top_anchor_count": 40,
+      "max_anchor_count": null,
+      "top_template_count": 200,
+      "target_witness_count": 10,
+      "scoring": {
+        "anchor_centroid_weight": 0.8,
+        "template_centroid_weight": 1.2,
+        "template_local_density_penalty_weight": 0.6
+      },
+      "additional_rack_noise": 0,
+      "output_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/scenarios/7r.b010.r02.json",
+      "include_search_logs": false
+    },
+    "board_depth": 9
+  },
+  "grammar": {
+    "schema_version": 2,
+    "type": "sl",
+    "name": "7r.b010.r02",
+    "alphabet": [
+      "A",
+      "D",
+      "F",
+      "G",
+      "H",
+      "L",
+      "Q",
+      "R"
+    ],
+    "k": 3,
+    "forbidden": [
+      "AAF",
+      "AAG",
+      "AAQ",
+      "AAR",
+      "ADA",
+      "ADL",
+      "AFF",
+      "AFH",
+      "AGF",
+      "AGL",
+      "AGQ",
+      "AGR",
+      "AHH",
+      "ALA",
+      "ALG",
+      "ALQ",
+      "AQD",
+      "AQQ",
+      "AQR",
+      "ARA",
+      "ARG",
+      "ARQ",
+      "DAA",
+      "DAG",
+      "DAQ",
+      "DAR",
+      "DDL",
+      "DDQ",
+      "DDR",
+      "DFA",
+      "DFD",
+      "DFF",
+      "DFH",
+      "DFQ",
+      "DGA",
+      "DGD",
+      "DGF",
+      "DGG",
+      "DGL",
+      "DGQ",
+      "DHA",
+      "DHG",
+      "DHQ",
+      "DLA",
+      "DLF",
+      "DLG",
+      "DLH",
+      "DLQ",
+      "DQA",
+      "DQD",
+      "DQQ",
+      "DRF",
+      "DRG",
+      "DRH",
+      "DRL",
+      "DRR",
+      "FAA",
+      "FAD",
+      "FAH",
+      "FAL",
+      "FDA",
+      "FDD",
+      "FDL",
+      "FFF",
+      "FFQ",
+      "FGG",
+      "FGL",
+      "FHA",
+      "FHF",
+      "FHG",
+      "FHH",
+      "FLL",
+      "FLQ",
+      "FQL",
+      "FQR",
+      "FRF",
+      "FRQ",
+      "GAA",
+      "GAD",
+      "GAG",
+      "GAL",
+      "GAQ",
+      "GDA",
+      "GDD",
+      "GDF",
+      "GDG",
+      "GDR",
+      "GFH",
+      "GFQ",
+      "GFR",
+      "GGD",
+      "GGH",
+      "GHA",
+      "GHD",
+      "GHG",
+      "GHQ",
+      "GLD",
+      "GLG",
+      "GLR",
+      "GQG",
+      "GQL",
+      "GQR",
+      "GRF",
+      "GRQ",
+      "GRR",
+      "HAL",
+      "HAR",
+      "HDA",
+      "HDG",
+      "HFQ",
+      "HFR",
+      "HGG",
+      "HGH",
+      "HHA",
+      "HHF",
+      "HHG",
+      "HHH",
+      "HHL",
+      "HLD",
+      "HLH",
+      "HLL",
+      "HQA",
+      "HQD",
+      "HQF",
+      "HRF",
+      "HRH",
+      "LAG",
+      "LAH",
+      "LAQ",
+      "LDA",
+      "LDH",
+      "LDQ",
+      "LDR",
+      "LFA",
+      "LFH",
+      "LFQ",
+      "LGA",
+      "LHA",
+      "LHF",
+      "LHH",
+      "LHR",
+      "LLF",
+      "LLQ",
+      "LQL",
+      "LQQ",
+      "LRD",
+      "LRF",
+      "LRH",
+      "LRQ",
+      "QAR",
+      "QDA",
+      "QDD",
+      "QDF",
+      "QDH",
+      "QFA",
+      "QFQ",
+      "QGD",
+      "QGG",
+      "QGQ",
+      "QGR",
+      "QHH",
+      "QHL",
+      "QHR",
+      "QLH",
+      "QLQ",
+      "QQL",
+      "QQQ",
+      "QRD",
+      "QRG",
+      "QRL",
+      "QRR",
+      "RAF",
+      "RAG",
+      "RAH",
+      "RAL",
+      "RAQ",
+      "RDH",
+      "RFA",
+      "RFD",
+      "RFG",
+      "RFL",
+      "RFQ",
+      "RGG",
+      "RGL",
+      "RGR",
+      "RHA",
+      "RHF",
+      "RHG",
+      "RHL",
+      "RHR",
+      "RLF",
+      "RLL",
+      "RLR",
+      "RQA",
+      "RQD",
+      "RQF",
+      "RQG",
+      "RQH",
+      "RQQ",
+      "RRL"
+    ],
+    "min_word_length": 3,
+    "letter_scores": {
+      "A": 2,
+      "D": 2,
+      "F": 1,
+      "G": 3,
+      "H": 1,
+      "L": 1,
+      "Q": 3,
+      "R": 1
+    },
+    "seed": 1725431297,
+    "sampling_config": {
+      "alphabet_size": 8,
+      "forbidden_fraction": 0.4,
+      "alphabet_case": "upper",
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      }
+    }
+  },
+  "board": {
+    "dimensions": 2,
+    "occupied": [
+      [
+        [
+          -6,
+          -3
+        ],
+        "L"
+      ],
+      [
+        [
+          -6,
+          -2
+        ],
+        "L"
+      ],
+      [
+        [
+          -6,
+          -1
+        ],
+        "R"
+      ],
+      [
+        [
+          -6,
+          0
+        ],
+        "L"
+      ],
+      [
+        [
+          -6,
+          1
+        ],
+        "Q"
+      ],
+      [
+        [
+          -5,
+          -3
+        ],
+        "A"
+      ],
+      [
+        [
+          -5,
+          -1
+        ],
+        "G"
+      ],
+      [
+        [
+          -5,
+          2
+        ],
+        "A"
+      ],
+      [
+        [
+          -4,
+          -3
+        ],
+        "F"
+      ],
+      [
+        [
+          -4,
+          -2
+        ],
+        "Q"
+      ],
+      [
+        [
+          -4,
+          -1
+        ],
+        "H"
+      ],
+      [
+        [
+          -4,
+          0
+        ],
+        "D"
+      ],
+      [
+        [
+          -4,
+          1
+        ],
+        "L"
+      ],
+      [
+        [
+          -4,
+          2
+        ],
+        "R"
+      ],
+      [
+        [
+          -3,
+          -3
+        ],
+        "A"
+      ],
+      [
+        [
+          -3,
+          2
+        ],
+        "D"
+      ],
+      [
+        [
+          -2,
+          -3
+        ],
+        "R"
+      ],
+      [
+        [
+          -2,
+          0
+        ],
+        "R"
+      ],
+      [
+        [
+          -2,
+          2
+        ],
+        "D"
+      ],
+      [
+        [
+          -1,
+          -2
+        ],
+        "L"
+      ],
+      [
+        [
+          -1,
+          -1
+        ],
+        "Q"
+      ],
+      [
+        [
+          -1,
+          0
+        ],
+        "H"
+      ],
+      [
+        [
+          -1,
+          1
+        ],
+        "F"
+      ],
+      [
+        [
+          -1,
+          2
+        ],
+        "F"
+      ],
+      [
+        [
+          0,
+          -2
+        ],
+        "A"
+      ],
+      [
+        [
+          0,
+          -1
+        ],
+        "A"
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        "D"
+      ],
+      [
+        [
+          0,
+          2
+        ],
+        "G"
+      ],
+      [
+        [
+          1,
+          -2
+        ],
+        "D"
+      ],
+      [
+        [
+          1,
+          -1
+        ],
+        "A"
+      ],
+      [
+        [
+          1,
+          0
+        ],
+        "D"
+      ],
+      [
+        [
+          1,
+          1
+        ],
+        "F"
+      ],
+      [
+        [
+          2,
+          -2
+        ],
+        "H"
+      ],
+      [
+        [
+          2,
+          0
+        ],
+        "A"
+      ]
+    ],
+    "segments": [
+      {
+        "start": [
+          -2,
+          0
+        ],
+        "axis": 0,
+        "sequence": [
+          "R",
+          "H",
+          "D",
+          "D",
+          "A"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          -2
+        ],
+        "axis": 1,
+        "sequence": [
+          "L",
+          "Q",
+          "H",
+          "F",
+          "F"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          -2
+        ],
+        "axis": 0,
+        "sequence": [
+          "L",
+          "A",
+          "D",
+          "H"
+        ]
+      },
+      {
+        "start": [
+          1,
+          -2
+        ],
+        "axis": 1,
+        "sequence": [
+          "D",
+          "A",
+          "D",
+          "F"
+        ]
+      },
+      {
+        "start": [
+          0,
+          -2
+        ],
+        "axis": 1,
+        "sequence": [
+          "A",
+          "A",
+          "D"
+        ]
+      },
+      {
+        "start": [
+          -5,
+          2
+        ],
+        "axis": 0,
+        "sequence": [
+          "A",
+          "R",
+          "D",
+          "D",
+          "F",
+          "G"
+        ]
+      },
+      {
+        "start": [
+          -4,
+          -3
+        ],
+        "axis": 1,
+        "sequence": [
+          "F",
+          "Q",
+          "H",
+          "D",
+          "L",
+          "R"
+        ]
+      },
+      {
+        "start": [
+          -6,
+          -3
+        ],
+        "axis": 0,
+        "sequence": [
+          "L",
+          "A",
+          "F",
+          "A",
+          "R"
+        ]
+      },
+      {
+        "start": [
+          -6,
+          -3
+        ],
+        "axis": 1,
+        "sequence": [
+          "L",
+          "L",
+          "R",
+          "L",
+          "Q"
+        ]
+      },
+      {
+        "start": [
+          -6,
+          -1
+        ],
+        "axis": 0,
+        "sequence": [
+          "R",
+          "G",
+          "H"
+        ]
+      }
+    ]
+  },
+  "rack": [
+    "F",
+    "G",
+    "H"
+  ],
+  "ground_truth_move": {
+    "start": [
+      -5,
+      -3
+    ],
+    "axis": 1,
+    "sequence": [
+      "A",
+      "H",
+      "G",
+      "F",
+      "G",
+      "A"
+    ]
+  },
+  "provenance": {
+    "grammar_artifact": "outputs/evaluation/7r/grammars/7r.b010.r02.json",
+    "scenario_artifact": "outputs/evaluation/7r/scenarios/7r.b010.r02.json",
+    "grammar_sha256": "658edd8268361ecb3bc3030f9ed4f8ce071ee13bfb22f4ba3f1db1c14388aa81",
+    "scenario_sha256": "43c5f458c679f1e659c3c1a0462f7a9c978d71ff6b154dc946844acaebe32340",
+    "case_set_config_sha256": "c7325b5eec899ae65a47292f96ff96b047a815fd16ce25dec2b198da3c92ce61",
+    "git_revision": "3a8671e9aae486874c5c9bb467b20501f6642261"
+  }
+}

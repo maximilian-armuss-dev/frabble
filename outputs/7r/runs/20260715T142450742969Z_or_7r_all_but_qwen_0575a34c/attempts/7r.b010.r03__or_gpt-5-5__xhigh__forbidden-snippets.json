@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "job_id": "7r.b010.r03__or_gpt-5-5__xhigh__forbidden-snippets",
+  "case_file": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/cases/7r.b010.r03.json",
+  "model": "or_gpt-5-5",
+  "reasoning_effort": "xhigh",
+  "model_config": {
+    "model": "openai/gpt-5.5",
+    "configured_model": "openrouter/openai/gpt-5.5",
+    "backend": "openrouter",
+    "reasoning_effort": "xhigh",
+    "reasoning": {
+      "effort": "xhigh"
+    },
+    "provider": {
+      "only": [
+        "openai"
+      ],
+      "allow_fallbacks": false,
+      "require_parameters": true
+    },
+    "max_completion_tokens": 32384,
+    "request_max_tokens": 32384,
+    "timeout_seconds": 3600.0,
+    "provider_max_retries": 0
+  },
+  "language_representation": "forbidden-snippets",
+  "status": "transport_error",
+  "retryable": false,
+  "retry_count": 0,
+  "error_type": "LocalProtocolError",
+  "error": "Illegal header value b'Bearer '",
+  "timestamp": "2026-07-15T14:24:54.880156+00:00",
+  "error_retryable": false,
+  "request_attempt_count": 1,
+  "llm_elapsed_seconds_total": 1.2998843749955995,
+  "retry_wait_seconds_total": 0.0,
+  "failed_attempts": [
+    {
+      "attempt_index": 0,
+      "elapsed_seconds": 1.2998843749955995,
+      "error_type": "LocalProtocolError",
+      "error": "Illegal header value b'Bearer '",
+      "retryable": false
+    }
+  ]
+}

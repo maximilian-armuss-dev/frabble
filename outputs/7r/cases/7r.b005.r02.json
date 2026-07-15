@@ -1,0 +1,486 @@
+{
+  "schema_version": 1,
+  "case_id": "7r.b005.r02",
+  "case_set": "7r",
+  "board_size": 5,
+  "sampling_round": 2,
+  "seeds": {
+    "grammar_requested": 371223264,
+    "grammar_used": 371223264,
+    "board": 335297436
+  },
+  "parameters": {
+    "grammar": {
+      "alphabet_case": "upper",
+      "alphabet_type": "letters",
+      "forbidden_fraction": 0.4,
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      },
+      "config_name": "7r.b005.r02",
+      "alphabet_size": 8,
+      "k": 3,
+      "min_word_length": 3,
+      "seed": 371223264,
+      "output_path": null,
+      "show_stats": false
+    },
+    "generation": {
+      "config_name": "7r.b005.r02",
+      "dimensions": 2,
+      "seed": 335297436,
+      "grammar": null,
+      "grammar_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/grammars/7r.b005.r02.json",
+      "initial_word_axis": 0,
+      "initial_word_length": 5,
+      "length_distribution": {
+        "start": 3,
+        "end": 6
+      },
+      "fixed_final_transition_length": 6,
+      "top_anchor_count": 40,
+      "max_anchor_count": null,
+      "top_template_count": 200,
+      "target_witness_count": 5,
+      "scoring": {
+        "anchor_centroid_weight": 0.8,
+        "template_centroid_weight": 1.2,
+        "template_local_density_penalty_weight": 0.6
+      },
+      "additional_rack_noise": 0,
+      "output_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/scenarios/7r.b005.r02.json",
+      "include_search_logs": false
+    },
+    "board_depth": 4
+  },
+  "grammar": {
+    "schema_version": 2,
+    "type": "sl",
+    "name": "7r.b005.r02",
+    "alphabet": [
+      "B",
+      "E",
+      "F",
+      "G",
+      "O",
+      "P",
+      "Q",
+      "Y"
+    ],
+    "k": 3,
+    "forbidden": [
+      "BBB",
+      "BBO",
+      "BBQ",
+      "BEB",
+      "BEG",
+      "BEO",
+      "BEQ",
+      "BEY",
+      "BGB",
+      "BGP",
+      "BGY",
+      "BOF",
+      "BOG",
+      "BOQ",
+      "BOY",
+      "BPB",
+      "BPF",
+      "BPG",
+      "BPO",
+      "BQF",
+      "BQO",
+      "BQP",
+      "BYB",
+      "BYG",
+      "BYP",
+      "BYY",
+      "EBO",
+      "EBP",
+      "EBY",
+      "EEE",
+      "EEQ",
+      "EFO",
+      "EGB",
+      "EGO",
+      "EGQ",
+      "EGY",
+      "EOG",
+      "EOQ",
+      "EOY",
+      "EPB",
+      "EPG",
+      "EPO",
+      "EPQ",
+      "EQO",
+      "EQP",
+      "EYB",
+      "EYF",
+      "EYO",
+      "FBG",
+      "FBO",
+      "FBP",
+      "FEB",
+      "FEF",
+      "FEP",
+      "FEQ",
+      "FFB",
+      "FFO",
+      "FFY",
+      "FGB",
+      "FGF",
+      "FGY",
+      "FOP",
+      "FOQ",
+      "FPF",
+      "FPG",
+      "FQQ",
+      "FYE",
+      "GBE",
+      "GBG",
+      "GBY",
+      "GEB",
+      "GEE",
+      "GEF",
+      "GEG",
+      "GEP",
+      "GEY",
+      "GFB",
+      "GFF",
+      "GFG",
+      "GFY",
+      "GGO",
+      "GGY",
+      "GOE",
+      "GOF",
+      "GOG",
+      "GOO",
+      "GOP",
+      "GPE",
+      "GPO",
+      "GPP",
+      "GPQ",
+      "GQB",
+      "GQF",
+      "GQG",
+      "GQO",
+      "GQQ",
+      "GQY",
+      "GYE",
+      "GYP",
+      "GYQ",
+      "OBQ",
+      "OBY",
+      "OEE",
+      "OFB",
+      "OFE",
+      "OFF",
+      "OFO",
+      "OFQ",
+      "OGQ",
+      "OGY",
+      "OOE",
+      "OOG",
+      "OOP",
+      "OOQ",
+      "OPB",
+      "OPG",
+      "OPO",
+      "OPP",
+      "OPQ",
+      "OQO",
+      "OQQ",
+      "OYB",
+      "OYE",
+      "OYG",
+      "OYP",
+      "PBB",
+      "PBF",
+      "PBG",
+      "PBO",
+      "PBP",
+      "PBQ",
+      "PEB",
+      "PEF",
+      "PEP",
+      "PFO",
+      "PFP",
+      "PGG",
+      "PGO",
+      "PGP",
+      "POB",
+      "POE",
+      "POP",
+      "PPF",
+      "PPP",
+      "PQF",
+      "PQP",
+      "PQQ",
+      "PYO",
+      "PYY",
+      "QBE",
+      "QBF",
+      "QBG",
+      "QBP",
+      "QEE",
+      "QEG",
+      "QEO",
+      "QEY",
+      "QFE",
+      "QFO",
+      "QGF",
+      "QOO",
+      "QOP",
+      "QOY",
+      "QPF",
+      "QPO",
+      "QPP",
+      "QQF",
+      "QQO",
+      "QYF",
+      "QYG",
+      "QYO",
+      "QYP",
+      "QYQ",
+      "YBB",
+      "YBF",
+      "YBG",
+      "YBP",
+      "YEB",
+      "YEO",
+      "YFE",
+      "YGB",
+      "YGQ",
+      "YGY",
+      "YOB",
+      "YOE",
+      "YOO",
+      "YOQ",
+      "YPE",
+      "YPG",
+      "YQF",
+      "YQP",
+      "YQQ",
+      "YYB",
+      "YYE",
+      "YYO",
+      "YYP"
+    ],
+    "min_word_length": 3,
+    "letter_scores": {
+      "B": 1,
+      "E": 1,
+      "F": 3,
+      "G": 2,
+      "O": 2,
+      "P": 2,
+      "Q": 1,
+      "Y": 2
+    },
+    "seed": 371223264,
+    "sampling_config": {
+      "alphabet_size": 8,
+      "forbidden_fraction": 0.4,
+      "alphabet_case": "upper",
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      }
+    }
+  },
+  "board": {
+    "dimensions": 2,
+    "occupied": [
+      [
+        [
+          -2,
+          0
+        ],
+        "Q"
+      ],
+      [
+        [
+          -1,
+          -1
+        ],
+        "P"
+      ],
+      [
+        [
+          -1,
+          0
+        ],
+        "O"
+      ],
+      [
+        [
+          -1,
+          1
+        ],
+        "Y"
+      ],
+      [
+        [
+          -1,
+          2
+        ],
+        "F"
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        "B"
+      ],
+      [
+        [
+          0,
+          1
+        ],
+        "F"
+      ],
+      [
+        [
+          0,
+          2
+        ],
+        "B"
+      ],
+      [
+        [
+          1,
+          0
+        ],
+        "F"
+      ],
+      [
+        [
+          1,
+          1
+        ],
+        "Y"
+      ],
+      [
+        [
+          1,
+          2
+        ],
+        "Q"
+      ],
+      [
+        [
+          2,
+          0
+        ],
+        "E"
+      ]
+    ],
+    "segments": [
+      {
+        "start": [
+          -2,
+          0
+        ],
+        "axis": 0,
+        "sequence": [
+          "Q",
+          "O",
+          "B",
+          "F",
+          "E"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          -1
+        ],
+        "axis": 1,
+        "sequence": [
+          "P",
+          "O",
+          "Y",
+          "F"
+        ]
+      },
+      {
+        "start": [
+          1,
+          0
+        ],
+        "axis": 1,
+        "sequence": [
+          "F",
+          "Y",
+          "Q"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          2
+        ],
+        "axis": 0,
+        "sequence": [
+          "F",
+          "B",
+          "Q"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          1
+        ],
+        "axis": 0,
+        "sequence": [
+          "Y",
+          "F",
+          "Y"
+        ]
+      }
+    ]
+  },
+  "rack": [
+    "E",
+    "E",
+    "F",
+    "G",
+    "G"
+  ],
+  "ground_truth_move": {
+    "start": [
+      2,
+      -5
+    ],
+    "axis": 1,
+    "sequence": [
+      "F",
+      "E",
+      "E",
+      "G",
+      "G",
+      "E"
+    ]
+  },
+  "provenance": {
+    "grammar_artifact": "outputs/evaluation/7r/grammars/7r.b005.r02.json",
+    "scenario_artifact": "outputs/evaluation/7r/scenarios/7r.b005.r02.json",
+    "grammar_sha256": "4c7efe4fec27cd1d60f4d23ae962ed6fdf3caba90e67167fd0bcfaa93ba4cc06",
+    "scenario_sha256": "e94a7cd3516f00721391b0500de5c06596e2d866e99804ac9576d2595a2990ee",
+    "case_set_config_sha256": "c7325b5eec899ae65a47292f96ff96b047a815fd16ce25dec2b198da3c92ce61",
+    "git_revision": "3a8671e9aae486874c5c9bb467b20501f6642261"
+  }
+}

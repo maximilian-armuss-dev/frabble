@@ -1,0 +1,514 @@
+{
+  "schema_version": 1,
+  "case_id": "7r.b005.r04",
+  "case_set": "7r",
+  "board_size": 5,
+  "sampling_round": 4,
+  "seeds": {
+    "grammar_requested": 1106532068,
+    "grammar_used": 1106532068,
+    "board": 1232908017
+  },
+  "parameters": {
+    "grammar": {
+      "alphabet_case": "upper",
+      "alphabet_type": "letters",
+      "forbidden_fraction": 0.4,
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      },
+      "config_name": "7r.b005.r04",
+      "alphabet_size": 8,
+      "k": 3,
+      "min_word_length": 3,
+      "seed": 1106532068,
+      "output_path": null,
+      "show_stats": false
+    },
+    "generation": {
+      "config_name": "7r.b005.r04",
+      "dimensions": 2,
+      "seed": 1232908017,
+      "grammar": null,
+      "grammar_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/grammars/7r.b005.r04.json",
+      "initial_word_axis": 0,
+      "initial_word_length": 5,
+      "length_distribution": {
+        "start": 3,
+        "end": 6
+      },
+      "fixed_final_transition_length": 6,
+      "top_anchor_count": 40,
+      "max_anchor_count": null,
+      "top_template_count": 200,
+      "target_witness_count": 5,
+      "scoring": {
+        "anchor_centroid_weight": 0.8,
+        "template_centroid_weight": 1.2,
+        "template_local_density_penalty_weight": 0.6
+      },
+      "additional_rack_noise": 0,
+      "output_path": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/scenarios/7r.b005.r04.json",
+      "include_search_logs": false
+    },
+    "board_depth": 4
+  },
+  "grammar": {
+    "schema_version": 2,
+    "type": "sl",
+    "name": "7r.b005.r04",
+    "alphabet": [
+      "B",
+      "H",
+      "J",
+      "P",
+      "R",
+      "T",
+      "U",
+      "Y"
+    ],
+    "k": 3,
+    "forbidden": [
+      "BBB",
+      "BBR",
+      "BHB",
+      "BHH",
+      "BHJ",
+      "BHR",
+      "BHY",
+      "BJJ",
+      "BJU",
+      "BPB",
+      "BRR",
+      "BRY",
+      "BTB",
+      "BUH",
+      "BUJ",
+      "BUR",
+      "BUT",
+      "BUU",
+      "BYH",
+      "BYP",
+      "HBP",
+      "HBT",
+      "HHP",
+      "HJB",
+      "HJH",
+      "HJR",
+      "HPB",
+      "HPH",
+      "HPJ",
+      "HRJ",
+      "HRR",
+      "HRT",
+      "HRY",
+      "HTB",
+      "HTP",
+      "HUB",
+      "HUJ",
+      "HUR",
+      "HUU",
+      "HYT",
+      "HYY",
+      "JBB",
+      "JBR",
+      "JBT",
+      "JHH",
+      "JHJ",
+      "JHP",
+      "JJR",
+      "JPJ",
+      "JPR",
+      "JPU",
+      "JRH",
+      "JRP",
+      "JTJ",
+      "JTU",
+      "JUB",
+      "JUJ",
+      "JUR",
+      "JYH",
+      "JYJ",
+      "JYT",
+      "PBB",
+      "PBH",
+      "PBR",
+      "PBU",
+      "PBY",
+      "PHU",
+      "PHY",
+      "PJB",
+      "PJJ",
+      "PJP",
+      "PJU",
+      "PPH",
+      "PPJ",
+      "PPT",
+      "PPU",
+      "PRJ",
+      "PRP",
+      "PRR",
+      "PRU",
+      "PTU",
+      "PUB",
+      "PUH",
+      "PUR",
+      "PUY",
+      "PYB",
+      "PYP",
+      "PYR",
+      "RBB",
+      "RBP",
+      "RHB",
+      "RHH",
+      "RHP",
+      "RJB",
+      "RJH",
+      "RJR",
+      "RJU",
+      "RJY",
+      "RPB",
+      "RPP",
+      "RPR",
+      "RPT",
+      "RRJ",
+      "RRR",
+      "RRT",
+      "RRU",
+      "RTB",
+      "RTJ",
+      "RTR",
+      "RUR",
+      "RUT",
+      "RYH",
+      "RYJ",
+      "RYR",
+      "RYY",
+      "TBB",
+      "TBT",
+      "THR",
+      "THU",
+      "TJB",
+      "TJJ",
+      "TJT",
+      "TJU",
+      "TPH",
+      "TPP",
+      "TPU",
+      "TRB",
+      "TRH",
+      "TRJ",
+      "TRR",
+      "TRT",
+      "TRY",
+      "TTB",
+      "TTJ",
+      "TTP",
+      "TTR",
+      "TTT",
+      "TTU",
+      "TUJ",
+      "TUP",
+      "TUY",
+      "TYB",
+      "TYH",
+      "TYJ",
+      "TYP",
+      "TYR",
+      "TYT",
+      "UBB",
+      "UBH",
+      "UBJ",
+      "UBY",
+      "UHU",
+      "UJB",
+      "UJJ",
+      "UJP",
+      "UJR",
+      "UJU",
+      "UJY",
+      "UPB",
+      "UPH",
+      "UPR",
+      "URR",
+      "URT",
+      "UTR",
+      "UTT",
+      "UTU",
+      "UTY",
+      "UUT",
+      "UUU",
+      "UYJ",
+      "UYP",
+      "UYR",
+      "UYT",
+      "UYU",
+      "YBP",
+      "YBT",
+      "YBU",
+      "YBY",
+      "YHB",
+      "YHP",
+      "YHR",
+      "YHY",
+      "YJJ",
+      "YPB",
+      "YPH",
+      "YPP",
+      "YRB",
+      "YRH",
+      "YRT",
+      "YRU",
+      "YRY",
+      "YTT",
+      "YTY",
+      "YUH",
+      "YUP",
+      "YUY",
+      "YYB",
+      "YYJ",
+      "YYT",
+      "YYU"
+    ],
+    "min_word_length": 3,
+    "letter_scores": {
+      "B": 3,
+      "H": 2,
+      "J": 1,
+      "P": 3,
+      "R": 1,
+      "T": 2,
+      "U": 3,
+      "Y": 1
+    },
+    "seed": 1106532068,
+    "sampling_config": {
+      "alphabet_size": 8,
+      "forbidden_fraction": 0.4,
+      "alphabet_case": "upper",
+      "auto_resample": {
+        "enabled": true,
+        "max_attempts": 20,
+        "perron_min": 1.1,
+        "perron_max": 50.0,
+        "resample_length_min": 3,
+        "resample_length_max": 7,
+        "min_word_count": 20
+      }
+    }
+  },
+  "board": {
+    "dimensions": 2,
+    "occupied": [
+      [
+        [
+          -2,
+          0
+        ],
+        "Y"
+      ],
+      [
+        [
+          -2,
+          2
+        ],
+        "H"
+      ],
+      [
+        [
+          -1,
+          -1
+        ],
+        "Y"
+      ],
+      [
+        [
+          -1,
+          0
+        ],
+        "U"
+      ],
+      [
+        [
+          -1,
+          1
+        ],
+        "R"
+      ],
+      [
+        [
+          -1,
+          2
+        ],
+        "U"
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        "R"
+      ],
+      [
+        [
+          0,
+          1
+        ],
+        "J"
+      ],
+      [
+        [
+          0,
+          2
+        ],
+        "P"
+      ],
+      [
+        [
+          0,
+          3
+        ],
+        "Y"
+      ],
+      [
+        [
+          1,
+          0
+        ],
+        "Y"
+      ],
+      [
+        [
+          1,
+          1
+        ],
+        "T"
+      ],
+      [
+        [
+          1,
+          2
+        ],
+        "P"
+      ],
+      [
+        [
+          2,
+          0
+        ],
+        "T"
+      ],
+      [
+        [
+          2,
+          2
+        ],
+        "B"
+      ]
+    ],
+    "segments": [
+      {
+        "start": [
+          -2,
+          0
+        ],
+        "axis": 0,
+        "sequence": [
+          "Y",
+          "U",
+          "R",
+          "Y",
+          "T"
+        ]
+      },
+      {
+        "start": [
+          -1,
+          -1
+        ],
+        "axis": 1,
+        "sequence": [
+          "Y",
+          "U",
+          "R",
+          "U"
+        ]
+      },
+      {
+        "start": [
+          1,
+          0
+        ],
+        "axis": 1,
+        "sequence": [
+          "Y",
+          "T",
+          "P"
+        ]
+      },
+      {
+        "start": [
+          -2,
+          2
+        ],
+        "axis": 0,
+        "sequence": [
+          "H",
+          "U",
+          "P",
+          "P",
+          "B"
+        ]
+      },
+      {
+        "start": [
+          0,
+          0
+        ],
+        "axis": 1,
+        "sequence": [
+          "R",
+          "J",
+          "P",
+          "Y"
+        ]
+      }
+    ]
+  },
+  "rack": [
+    "J",
+    "P",
+    "T",
+    "U",
+    "Y"
+  ],
+  "ground_truth_move": {
+    "start": [
+      -2,
+      2
+    ],
+    "axis": 1,
+    "sequence": [
+      "H",
+      "U",
+      "P",
+      "J",
+      "T",
+      "Y"
+    ]
+  },
+  "provenance": {
+    "grammar_artifact": "outputs/evaluation/7r/grammars/7r.b005.r04.json",
+    "scenario_artifact": "outputs/evaluation/7r/scenarios/7r.b005.r04.json",
+    "grammar_sha256": "eba6616d6760d147b828b0866eb61cbdfbf4c8c00cf512d2c3c06923fc89fc36",
+    "scenario_sha256": "147010ed45a5ee1015df08f040b2eb7cb77218328128ee1e256db18ff9187128",
+    "case_set_config_sha256": "c7325b5eec899ae65a47292f96ff96b047a815fd16ce25dec2b198da3c92ce61",
+    "git_revision": "3a8671e9aae486874c5c9bb467b20501f6642261"
+  }
+}

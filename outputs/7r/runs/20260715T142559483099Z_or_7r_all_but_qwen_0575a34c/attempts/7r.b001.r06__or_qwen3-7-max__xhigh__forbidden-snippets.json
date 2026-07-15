@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "job_id": "7r.b001.r06__or_qwen3-7-max__xhigh__forbidden-snippets",
+  "case_id": "7r.b001.r06",
+  "case_file": "/Users/maxi/code/repos/seminar/multidimensional-scrabble-benchmark/outputs/evaluation/7r/cases/7r.b001.r06.json",
+  "board_size": 1,
+  "sampling_round": 6,
+  "model": "or_qwen3-7-max",
+  "reasoning_effort": "xhigh",
+  "model_config": {
+    "model": "qwen/qwen3.7-max",
+    "configured_model": "openrouter/qwen/qwen3.7-max",
+    "backend": "openrouter",
+    "reasoning_effort": "xhigh",
+    "reasoning": {
+      "effort": "xhigh"
+    },
+    "provider": {
+      "only": [
+        "alibaba"
+      ],
+      "allow_fallbacks": false,
+      "require_parameters": true
+    },
+    "max_completion_tokens": 32384,
+    "request_max_tokens": 32384,
+    "timeout_seconds": 3600.0,
+    "provider_max_retries": 0
+  },
+  "language_representation": "forbidden-snippets",
+  "status": "complete",
+  "retry_count": 0,
+  "timestamp": "2026-07-15T14:27:20.661168+00:00",
+  "llm_elapsed_seconds": 80.0171080410073,
+  "usage": {
+    "completion_tokens": 4296,
+    "prompt_tokens": 1668,
+    "total_tokens": 5964,
+    "completion_tokens_details": {
+      "audio_tokens": 0,
+      "reasoning_tokens": 4265
+    },
+    "cost": 0.018195,
+    "cost_details": {
+      "upstream_inference_completions_cost": 0.01611,
+      "upstream_inference_prompt_cost": 0.002085,
+      "upstream_inference_cost": 0.018195
+    },
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+      "video_tokens": 0
+    }
+  },
+  "provider_metadata": {
+    "backend": "openrouter-sdk",
+    "response_id": "gen-1784125561-4VUzzJWo40NwA2MTIxjg",
+    "model": "qwen/qwen3.7-max",
+    "finish_reason": "stop",
+    "reasoning": "The board has the following occupied cells:\n(-2, 0): N\n(-1, 0): Q\n(0, 0): T\n(1, 0): N\n(2, 0): W\n\nThis forms the word NQT NW on axis 0, from x=-2 to x=2 at y=0. Wait, the word is N Q T N W.\nLet's check if N Q T N W is valid:\nSnippets:\nNQT: not in forbidden\nQTN: not in forbidden\nTNW: not in forbidden\nSo NQT NW is valid.\n\nThe rack is: A, C, L, N, W\nWe need to place a sequence of length >= 3.\nWe can reuse existing cells.\nSince all existing cells are on y=0, any move along axis 0 (horizontal) must either extend NQT NW (which is forbidden because we cannot lengthen an existing word that is complete, or the cells immediately before and after must be empty - wait, the rule says \"The cells immediately before and after the submitted sequence, along its axis, must be empty.\" This means we can't place a sequence that touches the ends of NQT NW if it extends it, but we could place a sequence that overlaps it? No, \"Do not reuse a cell whose existing word already runs along the chosen axis.\" So we cannot reuse any cell of NQT NW for a horizontal move, because their existing word runs along axis 0.\nThus, any valid move must be along axis 1 (vertical).\nA vertical move must reuse at least one existing cell, so it must cross y=0 at one of the x coordinates: -2, -1, 0, 1, 2.\nThe existing cell is reused, and we place new cells above and/or below it.\nLet's consider possible vertical words crossing each existing cell.\n\nLet's check the letters and their scores:\nA: 1\nC: 2\nL: 3\nN: 3\nQ: 1\nR: 2\nT: 2\nW: 1\n\nRack: A, C, L, N, W (scores: A=1, C=2, L=3, N=3, W=1)\nWe can use any combination of these, plus the reused letter.\n\nLet's evaluate crossing each cell:\nx = -2: existing letter N\nx = -1: existing letter Q\nx = 0: existing letter T\nx = 1: existing letter N\nx = 2: existing letter W\n\nFor a vertical word, the sequence of letters must not contain any forbidden snippet of length 3.\nAlso, the newly placed cells must not extend an existing word along any perpendicular axis (which is axis 0 here, but there are no other words, so this is fine as long as we don't form a horizontal word of length > 1 with existing letters. Wait, if we place a letter at (x, y), it shouldn't form a horizontal word with adjacent letters. The only adjacent letters are on y=0, which we are crossing. So any new letter at y != 0 will not be adjacent to any existing letter horizontally, because existing letters are only at y=0. Wait, what if we place multiple letters vertically, say at (0, 1) and (1, 1)? Then they would form a horizontal word! But we are only placing ONE contiguous sequence along axis 1. So all new letters will have the same x coordinate. Thus they won't be horizontally adjacent to each other. They also won't be horizontally adjacent to any existing letters because existing letters are only at y=0. So no perpendicular words will be formed.\n\nLet's find the highest scoring vertical word using the rack {A, C, L, N, W} and one of {N, Q, T, N, W}.\nSince we want to maximize score, we should try to use the high-value letters from the rack: L (3), N (3), C (2).\nTotal rack score = 1+2+3+3+1 = 10.\nIf we use all 5 letters from the rack, the word length will be 6 (5 new + 1 reused).\nLet's see if we can form a valid 6-letter word.\nWait, can we use all 5 rack letters?\nRack: A, C, L, N, W\nLet's try to form a word with these 5 + one of the crossing letters.\nCrossing letters available: N, Q, T, W.\n\nLet's test crossing T (at x=0).\nLetters to arrange: A, C, L, N, W, and T.\nWe need to place them such that T is somewhere in the sequence, and no forbidden snippet of length 3 appears.\nSince it's a vertical word, we can place some letters above T and some below T.\nLet's list forbidden snippets involving T:\nA T N, A T R\nC T N, C T Q\nL T A, L T T\nN T Q, N T W\nQ T A, Q T C, Q T R, Q T T\nR T A, R T Q, R T R, R T T\nT A A, T A C\nT C L, T C N, T C R, T C W\nT L L, T L R\nT N R\nT Q C, T Q L, T Q T, T Q W\nT R A, T R L, T R N, T R R, T R W\nT T N, T T Q, T T W\nT W A, T W C, T W Q, T W T\n\nWe have {A, C, L, N, W} and T.\nLet's try to put T in the middle, or at the end.\nIf T is at the end (e.g., bottom), the sequence is 5 letters + T.\nLet's try to build a sequence from {A, C, L, N, W} that doesn't have forbidden snippets, and then append T.\nWait, all permutations of {A, C, L, N, W} might be too many, but let's check some.\nCan we do L, C, N, A, W?\nSnippets:\nLCN: not forbidden\nCNA: forbidden! (C N A is in list)\n\nLet's avoid C N A.\nWhat about L, N, C, W, A?\nLNC: not forbidden\nNCW: not forbidden\nCWA: not forbidden\nThen add T: C W A T -> WAT is not forbidden, but what about A T ? AT is fine.\nWait, let's check L N C W A T:\nL N C (ok)\nN C W (ok)\nC W A (ok)\nW A T (forbidden! W A T is in list)\n\nLet's check W A C L N:\nWAC: forbidden (W A C)\n\nLet's check C L W N A:\nCLW: forbidden (C W L is forbidden, but C L W is not? Wait, C L W is not in list. Let me check: C W L is forbidden. C L W is ok.)\nLWN: forbidden (L W N)\n\nLet's check N L C A W:\nNLC: forbidden (N C L is forbidden, N L C is ok? Wait, N L C is not in list. Let me check: N C L is forbidden. N L C is ok.)\nLCA: forbidden (L C A)\n\nLet's check A W N C L:\nAWN: ok\nWNC: ok\nNCL: forbidden (N C L)\n\nLet's check W N L C A:\nWNL: ok\nNLC: ok\nLCA: forbidden\n\nLet's check A N W C L:\nANW: ok\nNWC: ok\nWCL: forbidden (W C L)\n\nLet's check L W C N A:\nLWC: ok\nWCN: ok\nCNA: forbidden\n\nLet's check C W N L A:\nCWN: ok\nWNL: ok\nNLA: forbidden (N L A is not in list? Wait, L A N is forbidden. N L A is ok? Let me check: N L N, N L Q, N L R, N L W. N L A is NOT forbidden.)\nLet's check C W N L A T:\nCWN (ok)\nWNL (ok)\nNLA (ok)\nLAT (ok)\nWait, is LAT forbidden? L A A, L A C, L A L, L A N, L A Q, L A R. L A T is NOT forbidden!\nLet's double check C W N L A T:\nC W N: not in list\nW N L: not in list\nN L A: not in list\nL A T: not in list\nLet's check if there are any other forbidden snippets.\nC W N - ok\nW N L - ok\nN L A - ok\nL A T - ok\nWait, what about the letters? We have C, W, N, L, A from the rack, and T from the board.\nRack: A, C, L, N, W. We used all of them!\nScore for this word:\nC (2) + W (1) + N (3) + L (3) + A (1) + T (2) = 12 points.\nWait, can we get more points? The maximum possible score using all rack letters is 12, because the sum of rack letters is 10, and the highest crossing letter is N (3), but if we cross N we get 13.\nLet's see if we can cross N (at x=-2 or x=1) and use all rack letters.\nCrossing N. Rack: A, C, L, N, W.\nTotal score would be 10 + 3 = 13.\nWe need to arrange {A, C, L, N, W} and N (so two Ns) such that no forbidden snippet appears.\nLet's try to place N in the sequence.\nSince we have two Ns, we must be careful with N N (forbidden: N N A, N N C, N N L, N N N, N N Q, N N W). So N N is ALWAYS forbidden!\nThus, the two Ns cannot be adjacent.\nWe have A, C, L, W to separate them.\nLet's try: N, A, C, N, W, L\nNAC: forbidden (N A R? No, N A C is not in list? Wait. N A R is forbidden. N C A is forbidden. N A C is NOT forbidden.)\nLet's check N A C: not in list.\nA C N: forbidden! (A C N is in list)\n\nLet's try: N, C, A, N, W, L\nNCA: forbidden (N C A)\n\nLet's try: N, W, C, A, N, L\nNWC: ok\nWCA: ok\nCAN: forbidden (C A N)\n\nLet's try: N, L, C, W, A, N\nNLC: ok\nLCW: ok\nCWA: ok\nWAN: forbidden (W A N is not in list? W A C, W A Q, W A R, W A T, W A W. W A N is NOT forbidden.)\nLet's check N L C W A N:\nN L C (ok)\nL C W (ok)\nC W A (ok)\nW A N (ok)\nWait, is this valid?\nLet's check the forbidden list for these snippets:\nN L C: not in list (N C L is, N L N, N L Q, N L R, N L W are. N L C is NOT).\nL C W: not in list (C W L is, L C A, L C C, L C N, L C R are. L C W is NOT).\nC W A: not in list (W A C is, C W L, C W Q, C W W are. C W A is NOT).\nW A N: not in list (W A C, W A Q, W A R, W A T, W A W are. W A N is NOT).\nWait, does N L C W A N use all rack letters?\nRack: A, C, L, N, W.\nThe sequence has N, L, C, W, A, and the crossing letter is N.\nSo the letters used from rack are L, C, W, A, N. Yes, all 5!\nScore: N(3) + L(3) + C(2) + W(1) + A(1) + N(3) = 13.\nLet me double check the forbidden list for N L C W A N.\nN L C:\nForbidden starting with N L: N L N, N L Q, N L R, N L W. (N L C is safe)\nL C W:\nForbidden starting with L C: L C A, L C C, L C N, L C R. (L C W is safe)\nC W A:\nForbidden starting with C W: C W L, C W Q, C W W. (C W A is safe)\nW A N:\nForbidden starting with W A: W A C, W A Q, W A R, W A T, W A W. (W A N is safe)\nAre there any other snippets?\nWhat about the whole word? The rule says \"contains no forbidden snippet\". Snippets are exactly length 3.\nSo N L C W A N is completely valid!\nWait, the crossing letter is N. There are two Ns on the board: at (-2, 0) and (1, 0).\nLet's use the one at (1, 0).\nStart coordinate: we can place the sequence such that N is at (1, 0).\nFor example, the sequence is N, L, C, W, A, N.\nIf N is at index 0, start is (1, 0), axis 1.\nThen the cells are:\n(1, 0): N (reused)\n(1, 1): L (new)\n(1, 2): C (new)\n(1, 3): W (new)\n(1, 4): A (new)\n(1, 5): N (new)\nLet's check if the cells immediately before and after the sequence are empty.\nBefore: (1, -1) - empty.\nAfter: (1, 6) - empty.\nDoes it extend any existing word along perpendicular axis?\nThe new cells are at x=1, y=1,2,3,4,5.\nExisting cells are at y=0, x=-2,-1,0,1,2.\nAt y=1, the only occupied cell is (1,1). No horizontal word is formed.\nSame for y=2,3,4,5.\nSo this move is perfectly valid and scores 13.\n\nCan we get 14?\nThe maximum possible score is using all rack letters (10) + crossing N (3) = 13.\nWait, is there any other crossing letter?\nBoard has N(3), Q(1), T(2), N(3), W(1).\nMax crossing letter is N (3).\nSo max possible score is 10 + 3 = 13.\nSince we found a valid word scoring 13, this must be the maximum.\n\nLet me just double check everything.\nRack: A, C, L, N, W\nScores:\nA: 1\nC: 2\nL: 3\nN: 3\nW: 1\nSum = 10.\nCrossing N at (1, 0) gives +3. Total = 13.\nSequence: N, L, C, W, A, N.\nWait, let's verify if N L C W A N has any forbidden snippets.\nN L C:\nForbidden with N L: N L N, N L Q, N L R, N L W. N L C is not forbidden.\nL C W:\nForbidden with L C: L C A, L C C, L C N, L C R. L C W is not forbidden.\nC W A:\nForbidden with C W: C W L, C W Q, C W W. C W A is not forbidden.\nW A N:\nForbidden with W A: W A C, W A Q, W A R, W A T, W A W. W A N is not forbidden.\nAll snippets are valid.\nWord length is 6, which is >= 3.\nReuses exactly one existing cell (the N at (1,0)).\nPlaces 5 new cells, consuming the entire rack.\nStart coordinate: [1, 0].\nAxis: 1 (vertical).\nWait, if start is [1, 0] and axis is 1, the sequence advances along index 1 (the y-coordinate).\nSo the cells are:\n[1, 0]: N\n[1, 1]: L\n[1, 2]: C\n[1, 3]: W\n[1, 4]: A\n[1, 5]: N\nThis matches the sequence `[\"N\", \"L\", \"C\", \"W\", \"A\", \"N\"]`.\n\nLet me quickly consider if we could place the N at the end, e.g., L, C, W, A, N, N.\nBut N N is forbidden (N N A, N N C, etc. - actually all N N x are forbidden, and x N N might be forbidden too).\nWhat about starting at [1, -5]?\nThen the sequence goes from y=-5 to y=0.\n[1, -5]: N\n[1, -4]: L\n[1, -3]: C\n[1, -2]: W\n[1, -1]: A\n[1, 0]: N\nThis is also valid, but start: [1, 0] is simpler.\nWait, if start is [1, 0] and axis is 1, the y coordinates will be 0, 1, 2, 3, 4, 5.\nAre there any occupied cells at y > 0? No, the board only has occupied cells at y=0.\nSo [1, 1] to [1, 5] are empty.\nThe cell immediately after the sequence is [1, 6], which is empty.\nThe cell immediately before the sequence is [1, -1], which is empty.\nSo the boundary conditions are satisfied.\n\nLet's do a final sanity check on the JSON format.\n{\n  \"start\": [1, 0],\n  \"axis\": 1,\n  \"sequence\": [\"N\", \"L\", \"C\", \"W\", \"A\", \"N\"]\n}\nThe symbols are single characters in an array.\nThe start is a 2-element array.\nThe axis is 1.\nEverything looks correct.\nI'm confident in this result.",
+    "reasoning_details": [
+      {
+        "type": "reasoning.text",
+        "format": null,
+        "index": 0,
+        "text": "The board has the following occupied cells:\n(-2, 0): N\n(-1, 0): Q\n(0, 0): T\n(1, 0): N\n(2, 0): W\n\nThis forms the word NQT NW on axis 0, from x=-2 to x=2 at y=0. Wait, the word is N Q T N W.\nLet's check if N Q T N W is valid:\nSnippets:\nNQT: not in forbidden\nQTN: not in forbidden\nTNW: not in forbidden\nSo NQT NW is valid.\n\nThe rack is: A, C, L, N, W\nWe need to place a sequence of length >= 3.\nWe can reuse existing cells.\nSince all existing cells are on y=0, any move along axis 0 (horizontal) must either extend NQT NW (which is forbidden because we cannot lengthen an existing word that is complete, or the cells immediately before and after must be empty - wait, the rule says \"The cells immediately before and after the submitted sequence, along its axis, must be empty.\" This means we can't place a sequence that touches the ends of NQT NW if it extends it, but we could place a sequence that overlaps it? No, \"Do not reuse a cell whose existing word already runs along the chosen axis.\" So we cannot reuse any cell of NQT NW for a horizontal move, because their existing word runs along axis 0.\nThus, any valid move must be along axis 1 (vertical).\nA vertical move must reuse at least one existing cell, so it must cross y=0 at one of the x coordinates: -2, -1, 0, 1, 2.\nThe existing cell is reused, and we place new cells above and/or below it.\nLet's consider possible vertical words crossing each existing cell.\n\nLet's check the letters and their scores:\nA: 1\nC: 2\nL: 3\nN: 3\nQ: 1\nR: 2\nT: 2\nW: 1\n\nRack: A, C, L, N, W (scores: A=1, C=2, L=3, N=3, W=1)\nWe can use any combination of these, plus the reused letter.\n\nLet's evaluate crossing each cell:\nx = -2: existing letter N\nx = -1: existing letter Q\nx = 0: existing letter T\nx = 1: existing letter N\nx = 2: existing letter W\n\nFor a vertical word, the sequence of letters must not contain any forbidden snippet of length 3.\nAlso, the newly placed cells must not extend an existing word along any perpendicular axis (which is axis 0 here, but there are no other words, so this is fine as long as we don't form a horizontal word of length > 1 with existing letters. Wait, if we place a letter at (x, y), it shouldn't form a horizontal word with adjacent letters. The only adjacent letters are on y=0, which we are crossing. So any new letter at y != 0 will not be adjacent to any existing letter horizontally, because existing letters are only at y=0. Wait, what if we place multiple letters vertically, say at (0, 1) and (1, 1)? Then they would form a horizontal word! But we are only placing ONE contiguous sequence along axis 1. So all new letters will have the same x coordinate. Thus they won't be horizontally adjacent to each other. They also won't be horizontally adjacent to any existing letters because existing letters are only at y=0. So no perpendicular words will be formed.\n\nLet's find the highest scoring vertical word using the rack {A, C, L, N, W} and one of {N, Q, T, N, W}.\nSince we want to maximize score, we should try to use the high-value letters from the rack: L (3), N (3), C (2).\nTotal rack score = 1+2+3+3+1 = 10.\nIf we use all 5 letters from the rack, the word length will be 6 (5 new + 1 reused).\nLet's see if we can form a valid 6-letter word.\nWait, can we use all 5 rack letters?\nRack: A, C, L, N, W\nLet's try to form a word with these 5 + one of the crossing letters.\nCrossing letters available: N, Q, T, W.\n\nLet's test crossing T (at x=0).\nLetters to arrange: A, C, L, N, W, and T.\nWe need to place them such that T is somewhere in the sequence, and no forbidden snippet of length 3 appears.\nSince it's a vertical word, we can place some letters above T and some below T.\nLet's list forbidden snippets involving T:\nA T N, A T R\nC T N, C T Q\nL T A, L T T\nN T Q, N T W\nQ T A, Q T C, Q T R, Q T T\nR T A, R T Q, R T R, R T T\nT A A, T A C\nT C L, T C N, T C R, T C W\nT L L, T L R\nT N R\nT Q C, T Q L, T Q T, T Q W\nT R A, T R L, T R N, T R R, T R W\nT T N, T T Q, T T W\nT W A, T W C, T W Q, T W T\n\nWe have {A, C, L, N, W} and T.\nLet's try to put T in the middle, or at the end.\nIf T is at the end (e.g., bottom), the sequence is 5 letters + T.\nLet's try to build a sequence from {A, C, L, N, W} that doesn't have forbidden snippets, and then append T.\nWait, all permutations of {A, C, L, N, W} might be too many, but let's check some.\nCan we do L, C, N, A, W?\nSnippets:\nLCN: not forbidden\nCNA: forbidden! (C N A is in list)\n\nLet's avoid C N A.\nWhat about L, N, C, W, A?\nLNC: not forbidden\nNCW: not forbidden\nCWA: not forbidden\nThen add T: C W A T -> WAT is not forbidden, but what about A T ? AT is fine.\nWait, let's check L N C W A T:\nL N C (ok)\nN C W (ok)\nC W A (ok)\nW A T (forbidden! W A T is in list)\n\nLet's check W A C L N:\nWAC: forbidden (W A C)\n\nLet's check C L W N A:\nCLW: forbidden (C W L is forbidden, but C L W is not? Wait, C L W is not in list. Let me check: C W L is forbidden. C L W is ok.)\nLWN: forbidden (L W N)\n\nLet's check N L C A W:\nNLC: forbidden (N C L is forbidden, N L C is ok? Wait, N L C is not in list. Let me check: N C L is forbidden. N L C is ok.)\nLCA: forbidden (L C A)\n\nLet's check A W N C L:\nAWN: ok\nWNC: ok\nNCL: forbidden (N C L)\n\nLet's check W N L C A:\nWNL: ok\nNLC: ok\nLCA: forbidden\n\nLet's check A N W C L:\nANW: ok\nNWC: ok\nWCL: forbidden (W C L)\n\nLet's check L W C N A:\nLWC: ok\nWCN: ok\nCNA: forbidden\n\nLet's check C W N L A:\nCWN: ok\nWNL: ok\nNLA: forbidden (N L A is not in list? Wait, L A N is forbidden. N L A is ok? Let me check: N L N, N L Q, N L R, N L W. N L A is NOT forbidden.)\nLet's check C W N L A T:\nCWN (ok)\nWNL (ok)\nNLA (ok)\nLAT (ok)\nWait, is LAT forbidden? L A A, L A C, L A L, L A N, L A Q, L A R. L A T is NOT forbidden!\nLet's double check C W N L A T:\nC W N: not in list\nW N L: not in list\nN L A: not in list\nL A T: not in list\nLet's check if there are any other forbidden snippets.\nC W N - ok\nW N L - ok\nN L A - ok\nL A T - ok\nWait, what about the letters? We have C, W, N, L, A from the rack, and T from the board.\nRack: A, C, L, N, W. We used all of them!\nScore for this word:\nC (2) + W (1) + N (3) + L (3) + A (1) + T (2) = 12 points.\nWait, can we get more points? The maximum possible score using all rack letters is 12, because the sum of rack letters is 10, and the highest crossing letter is N (3), but if we cross N we get 13.\nLet's see if we can cross N (at x=-2 or x=1) and use all rack letters.\nCrossing N. Rack: A, C, L, N, W.\nTotal score would be 10 + 3 = 13.\nWe need to arrange {A, C, L, N, W} and N (so two Ns) such that no forbidden snippet appears.\nLet's try to place N in the sequence.\nSince we have two Ns, we must be careful with N N (forbidden: N N A, N N C, N N L, N N N, N N Q, N N W). So N N is ALWAYS forbidden!\nThus, the two Ns cannot be adjacent.\nWe have A, C, L, W to separate them.\nLet's try: N, A, C, N, W, L\nNAC: forbidden (N A R? No, N A C is not in list? Wait. N A R is forbidden. N C A is forbidden. N A C is NOT forbidden.)\nLet's check N A C: not in list.\nA C N: forbidden! (A C N is in list)\n\nLet's try: N, C, A, N, W, L\nNCA: forbidden (N C A)\n\nLet's try: N, W, C, A, N, L\nNWC: ok\nWCA: ok\nCAN: forbidden (C A N)\n\nLet's try: N, L, C, W, A, N\nNLC: ok\nLCW: ok\nCWA: ok\nWAN: forbidden (W A N is not in list? W A C, W A Q, W A R, W A T, W A W. W A N is NOT forbidden.)\nLet's check N L C W A N:\nN L C (ok)\nL C W (ok)\nC W A (ok)\nW A N (ok)\nWait, is this valid?\nLet's check the forbidden list for these snippets:\nN L C: not in list (N C L is, N L N, N L Q, N L R, N L W are. N L C is NOT).\nL C W: not in list (C W L is, L C A, L C C, L C N, L C R are. L C W is NOT).\nC W A: not in list (W A C is, C W L, C W Q, C W W are. C W A is NOT).\nW A N: not in list (W A C, W A Q, W A R, W A T, W A W are. W A N is NOT).\nWait, does N L C W A N use all rack letters?\nRack: A, C, L, N, W.\nThe sequence has N, L, C, W, A, and the crossing letter is N.\nSo the letters used from rack are L, C, W, A, N. Yes, all 5!\nScore: N(3) + L(3) + C(2) + W(1) + A(1) + N(3) = 13.\nLet me double check the forbidden list for N L C W A N.\nN L C:\nForbidden starting with N L: N L N, N L Q, N L R, N L W. (N L C is safe)\nL C W:\nForbidden starting with L C: L C A, L C C, L C N, L C R. (L C W is safe)\nC W A:\nForbidden starting with C W: C W L, C W Q, C W W. (C W A is safe)\nW A N:\nForbidden starting with W A: W A C, W A Q, W A R, W A T, W A W. (W A N is safe)\nAre there any other snippets?\nWhat about the whole word? The rule says \"contains no forbidden snippet\". Snippets are exactly length 3.\nSo N L C W A N is completely valid!\nWait, the crossing letter is N. There are two Ns on the board: at (-2, 0) and (1, 0).\nLet's use the one at (1, 0).\nStart coordinate: we can place the sequence such that N is at (1, 0).\nFor example, the sequence is N, L, C, W, A, N.\nIf N is at index 0, start is (1, 0), axis 1.\nThen the cells are:\n(1, 0): N (reused)\n(1, 1): L (new)\n(1, 2): C (new)\n(1, 3): W (new)\n(1, 4): A (new)\n(1, 5): N (new)\nLet's check if the cells immediately before and after the sequence are empty.\nBefore: (1, -1) - empty.\nAfter: (1, 6) - empty.\nDoes it extend any existing word along perpendicular axis?\nThe new cells are at x=1, y=1,2,3,4,5.\nExisting cells are at y=0, x=-2,-1,0,1,2.\nAt y=1, the only occupied cell is (1,1). No horizontal word is formed.\nSame for y=2,3,4,5.\nSo this move is perfectly valid and scores 13.\n\nCan we get 14?\nThe maximum possible score is using all rack letters (10) + crossing N (3) = 13.\nWait, is there any other crossing letter?\nBoard has N(3), Q(1), T(2), N(3), W(1).\nMax crossing letter is N (3).\nSo max possible score is 10 + 3 = 13.\nSince we found a valid word scoring 13, this must be the maximum.\n\nLet me just double check everything.\nRack: A, C, L, N, W\nScores:\nA: 1\nC: 2\nL: 3\nN: 3\nW: 1\nSum = 10.\nCrossing N at (1, 0) gives +3. Total = 13.\nSequence: N, L, C, W, A, N.\nWait, let's verify if N L C W A N has any forbidden snippets.\nN L C:\nForbidden with N L: N L N, N L Q, N L R, N L W. N L C is not forbidden.\nL C W:\nForbidden with L C: L C A, L C C, L C N, L C R. L C W is not forbidden.\nC W A:\nForbidden with C W: C W L, C W Q, C W W. C W A is not forbidden.\nW A N:\nForbidden with W A: W A C, W A Q, W A R, W A T, W A W. W A N is not forbidden.\nAll snippets are valid.\nWord length is 6, which is >= 3.\nReuses exactly one existing cell (the N at (1,0)).\nPlaces 5 new cells, consuming the entire rack.\nStart coordinate: [1, 0].\nAxis: 1 (vertical).\nWait, if start is [1, 0] and axis is 1, the sequence advances along index 1 (the y-coordinate).\nSo the cells are:\n[1, 0]: N\n[1, 1]: L\n[1, 2]: C\n[1, 3]: W\n[1, 4]: A\n[1, 5]: N\nThis matches the sequence `[\"N\", \"L\", \"C\", \"W\", \"A\", \"N\"]`.\n\nLet me quickly consider if we could place the N at the end, e.g., L, C, W, A, N, N.\nBut N N is forbidden (N N A, N N C, etc. - actually all N N x are forbidden, and x N N might be forbidden too).\nWhat about starting at [1, -5]?\nThen the sequence goes from y=-5 to y=0.\n[1, -5]: N\n[1, -4]: L\n[1, -3]: C\n[1, -2]: W\n[1, -1]: A\n[1, 0]: N\nThis is also valid, but start: [1, 0] is simpler.\nWait, if start is [1, 0] and axis is 1, the y coordinates will be 0, 1, 2, 3, 4, 5.\nAre there any occupied cells at y > 0? No, the board only has occupied cells at y=0.\nSo [1, 1] to [1, 5] are empty.\nThe cell immediately after the sequence is [1, 6], which is empty.\nThe cell immediately before the sequence is [1, -1], which is empty.\nSo the boundary conditions are satisfied.\n\nLet's do a final sanity check on the JSON format.\n{\n  \"start\": [1, 0],\n  \"axis\": 1,\n  \"sequence\": [\"N\", \"L\", \"C\", \"W\", \"A\", \"N\"]\n}\nThe symbols are single characters in an array.\nThe start is a 2-element array.\nThe axis is 1.\nEverything looks correct.\nI'm confident in this result."
+      }
+    ],
+    "openrouter": {
+      "attempt": 1,
+      "endpoints": {
+        "available": [
+          {
+            "model": "qwen/qwen3.7-max-20260520",
+            "provider": "Alibaba",
+            "selected": true
+          }
+        ],
+        "total": 1
+      },
+      "is_byok": false,
+      "region": "MUC",
+      "requested": "qwen/qwen3.7-max",
+      "strategy": "direct",
+      "summary": "available=1, selected=Alibaba"
+    }
+  },
+  "prompt_sha256": {
+    "system": "450afca5c07974cc8a47b1b3cb35d29d025adf7b8790740ca44d89c5babd91e1",
+    "user": "31046d7459330444366616de698d9fb7b8391b0eecef0093e2aaf7f11477402e",
+    "combined": "7e5b58b965426b5203c8d8ec324f77a80a588af43c2559ad29c28fa0380881f4"
+  },
+  "system_prompt": "You solve a multidimensional formal-language Scrabble benchmark.\nYour objective is to achieve the highest possible score by placing a single valid move.\nFollow the supplied rules exactly and return only one JSON object with exactly the fields `start`, `axis`, and `sequence`.\n`sequence` must be an array with one single-character symbol per cell, for example:\n{\"start\": [0, 0], \"axis\": 0, \"sequence\": [\"A\", \"B\", \"C\"]}\nDo not merge the symbols into a single string, and do not use tools or add explanations.",
+  "user_prompt": "Your goal is to achieve the highest possible score. Place exactly one contiguous sequence, choosing the valid move that scores the most points.\n\n## Move geometry\n- Coordinates are zero-based vectors with 2 entries.\n- `start` is the first coordinate. `axis` advances one coordinate component per symbol.\n- Axis selects the board dimension along which the sequence advances: axis 0 advances coordinate index 0, axis 1 advances coordinate index 1.\n\n## Validity rules\nA move is valid only if all of the following hold:\n- The submitted sequence must be accepted by the formal language.\n- Existing cells may be reused only with their existing symbol.\n- Reuse at least one existing cell and place at least one new symbol.\n- Only newly placed symbols consume the rack, including multiplicities.\n- You may form new words, but you may not lengthen a word that already exists and is complete on the board:\n    - Do not reuse a cell whose existing word already runs along the chosen axis.\n    - The cells immediately before and after the submitted sequence, along its axis, must be empty.\n    - A newly placed cell must not extend an existing word along any perpendicular axis.\n- After placement, every maximal contiguous line longer than one cell that touches the move, on every axis, must be accepted by the formal language.\n\n## Scoring\n- Each alphabet symbol has a point value, listed below. A valid move scores the sum of the point values of every symbol in its placed sequence, counting both newly placed and reused (overlapping) symbols.\n- An invalid move scores 0.\n\nLetter scores:\n  A: 1\n  C: 2\n  L: 3\n  N: 3\n  Q: 1\n  R: 2\n  T: 2\n  W: 1\n\nFormal language:\nAlphabet: {A, C, L, N, Q, R, T, W}\nk: 3\nMinimum word length: 3\nForbidden snippets: {A A A, A A L, A A N, A C A, A C L, A C N, A C R, A C T, A L A, A L C, A N A, A N L, A N Q, A N R, A Q T, A R C, A T N, A T R, A W Q, A W R, C A C, C A N, C C R, C C W, C L L, C L Q, C L R, C N A, C N Q, C N R, C Q C, C Q Q, C R C, C R L, C R W, C T N, C T Q, C W L, L A A, L A C, L A L, L A N, L A Q, L A R, L C A, L C C, L C N, L L L, L L Q, L L R, L L W, L N L, L N W, L Q A, L Q L, L Q N, L Q T, L Q W, L R L, L R Q, L R T, L R W, L T A, L T T, L W N, L W Q, N A R, N C A, N C C, N C L, N C R, N L N, N L Q, N L R, N L W, N N A, N N C, N N L, N N N, N N Q, N N W, N Q A, N Q C, N Q L, N Q N, N Q Q, N R A, N R N, N R Q, N T Q, N T W, N W A, N W C, N W L, N W N, N W Q, Q A A, Q A N, Q A Q, Q A R, Q A T, Q A W, Q C A, Q C L, Q C N, Q C Q, Q L A, Q L N, Q L Q, Q L R, Q N C, Q N N, Q N Q, Q N T, Q N W, Q Q L, Q Q N, Q Q T, Q R A, Q R C, Q R L, Q T A, Q T C, Q T Q, Q T R, Q T T, Q W C, Q W L, Q W Q, R A N, R A W, R C A, R C T, R C W, R L A, R L C, R L Q, R L R, R L W, R N A, R N C, R N L, R N R, R Q N, R Q Q, R Q R, R Q W, R R A, R R N, R R W, R T A, R T Q, R T R, R T T, R W C, R W L, R W Q, R W R, R W W, T A A, T A C, T C L, T C N, T C R, T C W, T L L, T L R, T N R, T Q C, T Q L, T Q T, T Q W, T R A, T R L, T R N, T R R, T R W, T T N, T T Q, T T W, T W A, T W C, T W Q, T W T, W A C, W A Q, W A R, W A T, W A W, W C C, W C L, W C Q, W C W, W L C, W L N, W L R, W N R, W N T, W N W, W Q A, W Q T, W R Q, W R R, W R W, W T A, W T C, W T L, W T Q, W T T, W T W, W W C, W W R, W W W}\nA sequence is valid iff it has the minimum length of 3 and contains no forbidden snippet.\n\nThe board configuration below is already valid: every existing word on it is accepted by the formal language.\nBoard configuration:\n{\n  \"dimensions\": 2,\n  \"occupied\": [\n    {\n      \"coord\": [\n        -2,\n        0\n      ],\n      \"symbol\": \"N\"\n    },\n    {\n      \"coord\": [\n        -1,\n        0\n      ],\n      \"symbol\": \"Q\"\n    },\n    {\n      \"coord\": [\n        0,\n        0\n      ],\n      \"symbol\": \"T\"\n    },\n    {\n      \"coord\": [\n        1,\n        0\n      ],\n      \"symbol\": \"N\"\n    },\n    {\n      \"coord\": [\n        2,\n        0\n      ],\n      \"symbol\": \"W\"\n    }\n  ]\n}\n\nRack:\n[\"A\", \"C\", \"L\", \"N\", \"W\"]\n",
+  "raw_response": "{\"start\":[0,1],\"axis\":1,\"sequence\":[\"T\",\"A\",\"C\"]}",
+  "parsed_move": {
+    "start": [
+      0,
+      1
+    ],
+    "axis": 1,
+    "sequence": [
+      "T",
+      "A",
+      "C"
+    ]
+  },
+  "parsed_move_lenient": {
+    "start": [
+      0,
+      1
+    ],
+    "axis": 1,
+    "sequence": [
+      "T",
+      "A",
+      "C"
+    ]
+  },
+  "evaluation": {
+    "overall": false,
+    "parse_ok": true,
+    "sequence_valid": false,
+    "min_length_fulfilled": true,
+    "spatial_valid": true,
+    "overlap_valid": false,
+    "no_word_extension": true,
+    "cross_words_valid": false,
+    "rack_valid": false,
+    "missing_rack_symbols": {
+      "T": 1
+    },
+    "rack_symbols_used": 3,
+    "rack_usage_ratio": 0.6,
+    "main_word_length": null,
+    "overlap_count": null,
+    "letter_score_total": null,
+    "failure_type": "sequence",
+    "message": "Sequence is not accepted by the formal language."
+  },
+  "evaluation_format_robust": {
+    "overall": false,
+    "parse_ok": true,
+    "sequence_valid": false,
+    "min_length_fulfilled": true,
+    "spatial_valid": true,
+    "overlap_valid": false,
+    "no_word_extension": true,
+    "cross_words_valid": false,
+    "rack_valid": false,
+    "missing_rack_symbols": {
+      "T": 1
+    },
+    "rack_symbols_used": 3,
+    "rack_usage_ratio": 0.6,
+    "main_word_length": null,
+    "overlap_count": null,
+    "letter_score_total": null,
+    "failure_type": "sequence",
+    "message": "Sequence is not accepted by the formal language."
+  },
+  "ground_truth_move": {
+    "start": [
+      -1,
+      -2
+    ],
+    "axis": 1,
+    "sequence": [
+      "C",
+      "W",
+      "Q",
+      "N",
+      "A",
+      "L"
+    ]
+  },
+  "request_attempt_count": 1,
+  "llm_elapsed_seconds_total": 80.0171080410073,
+  "retry_wait_seconds_total": 0.0,
+  "failed_attempts": []
+}
