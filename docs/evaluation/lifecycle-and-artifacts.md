@@ -22,7 +22,11 @@ Prepare:
 
 `prepare.py` remains the small entry point. `case_preparation.py` orchestrates materialization, `case_sampling.py` contains deterministic sampling, `case_snapshot.py` builds the shared snapshot, and `preparation_artifacts.py` owns the manifest lifecycle. See [architecture.md](architecture.md) for the detailed split.
 
-For a case with `board_depth = n`, the resolved generator creates at least `n + 1` witness transitions. The model sees the board after transitions `0` through `n - 1` and must use the rack at transition index `n`.
+For a positive board size with `board_depth = n`, the resolved generator creates
+`n + 1` witness transitions. The model sees the scenario's initial word plus
+transitions `0` through `n - 1` and must use the rack at transition index `n`.
+For board size `0`, the model instead sees an empty board and the generated
+initial word is used as its ground-truth move.
 
 Prepare is model-independent. An existing artifact is reused only if its ID, config hash, and file checksum match the manifest.
 

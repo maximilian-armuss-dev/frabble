@@ -3,8 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from ..domain.board import Board
 from ..formal.grammar.config import GrammarConfig
 from ..generator.config import GeneratorConfig
+from ..generator.engine import ScenarioGenerator
 from ..generator.reconstruction import board_before_transition
 from ..generator.scenario_codec import board_to_json
 from ..generator.scenario_io import load_scenario_run
@@ -41,8 +43,22 @@ def build_evaluation_case(
     git_revision: str | None,
 ) -> EvaluationCase:
     scenario_run = load_scenario_run(scenario.path)
-    board = board_before_transition(scenario_run, parameters.board_depth)
-    transition = scenario_run.transitions[parameters.board_depth]
+    if parameters.board_size == 0:
+        board = Board.empty(parameters.dimensions)
+        transition = ScenarioGenerator(scenario.config).generate_initial_transition()
+        if board.place(transition.move) != scenario_run.initial_board:
+            raise ValueError(
+                "Generated initial transition does not match scenario initial_board."
+            )
+    else:
+        board = board_before_transition(scenario_run, parameters.board_depth)
+        transition = scenario_run.transitions[parameters.board_depth]
+
+    if len(board.segments) != coordinates.board_size:
+        raise ValueError(
+            "Evaluation board size mismatch: "
+            f"expected {coordinates.board_size} words, got {len(board.segments)}."
+        )
     return EvaluationCase(
         case_id=case_id,
         case_set=case_set,

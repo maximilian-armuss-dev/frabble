@@ -1,0 +1,8 @@
+case_set: small_steps
+models:
+  or_deepseek-v4-pro: [all]
+  or_kimi-k2-6: [all]
+execution:
+  max_concurrency: 10
+  max_concurrency_per_model: 5
+  max_retries: 1

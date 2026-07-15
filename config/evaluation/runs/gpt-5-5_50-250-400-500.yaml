@@ -1,7 +1,0 @@
-case_set: 1r_50-250-400-500
-models:
-  openai_gpt-5: [all]
-execution:
-  max_concurrency: 30
-  max_concurrency_per_model: 4
-  max_retries: 0

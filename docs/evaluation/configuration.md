@@ -70,7 +70,11 @@ include_search_logs: true
 
 `additional_rack_noise` is optional and defaults to `0`. When set above `0`, that many random alphabet symbols are added as filler to each rack on top of the symbols the witness move actually needs.
 
-`fixed_final_transition_length` is optional. When set, the last generated witness transition uses exactly that word length instead of sampling from `length_distribution`. Evaluation case preparation sets `target_witness_count = board_size + 1`, so this fixes the ground-truth move shown to the model while earlier board-building transitions still use the configured range.
+`fixed_final_transition_length` is optional. When set, the ground-truth move
+uses exactly that word length instead of sampling from `length_distribution`;
+earlier board-building transitions still use the configured range. For board
+size `0`, preparation applies this length to the initial word, which becomes the
+ground-truth move on the empty board.
 
 `config_name` is omitted. `grammar` is an ID without a parent path or suffix and resolves to `outputs/grammars/<grammar>.json`. External files can instead be selected with `grammar_path`; both fields cannot be set simultaneously.
 
@@ -94,10 +98,11 @@ board_sizes:
 ```
 
 `generation_config` and `grammar_config` reference complete standalone configs.
-`board_sizes` contains the number of witness transitions already applied to the
-board shown to the model. Preparing size `50` therefore generates `51` witness
-transitions: 50 to reconstruct the visible board and one ground-truth move to
-solve.
+`board_sizes` contains the exact number of words already placed on the board
+shown to the model. Preparing size `50` therefore uses the initial generated
+word plus 49 board-building transitions, followed by one ground-truth move to
+solve. Size `1` shows only the initial word, and size `0` shows an empty board
+whose ground-truth move is the first word.
 
 Every `(board_size, sampling_round)` pair samples a new grammar and generates a
 new board from its own deterministic seed. Smaller sizes are not sliced out of
