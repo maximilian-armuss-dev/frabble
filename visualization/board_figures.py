@@ -38,20 +38,25 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 def resolve_scenario_path(name_or_path: str | Path) -> Path:
-    """Resolve a scenario path or bare scenario name under outputs/scenarios/."""
+    """Resolve a scenario path (relative to the project root or cwd) or a bare
+    scenario name under outputs/scenarios/."""
     path = Path(name_or_path)
     candidates = [path]
     if path.suffix != ".json":
         candidates.append(path.with_suffix(".json"))
-    if not path.is_absolute() and path.parent == Path("."):
-        candidates.append(PROJECT_ROOT / "outputs" / "scenarios" / path)
+    if not path.is_absolute():
+        candidates.append(PROJECT_ROOT / path)
         if path.suffix != ".json":
-            candidates.append(
-                PROJECT_ROOT / "outputs" / "scenarios" / path.with_suffix(".json")
-            )
-        candidates.append(PROJECT_ROOT / "outputs" / path)
-        if path.suffix != ".json":
-            candidates.append(PROJECT_ROOT / "outputs" / path.with_suffix(".json"))
+            candidates.append(PROJECT_ROOT / path.with_suffix(".json"))
+        if path.parent == Path("."):
+            candidates.append(PROJECT_ROOT / "outputs" / "scenarios" / path)
+            if path.suffix != ".json":
+                candidates.append(
+                    PROJECT_ROOT / "outputs" / "scenarios" / path.with_suffix(".json")
+                )
+            candidates.append(PROJECT_ROOT / "outputs" / path)
+            if path.suffix != ".json":
+                candidates.append(PROJECT_ROOT / "outputs" / path.with_suffix(".json"))
     for candidate in candidates:
         if candidate.exists():
             return candidate
