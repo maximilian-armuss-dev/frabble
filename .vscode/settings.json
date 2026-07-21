@@ -1,0 +1,37 @@
+{
+  "latex-workshop.latex.autoBuild.run": "onSave",
+  "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk paper/main.tex",
+      "command": "latexmk",
+      "args": [
+        "-pdf",
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-outdir=%WORKSPACE_FOLDER%/paper/build",
+        "%WORKSPACE_FOLDER%/paper/main.tex"
+      ]
+    },
+    {
+      "name": "copy paper main.pdf",
+      "command": "cp",
+      "args": [
+        "%WORKSPACE_FOLDER%/paper/build/main.pdf",
+        "%WORKSPACE_FOLDER%/paper/main.pdf"
+      ]
+    }
+  ],
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "build paper/main.tex",
+      "tools": [
+        "latexmk paper/main.tex",
+        "copy paper main.pdf"
+      ]
+    }
+  ],
+  "latex-workshop.latex.recipe.default": "first",
+  "latex-workshop.latex.build.fromFolder": "paper",
+  "latex-workshop.latex.outDir": "%WORKSPACE_FOLDER%/paper/build"
+}
