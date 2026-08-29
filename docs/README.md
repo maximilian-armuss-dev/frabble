@@ -2,8 +2,11 @@
 
 This directory contains the project's technical and conceptual documentation.
 
+If you are new to the repository, start with [Getting Started with Frabble](getting-started.md). It explains the complete workflow from grammar sampling and scenario generation to visualization and model evaluation.
+
 ## Structure
 
+- [`getting-started.md`](getting-started.md) is the beginner-friendly guide to commands, configs, outputs, and notebooks.
 - [`shared/`](shared/) describes concepts shared by all benchmark versions:
   - the formal language model,
   - board and move representations,

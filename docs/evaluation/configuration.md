@@ -156,7 +156,7 @@ or manually maintained model revision is configured.
 defaults:
   temperature: 1
   max_completion_tokens: 32384
-  timeout_seconds: 900
+  timeout_seconds: 3600
 ```
 
 Profiles inherit these values. OpenRouter omits temperature at the adapter
