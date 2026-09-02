@@ -1,4 +1,4 @@
-"""V1 package for the multidimensional Scrabble benchmark."""
+"""Core package for the Frabble benchmark."""
 
 from .benchmark.scoring import BoardScoring
 from .domain.board import Board

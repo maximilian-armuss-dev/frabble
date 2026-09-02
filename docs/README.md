@@ -1,37 +1,60 @@
-# Knowledge Base
+# Documentation Map
 
-This directory contains the project's technical and conceptual documentation.
+Frabble generates board puzzles over sampled artificial languages, presents frozen puzzles to language models, and validates the returned moves with deterministic code. The documentation follows those stable system boundaries rather than mirroring individual source files.
 
-If you are new to the repository, start with [Getting Started with Frabble](getting-started.md). It explains the complete workflow from grammar sampling and scenario generation to visualization and model evaluation.
+## System view
 
-## Structure
+```mermaid
+flowchart LR
+    Grammar["Sampled language"] --> Generator["Scenario generation"]
+    Generator --> Scenario["Witness history"]
+    Scenario --> Case["Frozen evaluation case"]
+    Case --> Prompt["Model prompt"]
+    Prompt --> Move["Submitted move"]
+    Move --> Validation["Deterministic validation"]
+    Validation --> Results["Attempts and aggregates"]
+```
 
-- [`getting-started.md`](getting-started.md) is the beginner-friendly guide to commands, configs, outputs, and notebooks.
-- [`shared/`](shared/) describes concepts shared by all benchmark versions:
-  - the formal language model,
-  - board and move representations,
-  - validation rules.
-- [`v1/`](v1/) documents the deliberately small first implementation:
-  - scope,
-  - language,
-  - prompt format,
-  - scenario generation.
-- [`target/`](target/) describes the intended full benchmark:
-  - complexity axes,
-  - experimental conditions,
-  - puzzle generation,
-  - possible decomposition and future work.
-- [`evaluation/`](evaluation/) documents the evaluation framework:
-  - architecture,
-  - configuration,
-  - asynchronous execution,
-  - lifecycle and artifacts,
-  - evaluation-case interfaces.
-- [`implementation/`](implementation/) explains implementation details of the generator:
-  - data structures,
-  - generator algorithm,
-  - slot CSP,
-  - anchor scoring,
-  - backoff and budget handling.
+A grammar defines valid symbol sequences and their scores. Scenario generation grows a sparse board while retaining known-valid continuations. Evaluation freezes one board state, rack, grammar, and hidden witness before any model call. The returned move is then evaluated independently rather than compared with that witness.
 
-The repository root [`README.md`](../README.md) remains the entry point for installation and usage.
+For a practical path through commands and artifacts, start with the [Workflow Guide](getting-started.md).
+
+## Foundations
+
+These pages define concepts shared by generation and evaluation:
+
+| Page | Boundary |
+|---|---|
+| [Language and Grammar](foundations/language-and-grammar.md) | Strictly Local language semantics, sampling, growth analysis, and grammar artifacts. |
+| [Domain and Representations](foundations/domain-and-representations.md) | Boards, moves, scenarios, cases, prompts, and the boundaries between their representations. |
+| [Move Validation](foundations/move-validation.md) | Deterministic legality, score, and strict versus format-robust evaluation. |
+
+## Scenario generation
+
+| Page | Boundary |
+|---|---|
+| [Generation Overview](generation/README.md) | How a grammar becomes a reproducible scenario with hidden witness moves. |
+| [Candidate Search](generation/search.md) | Geometry, ranking, search budgets, and what exhausted search means. |
+| [Local Slot Solver](generation/slot-solver.md) | How one slot's symbol domains become an accepted sequence. |
+
+## Evaluation
+
+| Page | Boundary |
+|---|---|
+| [Evaluation Overview](evaluation/README.md) | Frozen cases, preparation, model runs, package boundaries, and result layers. |
+| [Configuration](evaluation/configuration.md) | Grammar, generation, case-set, run, and model-profile configuration. |
+| [Artifacts and Lifecycle](evaluation/artifacts.md) | Manifests, identity, persistence, resume behavior, and aggregate outputs. |
+| [Model Execution](evaluation/model-execution.md) | Concurrency, cooldowns, retries, provider calls, and terminal attempts. |
+
+## Implementation entry points
+
+| Area | Source of truth |
+|---|---|
+| Language and grammar | [`src/formal/language.py`](../src/formal/language.py), [`src/formal/grammar/`](../src/formal/grammar/) |
+| Domain and validation | [`src/domain/`](../src/domain/), [`src/formal/validation.py`](../src/formal/validation.py) |
+| Scenario generation | [`src/generator/`](../src/generator/), [`src/formal/slot_csp.py`](../src/formal/slot_csp.py) |
+| Evaluation | [`src/evaluation/`](../src/evaluation/), [`src/llm/`](../src/llm/) |
+| Active experiment choices | [`config/`](../config/) |
+| Inspection notebooks | [`visualization/`](../visualization/) |
+
+Source models and schemas define implemented behavior. Checked-in configs define active choices. These pages explain why the boundaries exist and how information moves between them without copying volatile defaults or exhaustive field lists.

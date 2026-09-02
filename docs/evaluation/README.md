@@ -1,75 +1,54 @@
-# Evaluation
+# Evaluation System
 
-The evaluation pipeline consists of three separate phases:
+Evaluation separates puzzle construction from model execution. Cases are generated and frozen before any provider call, so model selection, concurrency, retries, or an interrupted run cannot silently change the questions being compared.
 
-1. `prepare` creates reproducible grammars, scenarios, and immutable evaluation cases.
-2. `evaluate` runs selected cases against selected model profiles.
-3. `decompose` passes failed evaluation attempts to a shared decomposition interface.
+## Two phases
 
-This separation prevents LLM calls from generating new test instances during a run. A prepared case can therefore be compared exactly across models, prompt representations, and future decomposition methods.
-
-## Configuration and Artifacts
-
-Only human-maintained YAML files live under `config/`:
-
-```text
-config/
-├── grammars/
-├── generation/
-├── evaluation/
-│   ├── case_sets/
-│   └── runs/
-└── model_configs.yaml
+```mermaid
+flowchart LR
+    Recipes["Grammar, generation, and case-set recipes"] --> Prepare
+    Prepare --> Cases["Frozen evaluation cases"]
+    Cases --> Evaluate
+    RunConfig["Run config and model profiles"] --> Evaluate
+    Evaluate --> Attempts
+    Attempts --> Results["Summaries and aggregates"]
 ```
 
-All generated JSON files live under `outputs/`:
+`prepare` expands a case-set recipe into reproducible grammars, scenarios, and cases. This phase is local and model-independent.
 
-```text
-outputs/evaluation/<case-set>/
-├── prepare-manifest.json
-├── grammars/
-├── scenarios/
-├── cases/
-├── schemas/
-└── runs/<run-id>/
-    ├── run-manifest.json
-    ├── attempts/
-    ├── summary.json
-    ├── aggregate.json
-    ├── results.csv
-    └── decomposition/
-```
+`evaluate` combines the frozen cases with selected model profiles, sends the jobs asynchronously, parses and validates responses, persists final attempts, and derives result views.
 
-`summary.json` contains compact overall, board-size, model, and failure summaries. `aggregate.json` stores the complete grouping by board size, model, and language representation, including per-round grammar results. `results.csv` exposes the same metrics in long format for external analysis.
+## Comparison boundary
 
-`visualization/inspect_evaluation.ipynb` visualizes pass rates, primary failure classes, robustness across grammar samples, average token usage, and LLM runtime. Pass rate measures the formal validity of a move; `rack_usage_ratio` is aggregated separately as solution quality. Average request runtime includes final transport failures and timeouts.
+An `EvaluationCase` is the stable question shared across models. It embeds the concrete grammar, reconstructed board, rack, hidden witness, resolved generation context, seeds, hashes, and provenance needed to reproduce that question without consulting mutable YAML recipes.
 
-The notebook accepts either a case-set name or a concrete run ID. A case-set
-name selects its newest completed run. A run ID selects exactly that run,
-independently of its case set. Cross-run aggregation is intentionally left to
-explicit post-processing.
+Board size counts the placed segments visible in the exposed state. A sampling round produces another grammar and board at that size. For positive sizes, preparation reconstructs the corresponding scenario state and uses its next transition as the hidden witness; the size-zero boundary exposes an empty board and uses the generated initial move.
 
-Overlapping constraint failures remain available as diagnostic values in `aggregate.json`.
+The witness establishes that a solution exists but is never compared as an answer key. Prompting uses only the visible case state, and the submitted move is checked independently. The versioned case model lives in [`src/evaluation/models.py`](../../src/evaluation/models.py), with snapshot construction in [`src/evaluation/case_snapshot.py`](../../src/evaluation/case_snapshot.py).
 
-A case-set config defines the stable experiment matrix and reproducible sampling. A run config maps model profiles to board sizes. Evaluation reasoning uses the highest configured native effort for the selected backend (`high` for LiteLLM/OpenAI, `xhigh` for OpenRouter), and the language representation is fixed to `forbidden-snippets`.
+## Package boundaries
 
-## Core Terms
+| Responsibility | Implementation |
+|---|---|
+| Compose and prepare a case set | [`src/evaluation/prepare.py`](../../src/evaluation/prepare.py), [`src/evaluation/case_preparation.py`](../../src/evaluation/case_preparation.py) |
+| Derive case coordinates and seeds | [`src/evaluation/case_sampling.py`](../../src/evaluation/case_sampling.py), [`src/evaluation/sampling.py`](../../src/evaluation/sampling.py) |
+| Snapshot generator history into cases | [`src/evaluation/case_snapshot.py`](../../src/evaluation/case_snapshot.py) |
+| Expand cases and models into jobs | [`src/evaluation/jobs.py`](../../src/evaluation/jobs.py) |
+| Execute and persist one model job | [`src/evaluation/job_execution.py`](../../src/evaluation/job_execution.py) |
+| Coordinate and resume a run | [`src/evaluation/runner.py`](../../src/evaluation/runner.py), [`src/evaluation/run_artifacts.py`](../../src/evaluation/run_artifacts.py) |
+| Aggregate attempts | [`src/evaluation/result_aggregation.py`](../../src/evaluation/result_aggregation.py) |
 
-- **Board size**: The number of witness moves already applied to the board state shown to the model. The move to solve is at this transition index.
-- **Sampling round**: A completely new grammar and board for each selected board size. Another round creates new cases, not additional LLM calls on the same case.
-- **Evaluation case**: A complete snapshot of the board, rack, grammar, ground-truth move, parameters, seeds, and provenance.
-- **Evaluation job**: A combination of evaluation case and model profile.
+Provider access remains behind [`src/llm/`](../../src/llm/), generation behind [`src/generator/`](../../src/generator/), and move legality behind [`src/formal/validation.py`](../../src/formal/validation.py). This dependency direction keeps provider execution from resampling puzzles or redefining their semantics.
 
-## Reproducibility
+## Results
 
-All random decisions are derived deterministically from the case-set ID, root seed, board size, and sampling round. Prepare records the requested and actual seeds as well as content hashes in the manifest.
+Each job ends in one persisted attempt. Completed attempts contain the prompt, raw response, parsed move, strict and format-robust evaluation, timing, usage, provider metadata, and retry history. Transport failures remain distinguishable from completed but semantically invalid responses.
 
-After materialization, a case is independent of later changes to YAML files or source artifacts. Evaluation and decomposition use the same snapshot.
+Attempts feed a compact summary, a detailed grouped aggregate, and long-form CSV rows. Results are grouped across stable experiment coordinates such as model, board size, language representation, reasoning effort, and sampled grammar; quality measures remain separate from pass/fail validity.
 
-## Documents
+The surrounding pages each own one narrower boundary:
 
-- [configuration.md](configuration.md): Standalone, case-set, and run configs.
-- [architecture.md](architecture.md): Internal module boundaries, responsibilities, and extension points.
-- [lifecycle-and-artifacts.md](lifecycle-and-artifacts.md): Commands, directory layout, resume behavior, and failure model.
-- [asynchronous-execution.md](asynchronous-execution.md): Concurrency window, cooldowns, and retry behavior.
-- [evaluation-case-interface.md](evaluation-case-interface.md): Shared data model for evaluation and decomposition.
+- [Configuration](configuration.md) connects reusable recipes, case sets, runs, and model profiles.
+- [Artifacts and Lifecycle](artifacts.md) describes persistence, identity, and resume behavior.
+- [Model Execution](model-execution.md) describes concurrency, cooldowns, retries, and terminal attempts.
+- [Move Validation](../foundations/move-validation.md) describes the deterministic semantic checks.

@@ -11,7 +11,7 @@ from .generator.engine import GenerationError, ScenarioGenerator
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Generate V1 multidimensional Scrabble benchmark scenarios."
+        description="Generate Frabble benchmark scenarios."
     )
     parser.add_argument(
         "--config",

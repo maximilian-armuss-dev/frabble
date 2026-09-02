@@ -131,7 +131,7 @@ def config_dict(output_path: str, *, dimensions: int = 2) -> dict[str, object]:
     }
 
 
-class V1Tests(unittest.TestCase):
+class CoreTests(unittest.TestCase):
     def test_model_profiles_share_global_request_defaults(self):
         configs = list(ENV.model_configs.values())
 
