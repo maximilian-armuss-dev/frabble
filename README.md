@@ -55,7 +55,7 @@ These results describe the complete evaluation setup. That includes the model, p
 
 The commands in this repository build on each other. A grammar defines the artificial language. A generation config turns that language into a board. A case-set config freezes puzzles for comparison. A run config decides which models receive those puzzles.
 
-If this is your first time in the repository, read [Getting Started with Frabble](docs/getting-started.md) before changing configs. It explains this flow in plain language, walks through the important parameters, and shows how the notebooks and output files fit in.
+If this is your first time in the repository, read the [Frabble Workflow Guide](docs/getting-started.md). It explains how grammar sampling, scenario generation, frozen cases, model runs, notebooks, and output artifacts fit together.
 
 If you only want a quick look, the checked-in configs below let you generate a small puzzle locally or run a small evaluation.
 
@@ -96,7 +96,7 @@ uv run evaluate --config or_1r_sanity_check
 
 > **Cost warning:** `evaluate` sends real provider requests. The checked-in example targets several OpenRouter models. Inspect and narrow its [run config](config/evaluation/runs/or_1r_sanity_check.yaml) before starting.
 
-Open [`visualization/inspect_evaluation.ipynb`](visualization/inspect_evaluation.ipynb) to explore the results. The [getting-started guide](docs/getting-started.md) shows how to run one model, create custom configs, understand the outputs, and continue interrupted evaluations.
+Open [`visualization/inspect_evaluation.ipynb`](visualization/inspect_evaluation.ipynb) to explore the results. The [workflow guide](docs/getting-started.md) explains the surrounding artifact lifecycle and points to the configs and implementation that own each phase.
 
 ## 📚 Paper & documentation
 
