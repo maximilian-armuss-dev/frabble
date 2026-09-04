@@ -15,12 +15,9 @@ def load_prompt_template(name: str) -> str:
 
 
 def describe_axes(dimensions: int) -> str:
-    if dimensions == 1:
-        return "Axis 0 is the only axis."
-    axis_parts = [f"axis {axis} advances coordinate index {axis}" for axis in range(dimensions)]
-    return "Axis selects the board dimension along which the sequence advances: " + ", ".join(
-        axis_parts
-    ) + "."
+    return "; ".join(
+        f"axis {axis} increments coordinate[{axis}]" for axis in range(dimensions)
+    )
 
 
 def build_prompt(

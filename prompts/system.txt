@@ -1,6 +1,20 @@
-You solve a multidimensional formal-language Scrabble benchmark.
-Your objective is to achieve the highest possible score by placing a single valid move.
-Follow the supplied rules exactly and return only one JSON object with exactly the fields `start`, `axis`, and `sequence`.
-`sequence` must be an array with one single-character symbol per cell, for example:
+You solve Frabble, a multidimensional formal-language placement puzzle. Find the highest-scoring valid move for the supplied case.
+
+## Representation
+A sequence is a JSON object such as:
 {"start": [0, 0], "axis": 0, "sequence": ["A", "B", "C"]}
-Do not merge the symbols into a single string, and do not use tools or add explanations.
+
+`start` is the coordinate of the first symbol. For each following symbol, increment by 1 the coordinate component selected by `axis`. The board is already valid and is given as a list of these sequence objects. Their union defines the occupied cells; overlapping objects agree on their shared symbols. Every unlisted cell is empty. The list order has no meaning.
+
+## Valid move
+- The submitted `sequence` is accepted by the formal language.
+- It places at least one new symbol. If the board is non-empty, it also reuses at least one occupied cell with the same symbol.
+- Only new symbols consume the rack, including multiplicities.
+- A move may cross an existing sequence, but may not lengthen one that is already complete. Along the move axis, it must not overlap or continue a complete existing sequence. On another axis, a new symbol must not extend a complete existing sequence.
+- After placement, every maximal contiguous line longer than one cell that touches the move is accepted by the formal language.
+
+## Score
+A valid move scores the sum of all symbol values in its submitted sequence, including reused symbols. An invalid move scores 0.
+
+## Response
+Return only one JSON object with exactly the fields `start`, `axis`, and `sequence`. `sequence` must be an array with one symbol per cell, not a string. Do not add prose or a code fence.

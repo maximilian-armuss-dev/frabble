@@ -24,7 +24,7 @@ from .run_figures import (
     _move_markup,
     _move_tile_colors,
     _rack_markup,
-    _redact_board_configuration,
+    _redact_board_sequences,
     display_llm_response,
 )
 
@@ -787,8 +787,10 @@ def display_attempt_prompt(context: EvaluationAttemptContext) -> object:
     system_prompt = str(context.attempt.get("system_prompt", ""))
     user_prompt = str(context.attempt.get("user_prompt", ""))
     raw_response = str(context.attempt.get("raw_response", ""))
-    user_prompt_display = _redact_board_configuration(
-        user_prompt, board_cell_count=len(context.board.cells)
+    user_prompt_display = _redact_board_sequences(
+        user_prompt,
+        board_cell_count=len(context.board.cells),
+        board_sequence_count=len(context.board.segments),
     )
     markup = f"""
 ### Attempt
@@ -799,7 +801,7 @@ def display_attempt_prompt(context: EvaluationAttemptContext) -> object:
 {system_prompt}
 ```
 
-### User prompt (board configuration redacted)
+### User prompt (board sequences redacted)
 ```text
 {user_prompt_display}
 ```

@@ -36,7 +36,7 @@ from src.llm.evaluation import evaluate_granular
 from src.llm.client import LLMCallResult, _completion_kwargs, call_llm_detailed
 from src.llm.env import ENV, Environment
 from src.llm.prompting import build_prompt
-from src.llm.representers import RepresenterConfig
+from src.llm.representers import RepresenterConfig, SequencesJsonBoardRepresenter
 from src.llm.openrouter_client import (
     _parse_response,
     _request_kwargs,
@@ -493,7 +493,7 @@ class CoreTests(unittest.TestCase):
             self.assertIn("prompts/system.txt", displayed_prompt)
             self.assertIn("omitted from notebook display", displayed_prompt)
             self.assertNotIn(
-                prepared.user_prompt.split("Board configuration:\n", 1)[1]
+                prepared.user_prompt.split("Existing sequences:\n", 1)[1]
                 .split("\n\nRack:\n", 1)[0],
                 displayed_prompt,
             )
@@ -1252,7 +1252,33 @@ class CoreTests(unittest.TestCase):
             [board.occupied_sorted() for board in loaded_boards],
         )
 
-    def test_prompt_describes_rules_without_embedding_output_schema(self):
+    def test_sequences_board_representer_uses_move_objects(self):
+        board = Board.empty(2)
+        for move in (
+            Move(start=(0, -1), axis=1, sequence=("A", "B", "C")),
+            Move(start=(-1, 0), axis=0, sequence=("A", "B", "C")),
+        ):
+            board = board.place(move)
+
+        represented = SequencesJsonBoardRepresenter().represent(board)
+
+        self.assertEqual(
+            json.loads(represented),
+            [
+                {"start": [-1, 0], "axis": 0, "sequence": ["A", "B", "C"]},
+                {"start": [0, -1], "axis": 1, "sequence": ["A", "B", "C"]},
+            ],
+        )
+        self.assertNotIn('"coord"', represented)
+        self.assertNotIn('"symbol"', represented)
+
+    def test_sequences_board_representer_rejects_uncovered_cells(self):
+        board = Board(dimensions=2, cells={(0, 0): "A"}, segments=())
+
+        with self.assertRaisesRegex(ValueError, "belong to no segment"):
+            SequencesJsonBoardRepresenter().represent(board)
+
+    def test_prompt_separates_rules_from_case_data(self):
         config = GeneratorConfig.model_validate(config_dict("unused.json"))
         scenario_run = ScenarioGenerator(config).generate()
         sl = language()
@@ -1264,15 +1290,30 @@ class CoreTests(unittest.TestCase):
             RepresenterConfig(),
         )
 
+        self.assertIn("highest-scoring valid move", system_prompt)
+        self.assertIn("## Valid move", system_prompt)
+        self.assertIn("If the board is non-empty", system_prompt)
+        self.assertIn("every maximal contiguous line", system_prompt)
+        self.assertIn("## Score", system_prompt)
         self.assertIn("JSON object", system_prompt)
         self.assertIn("`start`, `axis`, and `sequence`", system_prompt)
-        self.assertIn("every maximal contiguous line", user_prompt)
-        self.assertIn("## Scoring", user_prompt)
+        self.assertNotIn("highest-scoring valid move", user_prompt)
+        self.assertNotIn("## Valid move", user_prompt)
+        self.assertIn("## Case", user_prompt)
         self.assertIn("Letter scores:", user_prompt)
-        self.assertIn('"occupied"', user_prompt)
+        self.assertIn("Acceptance: use only alphabet symbols", user_prompt)
+        self.assertNotIn("Minimum word length:", user_prompt)
+        self.assertIn("Existing sequences:", user_prompt)
+        self.assertIn('"start"', user_prompt)
+        self.assertIn('"axis"', user_prompt)
+        self.assertIn('"sequence"', user_prompt)
+        self.assertNotIn('"occupied"', user_prompt)
+        self.assertNotIn('"coord"', user_prompt)
+        self.assertNotIn('"symbol"', user_prompt)
         self.assertNotIn("JSON Schema", user_prompt)
         self.assertNotIn('"properties"', user_prompt)
         self.assertNotIn("Token scores", user_prompt)
+        self.assertEqual(RepresenterConfig().board.name, "sequences-json")
 
     def test_cli_parser_requires_config_only(self):
         args = build_parser().parse_args(["--config", "evaluation_base"])
