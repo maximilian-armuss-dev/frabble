@@ -415,12 +415,16 @@ def plot_token_usage_bars(
 QUALITY_METRICS: tuple[tuple[str, str, str], ...] = (
     ("main_word_length", "Average main word length", "main word length"),
     ("overlap_count", "Average overlap count", "overlap count"),
-    ("letter_score_total", "Average letter score", "letter score"),
+    (
+        "letter_score_total",
+        "Average attempt score (no-score attempts excluded)",
+        "attempt score",
+    ),
 )
 
 
 def plot_quality_score_bars(aggregate: Mapping[str, Any]) -> tuple[object, ...]:
-    """Compare average word length, overlap count, and letter score (passing attempts)."""
+    """Compare valid-move geometry and scores from all scorable attempts."""
     import plotly.graph_objects as go
 
     figures = []

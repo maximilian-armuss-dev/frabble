@@ -828,6 +828,47 @@ class CoreTests(unittest.TestCase):
         self.assertFalse(evaluation.no_word_extension)
         self.assertIsNone(evaluation.main_word_length)
         self.assertIsNone(evaluation.overlap_count)
+        self.assertEqual(evaluation.letter_score_total, 0)
+
+    def test_granular_evaluation_scores_parse_failure_zero_but_truncation_none(self):
+        parse_failure = evaluate_granular(
+            Board.empty(2),
+            language(),
+            (),
+            None,
+            "invalid JSON",
+            finish_reason="stop",
+        )
+        truncation = evaluate_granular(
+            Board.empty(2),
+            language(),
+            (),
+            None,
+            "incomplete JSON",
+            finish_reason="length",
+        )
+
+        self.assertEqual(parse_failure.failure_type, "parse")
+        self.assertEqual(parse_failure.letter_score_total, 0)
+        self.assertEqual(truncation.failure_type, "truncated")
+        self.assertIsNone(truncation.letter_score_total)
+
+    def test_truncation_has_no_score_even_if_partial_output_parses(self):
+        submitted = SubmittedMove(
+            start=(0, 0),
+            axis=0,
+            sequence=("A", "B", "A"),
+        )
+
+        evaluation = evaluate_granular(
+            Board.empty(2),
+            language(),
+            ("A", "B", "A"),
+            submitted,
+            finish_reason="length",
+        )
+
+        self.assertEqual(evaluation.failure_type, "truncated")
         self.assertIsNone(evaluation.letter_score_total)
 
     def test_granular_evaluation_reports_word_length_and_overlap_for_valid_move(self):
@@ -922,6 +963,7 @@ class CoreTests(unittest.TestCase):
         self.assertIsNone(evaluation.cross_words_valid)
         self.assertFalse(evaluation.rack_valid)
         self.assertEqual(evaluation.missing_rack_symbols, {"I": 1})
+        self.assertEqual(evaluation.letter_score_total, 0)
 
     def test_templates_prune_deterministic_implicit_word_extensions_before_solving(self):
         sl = language()
