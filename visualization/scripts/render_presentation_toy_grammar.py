@@ -9,7 +9,7 @@ from src.domain.visualization import build_dfa_graph
 from src.formal.grammar.serialization import load_grammar
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 GRAMMAR_PATH = PROJECT_ROOT / "outputs/grammars/presentation_toy_grammar.json"
 OUTPUT_PATH = PROJECT_ROOT / "outputs/figures/presentation_toy_grammar_dfa.png"
 

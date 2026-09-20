@@ -77,7 +77,7 @@ uv run analyze-grammar evaluation_base_grammar --max-length 10
 uv run generate --config evaluation_base_sanity_check
 ```
 
-These commands do not call an LLM. They create a sampled grammar and a small generated scenario. Open [`visualization/inspect_scenario.ipynb`](visualization/inspect_scenario.ipynb), set `SCENARIO_PATH` to `outputs/scenarios/evaluation_base_sanity_check.json`, and run the notebook to watch the board grow.
+These commands do not call an LLM. They create a sampled grammar and a small generated scenario. Open [`visualization/notebooks/scenario_viewer.ipynb`](visualization/notebooks/scenario_viewer.ipynb), select the generated scenario in its first cells, and run the notebook to watch the board grow.
 
 ### Run an evaluation
 
@@ -96,7 +96,7 @@ uv run evaluate --config or_1r_sanity_check
 
 > **Cost warning:** `evaluate` sends real provider requests. The checked-in example targets several OpenRouter models. Inspect and narrow its [run config](config/evaluation/runs/or_1r_sanity_check.yaml) before starting.
 
-Open [`visualization/inspect_evaluation.ipynb`](visualization/inspect_evaluation.ipynb) to explore the results. The [workflow guide](docs/getting-started.md) explains the surrounding artifact lifecycle and points to the configs and implementation that own each phase.
+Open [`visualization/notebooks/evaluation_overview.ipynb`](visualization/notebooks/evaluation_overview.ipynb) to explore the results. The [workflow guide](docs/getting-started.md) explains the surrounding artifact lifecycle and points to the configs and implementation that own each phase.
 
 ## 📚 Paper & documentation
 

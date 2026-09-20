@@ -42,7 +42,7 @@ from src.llm.openrouter_client import (
     _request_kwargs,
 )
 from src.tools.check_model import clip_preview
-from visualization.board_figures import (
+from visualization.src.board_figures import (
     CONFLICTING_MOVE_TILE,
     MATCHING_MOVE_TILE,
     NEW_MOVE_TILE,
@@ -52,7 +52,7 @@ from visualization.board_figures import (
     plot_board_2d,
     plot_board_axis_pairs,
 )
-from visualization.run_figures import (
+from visualization.src.run_figures import (
     TimedLLMResponse,
     _board_with_move_overlay,
     _move_conflict_coords,
@@ -142,7 +142,7 @@ class CoreTests(unittest.TestCase):
         )
         self.assertEqual(
             {config.timeout_seconds for config in configs},
-            {900.0},
+            {3600.0},
         )
 
     def test_openrouter_model_profile_builds_explicit_native_request(self):
@@ -403,7 +403,7 @@ class CoreTests(unittest.TestCase):
         self.assertNotIn("border-top:1px", first_row)
 
     def test_llm_transition_phases_isolate_the_timed_client_call(self):
-        with patch("visualization.run_figures.call_llm_detailed") as mocked_call:
+        with patch("visualization.src.run_figures.call_llm_detailed") as mocked_call:
             prepared = prepare_llm_transition(
                 scenario_name="evaluation_base",
                 transition_index=0,
@@ -497,6 +497,38 @@ class CoreTests(unittest.TestCase):
                 .split("\n\nRack:\n", 1)[0],
                 displayed_prompt,
             )
+
+    def test_finalize_llm_transition_marks_length_completion_as_truncated(self):
+        prepared = prepare_llm_transition(
+            scenario_name="evaluation_base",
+            transition_index=0,
+            model_name="openai_gpt-5",
+            reasoning_effort="high",
+        )
+        response = TimedLLMResponse(
+            raw_response="",
+            elapsed_seconds=1.0,
+            usage={
+                "completion_tokens": 100,
+                "completion_tokens_details": {"reasoning_tokens": 100},
+            },
+            metadata={"finish_reason": "length"},
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            context = finalize_llm_transition(
+                prepared,
+                response,
+                output_dir=temp_dir,
+            )
+
+        evaluation = context.run_log["evaluation"]
+        self.assertEqual(evaluation["failure_type"], "truncated")
+        self.assertIsNone(evaluation["letter_score_total"])
+        self.assertEqual(
+            evaluation["message"],
+            "Completion truncated before the answer (finish_reason=length).",
+        )
 
     def test_strictly_local_language_rejects_short_and_forbidden_sequences(self):
         sl = language()

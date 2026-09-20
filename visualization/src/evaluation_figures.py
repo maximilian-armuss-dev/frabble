@@ -109,6 +109,8 @@ def latest_completed_evaluation_run(
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if manifest.get("status") != "complete":
             continue
+        if not (manifest_path.parent / "aggregate.json").exists():
+            continue
         completed.append(
             (
                 str(manifest.get("completed_at") or ""),
@@ -997,6 +999,7 @@ def plot_attempt_move(
             context.board,
             move_axis=reference.axis,
             plane_coord=reference.start,
+            letter_scores=context.language.letter_score_map(),
             title="No parsed LLM move",
         )
 
@@ -1010,6 +1013,7 @@ def plot_attempt_move(
         move_axis=move.axis,
         plane_coord=move.start,
         tile_colors=_move_tile_colors(context.board, move),
+        letter_scores=context.language.letter_score_map(),
         title=title,
     )
 

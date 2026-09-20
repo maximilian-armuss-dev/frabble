@@ -46,6 +46,7 @@ class LLMRunContext:
     rack: tuple[str, ...]
     parsed_move: Move | None
     ground_truth_move: Move
+    language: StrictlyLocalLanguage
 
 
 @dataclass(frozen=True)
@@ -84,6 +85,7 @@ def load_llm_run_context(
     transition_index = int(run_log["transition_index"])
     board = board_before_transition(scenario_run, transition_index)
     transition = scenario_run.transitions[transition_index]
+    language, _, _ = load_grammar(_grammar_path(scenario_path))
     return LLMRunContext(
         run_path=path,
         run_log=run_log,
@@ -92,6 +94,7 @@ def load_llm_run_context(
         rack=transition.rack,
         parsed_move=_move_from_object(run_log.get("parsed_move")),
         ground_truth_move=_move_from_object(run_log["ground_truth_move"]),
+        language=language,
     )
 
 
@@ -213,12 +216,17 @@ def finalize_llm_transition(
     except Exception as exc:
         parse_error = str(exc)
 
+    finish_reason_value = response.metadata.get("finish_reason")
+    finish_reason = (
+        str(finish_reason_value) if finish_reason_value is not None else None
+    )
     evaluation = evaluate_granular(
         prepared.board,
         prepared.language,
         prepared.rack,
         submitted,
         parse_error,
+        finish_reason=finish_reason,
     )
     timestamp = datetime.now()
     model_tag = prepared.model_name.replace("/", "-").replace(":", "-")
@@ -687,6 +695,7 @@ def plot_llm_run_move(
             context.board,
             move_axis=reference_move.axis,
             plane_coord=reference_move.start,
+            letter_scores=context.language.letter_score_map(),
             title="No parsed LLM move",
         )
     board = _board_with_move_overlay(context.board, move)
@@ -699,6 +708,7 @@ def plot_llm_run_move(
         move_axis=move.axis,
         plane_coord=move.start,
         tile_colors=_move_tile_colors(context.board, move),
+        letter_scores=context.language.letter_score_map(),
         title=title,
     )
 

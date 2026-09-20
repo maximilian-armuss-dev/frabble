@@ -10,7 +10,10 @@ from typing import Iterable, Mapping, Sequence
 
 from src.domain.board import Board
 from src.domain.models import Coord
+from src.formal.grammar.serialization import load_grammar
+from src.generator.config import resolve_scenario_grammar_path
 from src.generator.reconstruction import reconstruct_boards
+from src.generator.scenario_io import load_scenario_run
 
 BASE_TILE = "#f7f8fa"
 TEXT_COLOR = "#15181d"
@@ -30,11 +33,17 @@ TRANSPARENT_COLOR = "rgba(0, 0, 0, 0)"
 NODE_MARKER_TEXT_SIZE_2D = 16
 NODE_MARKER_MAX_SIZE_2D = 48
 NODE_MARKER_MIN_SIZE_2D = 10
+SCORE_MARKER_TEXT_SIZE_2D = 11
+MIN_SCORE_SIZE_2D = 5
+SCORE_OFFSET_X_2D = 0.27
+SCORE_OFFSET_Y_2D = -0.27
 LETTER_RASTER_SIZE_2D = 0.54
 LETTER_RASTER_RESOLUTION_2D = 18
+SCORE_RASTER_SIZE_2D = 0.25
+SCORE_RASTER_RESOLUTION_2D = 12
 IMAGE_CELL_PIXELS_2D = 42
 IMAGE_TILE_GAP_PIXELS_2D = 2
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 def resolve_scenario_path(name_or_path: str | Path) -> Path:
@@ -69,6 +78,18 @@ def load_scenario_json(path: str | Path) -> dict[str, object]:
         return json.load(file)
 
 
+def load_scenario_letter_scores(path: str | Path) -> dict[str, int]:
+    """Load the grammar-backed letter scores for a stored scenario."""
+    scenario_path = resolve_scenario_path(path)
+    scenario_run = load_scenario_run(scenario_path)
+    grammar_path = resolve_scenario_grammar_path(
+        scenario_run.config,
+        scenario_path=scenario_path,
+    )
+    language, _, _ = load_grammar(grammar_path)
+    return language.letter_score_map()
+
+
 def board_from_scenario_json(path: str | Path, *, step: int = -1) -> Board:
     """Load one board from a scenario JSON file.
 
@@ -99,6 +120,7 @@ def plot_board_2d(
     board: Board,
     *,
     tile_colors: Mapping[Coord, str] | None = None,
+    letter_scores: Mapping[str, int] | None = None,
     title: str | None = None,
 ) -> object:
     """Create an interactive Plotly view of a two-dimensional board."""
@@ -109,6 +131,7 @@ def plot_board_2d(
         axes=(0, 1),
         plane_coords={},
         tile_colors=tile_colors,
+        letter_scores=letter_scores,
         title=title,
     )
 
@@ -119,6 +142,7 @@ def plot_board_axis_pairs(
     move_axis: int,
     plane_coord: Coord,
     tile_colors: Mapping[Coord, str] | None = None,
+    letter_scores: Mapping[str, int] | None = None,
     title: str | None = None,
 ) -> tuple[object, ...]:
     """Plot every 2D plane pairing the move axis with another board axis."""
@@ -148,6 +172,7 @@ def plot_board_axis_pairs(
                 axes=axes,
                 plane_coords=hidden_coords,
                 tile_colors=tile_colors,
+                letter_scores=letter_scores,
                 title=pair_title,
             )
         )
@@ -160,6 +185,7 @@ def _plot_board_plane_2d(
     axes: tuple[int, int],
     plane_coords: Mapping[int, int],
     tile_colors: Mapping[Coord, str] | None,
+    letter_scores: Mapping[str, int] | None,
     title: str | None,
 ) -> object:
     import plotly.graph_objects as go
@@ -170,6 +196,7 @@ def _plot_board_plane_2d(
         data=_board_2d_traces(
             board,
             tile_colors=tile_colors or {},
+            letter_scores=letter_scores or {},
             axes=axes,
             plane_coords=plane_coords,
         )
@@ -181,6 +208,7 @@ def _plot_board_plane_2d(
 def animate_scenario_2d(
     scenario: Mapping[str, object],
     *,
+    letter_scores: Mapping[str, int] | None = None,
     title: str | None = None,
 ) -> object:
     """Create an interactive Plotly slider for a two-dimensional scenario."""
@@ -194,6 +222,7 @@ def animate_scenario_2d(
         data=_board_2d_traces(
             boards[0],
             tile_colors=_placement_colors(placements[0]),
+            letter_scores=letter_scores or {},
             axes=axes,
             plane_coords={},
             range_board=range_board,
@@ -207,6 +236,7 @@ def animate_scenario_2d(
                 data=_board_2d_traces(
                     board,
                     tile_colors=_placement_colors(placed),
+                    letter_scores=letter_scores or {},
                     axes=axes,
                     plane_coords={},
                     range_board=range_board,
@@ -254,6 +284,7 @@ def animate_scenario_2d(
 def animate_scenario_2d_image(
     scenario: Mapping[str, object],
     *,
+    letter_scores: Mapping[str, int] | None = None,
     title: str | None = None,
     cell_pixels: int = IMAGE_CELL_PIXELS_2D,
 ) -> object:
@@ -267,6 +298,7 @@ def animate_scenario_2d_image(
     base_source = _board_png_source_2d(
         boards[0],
         tile_colors=_placement_colors(placements[0]),
+        letter_scores=letter_scores or {},
         axes=axes,
         plane_coords={},
         range_board=range_board,
@@ -282,6 +314,7 @@ def animate_scenario_2d_image(
                         source=_board_png_source_2d(
                             board,
                             tile_colors=_placement_colors(placed),
+                            letter_scores=letter_scores or {},
                             axes=axes,
                             plane_coords={},
                             range_board=range_board,
@@ -341,6 +374,7 @@ def animate_scenario_2d_image(
 def animate_scenario_2d_canvas(
     scenario: Mapping[str, object],
     *,
+    letter_scores: Mapping[str, int] | None = None,
     title: str | None = None,
     cell_pixels: int = IMAGE_CELL_PIXELS_2D,
 ) -> object:
@@ -353,6 +387,7 @@ def animate_scenario_2d_canvas(
         _board_png_source_2d(
             board,
             tile_colors=_placement_colors(placed),
+            letter_scores=letter_scores or {},
             axes=axes,
             plane_coords={},
             range_board=range_board,
@@ -415,25 +450,37 @@ def _board_2d_traces(
     board: Board,
     *,
     tile_colors: Mapping[Coord, str],
+    letter_scores: Mapping[str, int],
     axes: tuple[int, int],
     plane_coords: Mapping[int, int],
     range_board: Board | None = None,
 ) -> list[object]:
-    return [
-        _board_marker_trace_2d(
-            board,
-            tile_colors=tile_colors,
-            axes=axes,
-            plane_coords=plane_coords,
-            range_board=range_board,
-        )
-    ]
+    tile_trace = _board_marker_trace_2d(
+        board,
+        tile_colors=tile_colors,
+        letter_scores=letter_scores,
+        axes=axes,
+        plane_coords=plane_coords,
+        range_board=range_board,
+    )
+    traces = [tile_trace]
+    score_trace = _board_score_trace_2d(
+        board,
+        letter_scores=letter_scores,
+        axes=axes,
+        plane_coords=plane_coords,
+        range_board=range_board,
+    )
+    if score_trace is not None:
+        traces.append(score_trace)
+    return traces
 
 
 def _board_marker_trace_2d(
     board: Board,
     *,
     tile_colors: Mapping[Coord, str],
+    letter_scores: Mapping[str, int],
     axes: tuple[int, int],
     plane_coords: Mapping[int, int],
     range_board: Board | None = None,
@@ -469,13 +516,57 @@ def _board_marker_trace_2d(
             [
                 list(row["coord"]),
                 ",".join(str(axis) for axis in sorted(row["axes_at"])),
+                letter_scores.get(str(row["symbol"])),
             ]
             for row in rows
         ],
         hovertemplate=(
             "coord=%{customdata[0]}<br>symbol=%{text}"
-            "<br>axes=%{customdata[1]}<extra></extra>"
+            + ("<br>score=%{customdata[2]}" if letter_scores else "")
+            + "<br>axes=%{customdata[1]}<extra></extra>"
         ),
+        showlegend=False,
+    )
+
+
+def _board_score_trace_2d(
+    board: Board,
+    *,
+    letter_scores: Mapping[str, int],
+    axes: tuple[int, int],
+    plane_coords: Mapping[int, int],
+    range_board: Board | None = None,
+) -> object | None:
+    if not letter_scores:
+        return None
+
+    import plotly.graph_objects as go
+
+    rows = [
+        row
+        for row in _projected_rows(board, axes, plane_coords)
+        if str(row["symbol"]) in letter_scores
+    ]
+    if not rows:
+        return None
+    marker_size = _marker_size_2d(range_board or board, axes)
+    text_size = _clamp(
+        round(marker_size * 0.23),
+        MIN_SCORE_SIZE_2D,
+        SCORE_MARKER_TEXT_SIZE_2D,
+    )
+    return go.Scatter(
+        x=[float(row["x"]) + SCORE_OFFSET_X_2D for row in rows],
+        y=[float(row["y"]) + SCORE_OFFSET_Y_2D for row in rows],
+        mode="text",
+        text=[str(letter_scores[str(row["symbol"])]) for row in rows],
+        textfont={
+            "color": TEXT_COLOR,
+            "size": text_size,
+            "family": TEXT_FONT_FAMILY,
+        },
+        textposition="middle center",
+        hoverinfo="skip",
         showlegend=False,
     )
 
@@ -484,6 +575,7 @@ def _board_png_source_2d(
     board: Board,
     *,
     tile_colors: Mapping[Coord, str],
+    letter_scores: Mapping[str, int],
     axes: tuple[int, int],
     plane_coords: Mapping[int, int],
     range_board: Board,
@@ -513,6 +605,12 @@ def _board_png_source_2d(
         mask = mask[gap : cell_pixels - gap, gap : cell_pixels - gap]
         tile[mask, :3] = _color_to_rgb(TEXT_COLOR)
         tile[mask, 3] = 255
+        score = letter_scores.get(str(symbol))
+        if score is not None:
+            score_mask = _score_bitmap_mask_2d(str(score), cell_pixels)
+            score_mask = score_mask[gap : cell_pixels - gap, gap : cell_pixels - gap]
+            tile[score_mask, :3] = _color_to_rgb(TEXT_COLOR)
+            tile[score_mask, 3] = 255
 
     buffer = io.BytesIO()
     Image.fromarray(image, mode="RGBA").save(buffer, format="PNG", optimize=False)
@@ -532,6 +630,26 @@ def _letter_bitmap_mask_2d(symbol: str, cell_pixels: int) -> object:
     ):
         xs = [point[0] for point in quad]
         ys = [point[1] for point in quad]
+        left = max(0, int((min(xs) + 0.5) * cell_pixels))
+        right = min(cell_pixels, int((max(xs) + 0.5) * cell_pixels) + 1)
+        top = max(0, int((0.5 - max(ys)) * cell_pixels))
+        bottom = min(cell_pixels, int((0.5 - min(ys)) * cell_pixels) + 1)
+        mask[top:bottom, left:right] = True
+    return mask
+
+
+@lru_cache(maxsize=64)
+def _score_bitmap_mask_2d(score: str, cell_pixels: int) -> object:
+    import numpy as np
+
+    mask = np.zeros((cell_pixels, cell_pixels), dtype=bool)
+    for quad in _letter_fill_quads(
+        score,
+        SCORE_RASTER_SIZE_2D,
+        SCORE_RASTER_RESOLUTION_2D,
+    ):
+        xs = [point[0] + SCORE_OFFSET_X_2D for point in quad]
+        ys = [point[1] + SCORE_OFFSET_Y_2D for point in quad]
         left = max(0, int((min(xs) + 0.5) * cell_pixels))
         right = min(cell_pixels, int((max(xs) + 0.5) * cell_pixels) + 1)
         top = max(0, int((0.5 - max(ys)) * cell_pixels))

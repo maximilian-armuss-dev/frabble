@@ -42,7 +42,7 @@ uv run generate --config evaluation_base_sanity_check
 
 The default standalone artifacts appear under `outputs/grammars/` and `outputs/scenarios/`. Their path rules are defined alongside the corresponding config models in [`src/formal/grammar/config.py`](../src/formal/grammar/config.py) and [`src/generator/config.py`](../src/generator/config.py).
 
-[`visualization/inspect_scenario.ipynb`](../visualization/inspect_scenario.ipynb) reconstructs the witness history and shows how the board changes from one transition to the next.
+[`visualization/notebooks/scenario_viewer.ipynb`](../visualization/notebooks/scenario_viewer.ipynb) reconstructs the witness history and shows how the board changes from one transition to the next.
 
 ## Prepared evaluation
 
@@ -87,9 +87,9 @@ The conceptual boundaries are described in [Domain and Representations](foundati
 
 ## Inspecting results
 
-- [`visualization/inspect_llm_run.ipynb`](../visualization/inspect_llm_run.ipynb) is the interactive path for understanding one prompt and response.
-- [`visualization/inspect_evaluation.ipynb`](../visualization/inspect_evaluation.ipynb) summarizes a complete stored run.
-- [`visualization/inspect_evaluation_attempt.ipynb`](../visualization/inspect_evaluation_attempt.ipynb) shows the prompt, response, validation result, and board for one attempt.
+- [`visualization/notebooks/model_playground.ipynb`](../visualization/notebooks/model_playground.ipynb) is the interactive path for understanding one prompt and response.
+- [`visualization/notebooks/evaluation_overview.ipynb`](../visualization/notebooks/evaluation_overview.ipynb) summarizes a complete stored run.
+- [`visualization/notebooks/evaluation_attempt.ipynb`](../visualization/notebooks/evaluation_attempt.ipynb) shows the prompt, response, validation result, and board for one attempt.
 
 The test suite exercises the same boundaries without making provider calls:
 

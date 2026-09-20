@@ -118,6 +118,10 @@ def resolve_scenario_grammar_path(
     ]
     if scenario_path is not None:
         candidates.append(scenario_path.parent / direct)
+        # Prepared case sets are sometimes moved or merged after generation.
+        # Resolve their colocated grammar snapshot before falling back to the
+        # original absolute path stored in the scenario config.
+        candidates.append(scenario_path.parent.parent / "grammars" / direct.name)
     for candidate in candidates:
         if candidate.exists():
             return candidate
