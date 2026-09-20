@@ -13,6 +13,7 @@ from .representers import (
     LanguageRepresenter,
     RackRepresenter,
     RepresenterConfig,
+    SequencesJsonBoardRepresenter,
     SymbolJsonRackRepresenter,
 )
 
@@ -37,5 +38,6 @@ __all__ = [
     "LanguageRepresenter",
     "RackRepresenter",
     "RepresenterConfig",
+    "SequencesJsonBoardRepresenter",
     "SymbolJsonRackRepresenter",
 ]

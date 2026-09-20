@@ -37,7 +37,18 @@ class ForbiddenSnippetsLanguageRepresenter:
         return "forbidden-snippets"
 
     def represent(self, language: StrictlyLocalLanguage) -> str:
-        return language.describe()
+        snippets = ", ".join(
+            " ".join(snippet) for snippet in language.forbidden_snippets
+        )
+        return "\n".join(
+            [
+                f"Alphabet: {{{', '.join(language.alphabet)}}}",
+                "Acceptance: use only alphabet symbols, have length "
+                f">= {language.min_word_length}, and contain none of these "
+                "contiguous snippets:",
+                f"{{{snippets}}}",
+            ]
+        )
 
 
 class ForbiddenSnippetsProductionRulesLanguageRepresenter:
@@ -167,6 +178,47 @@ class CoordinatesJsonBoardRepresenter:
         return json.dumps(data, indent=2, ensure_ascii=False)
 
 
+class SequencesJsonBoardRepresenter:
+    @property
+    def name(self) -> str:
+        return "sequences-json"
+
+    def represent(self, board: Board) -> str:
+        covered = {
+            coord
+            for segment in board.segments
+            for coord in board.coords_for_slot(
+                segment.start, segment.axis, len(segment.sequence)
+            )
+        }
+        unrepresented = set(board.cells) - covered
+        if unrepresented:
+            raise ValueError(
+                "Cannot represent board as sequences: "
+                f"{len(unrepresented)} occupied cells belong to no segment."
+            )
+
+        segments = sorted(
+            board.segments,
+            key=lambda segment: (segment.axis, segment.start, segment.sequence),
+        )
+        sequences = [
+            {
+                "start": list(segment.start),
+                "axis": segment.axis,
+                "sequence": list(segment.sequence),
+            }
+            for segment in segments
+        ]
+        if not sequences:
+            return "[]"
+        rendered = [
+            json.dumps(sequence, ensure_ascii=False)
+            for sequence in sequences
+        ]
+        return "[\n  " + ",\n  ".join(rendered) + "\n]"
+
+
 class SymbolJsonRackRepresenter:
     @property
     def name(self) -> str:
@@ -179,7 +231,7 @@ class SymbolJsonRackRepresenter:
 @dataclass(frozen=True)
 class RepresenterConfig:
     language: LanguageRepresenter = field(default_factory=ForbiddenSnippetsLanguageRepresenter)
-    board: BoardRepresenter = field(default_factory=CoordinatesJsonBoardRepresenter)
+    board: BoardRepresenter = field(default_factory=SequencesJsonBoardRepresenter)
     rack: RackRepresenter = field(default_factory=SymbolJsonRackRepresenter)
 
 
@@ -192,7 +244,11 @@ LANGUAGE_REPRESENTERS: dict[str, LanguageRepresenter] = {
 }
 
 BOARD_REPRESENTERS: dict[str, BoardRepresenter] = {
-    r.name: r for r in [CoordinatesJsonBoardRepresenter()]
+    r.name: r
+    for r in [
+        SequencesJsonBoardRepresenter(),
+        CoordinatesJsonBoardRepresenter(),
+    ]
 }
 
 RACK_REPRESENTERS: dict[str, RackRepresenter] = {

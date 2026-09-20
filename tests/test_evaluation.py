@@ -463,6 +463,12 @@ class EvaluationConfigTests(unittest.TestCase):
                 failure_type="word_extension",
                 no_word_extension=False,
             ),
+            _attempt(
+                overall=False,
+                grammar=0,
+                failure_type="truncated",
+                letter_score_total=None,
+            ),
         ]
 
         aggregate = build_aggregate(attempts)
@@ -474,8 +480,8 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(main_word_length["mean"], 4.0)
         self.assertEqual(overlap_count["count"], 2)
         self.assertEqual(overlap_count["mean"], 2.0)
-        self.assertEqual(letter_score_total["count"], 2)
-        self.assertEqual(letter_score_total["mean"], 6.0)
+        self.assertEqual(letter_score_total["count"], 3)
+        self.assertEqual(letter_score_total["mean"], 4.0)
 
     def test_exhausted_transport_error_finishes_run(self):
         with tempfile.TemporaryDirectory() as temp_dir:

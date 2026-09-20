@@ -37,10 +37,10 @@ Cells describe current visible state, while segments preserve how that state was
 | Domain | Geometry, placement history, and immutable board updates. | [`src/domain/`](../../src/domain/) |
 | Scenario artifact | Reproducible storage of the initial board and witness transitions. | [`src/generator/scenario_codec.py`](../../src/generator/scenario_codec.py) |
 | Evaluation case | Portable snapshot of one exact model question and its provenance. | [`src/evaluation/models.py`](../../src/evaluation/models.py), [`src/evaluation/case_snapshot.py`](../../src/evaluation/case_snapshot.py) |
-| Prompt | Model-readable language, occupied coordinates, rack, and scores. | [`src/llm/representers.py`](../../src/llm/representers.py), [`src/llm/prompting.py`](../../src/llm/prompting.py) |
+| Prompt | Model-readable language, existing sequence placements, rack, and scores. | [`src/llm/representers.py`](../../src/llm/representers.py), [`src/llm/prompting.py`](../../src/llm/prompting.py) |
 | Response | Minimal structured proposal for one move. | [`src/formal/parsing.py`](../../src/formal/parsing.py) |
 
-Persisted scenario boards retain cells and placement history. Prompt boards use a more explanatory coordinate/symbol list. Evaluation cases embed the persisted form and reconstruct the domain board before prompting or validation.
+Persisted scenario boards retain cells and placement history. The default prompt representation emits the existing placements as a canonically sorted JSON list using the same `start`, `axis`, and `sequence` shape expected from the model. Their union reconstructs the visible cells without repeating one coordinate object per cell. Evaluation cases embed the persisted form and reconstruct the domain board before prompting or validation.
 
 ## Move boundary
 

@@ -1,33 +1,13 @@
-Your goal is to achieve the highest possible score. Place exactly one contiguous sequence, choosing the valid move that scores the most points.
-
-## Move geometry
-- Coordinates are zero-based vectors with {dimensions} entries.
-- `start` is the first coordinate. `axis` advances one coordinate component per symbol.
-- {axis_description}
-
-## Validity rules
-A move is valid only if all of the following hold:
-- The submitted sequence must be accepted by the formal language.
-- Existing cells may be reused only with their existing symbol.
-- Reuse at least one existing cell and place at least one new symbol.
-- Only newly placed symbols consume the rack, including multiplicities.
-- You may form new words, but you may not lengthen a word that already exists and is complete on the board:
-    - Do not reuse a cell whose existing word already runs along the chosen axis.
-    - The cells immediately before and after the submitted sequence, along its axis, must be empty.
-    - A newly placed cell must not extend an existing word along any perpendicular axis.
-- After placement, every maximal contiguous line longer than one cell that touches the move, on every axis, must be accepted by the formal language.
-
-## Scoring
-- Each alphabet symbol has a point value, listed below. A valid move scores the sum of the point values of every symbol in its placed sequence, counting both newly placed and reused (overlapping) symbols.
-- An invalid move scores 0.
+## Case
+Dimensions: {dimensions}
+Axes: {axis_description}
 
 {letter_scores}
 
 Formal language:
 {formal_language}
 
-The board configuration below is already valid: every existing word on it is accepted by the formal language.
-Board configuration:
+Existing sequences:
 {board}
 
 Rack:

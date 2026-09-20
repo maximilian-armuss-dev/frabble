@@ -60,6 +60,8 @@ def evaluate_granular(
     *,
     finish_reason: str | None = None,
 ) -> GranularEvaluation:
+    if finish_reason == "length":
+        return _parse_failed(parse_error, finish_reason)
     if submitted is None:
         return _parse_failed(parse_error, finish_reason)
 
@@ -92,7 +94,7 @@ def evaluate_granular(
         letter_score_total=(
             sum(language.letter_score_map().get(symbol, 0) for symbol in move.sequence)
             if report.overall
-            else None
+            else 0
         ),
         failure_type=report.failure_type,
         message=report.message,
@@ -121,7 +123,7 @@ def _parse_failed(
         rack_usage_ratio=0.0,
         main_word_length=None,
         overlap_count=None,
-        letter_score_total=None,
+        letter_score_total=None if truncated else 0,
         failure_type="truncated" if truncated else "parse",
         message=(
             "Completion truncated before the answer (finish_reason=length)."

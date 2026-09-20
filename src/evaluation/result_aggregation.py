@@ -238,7 +238,7 @@ def _aggregate_group(
                 for item in completed
             ),
             "letter_score_total": _numeric_summary(
-                item.get("evaluation", {}).get("letter_score_total")
+                _attempt_score(item)
                 for item in completed
             ),
         },
@@ -304,7 +304,7 @@ def _aggregate_grammar(
                 for item in attempts
             ),
             "letter_score_total": _numeric_summary(
-                item.get("evaluation", {}).get("letter_score_total")
+                _attempt_score(item)
                 for item in attempts
             ),
         },
@@ -415,6 +415,22 @@ def _numeric_summary(values: Iterable[Any]) -> dict[str, int | float | None]:
 def _request_elapsed_seconds(attempt: Mapping[str, Any]) -> Any:
     total = attempt.get("llm_elapsed_seconds_total")
     return total if total is not None else attempt.get("llm_elapsed_seconds")
+
+
+def _attempt_score(attempt: Mapping[str, Any]) -> Any:
+    evaluation = dict(attempt.get("evaluation", {}))
+    score = evaluation.get("letter_score_total")
+    if score is not None:
+        return score
+    if (
+        attempt.get("status") == "complete"
+        and evaluation.get("overall") is False
+        and evaluation.get("failure_type") != "truncated"
+    ):
+        # Older artifacts predate explicit zero scores for completed invalid
+        # responses. Normalize them during aggregation without rewriting history.
+        return 0
+    return None
 
 
 def _group_by(

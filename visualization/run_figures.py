@@ -366,9 +366,10 @@ def display_llm_prompt(prepared: PreparedLLMTransition) -> object:
     user_link = _notebook_relative_link(user_path)
     config_link = _notebook_relative_link(MODEL_CONFIGS_PATH)
     scenario_link = _notebook_relative_link(prepared.scenario_path)
-    displayed_user_prompt = _redact_board_configuration(
+    displayed_user_prompt = _redact_board_sequences(
         prepared.user_prompt,
         board_cell_count=len(prepared.board.cells),
+        board_sequence_count=len(prepared.board.segments),
     )
     markup = f"""
 ### Prompt sources
@@ -407,18 +408,44 @@ def _notebook_relative_link(path: Path) -> str:
     return f"../{relative.as_posix()}"
 
 
-def _redact_board_configuration(prompt: str, *, board_cell_count: int) -> str:
-    start_marker = "Board configuration:\n"
+def _redact_board_sequences(
+    prompt: str,
+    *,
+    board_cell_count: int,
+    board_sequence_count: int | None,
+) -> str:
     end_marker = "\n\nRack:\n"
-    start = prompt.find(start_marker)
-    end = prompt.find(end_marker, start + len(start_marker))
+    start_marker = next(
+        (
+            marker
+            for marker in ("Existing sequences:\n", "Board configuration:\n")
+            if marker in prompt
+        ),
+        "",
+    )
+    start = prompt.find(start_marker) if start_marker else -1
+    end = prompt.find(end_marker, start + len(start_marker)) if start >= 0 else -1
     if start < 0 or end < 0:
         return prompt
+    sequence_summary = (
+        f"{board_sequence_count} sequences, "
+        if board_sequence_count is not None
+        else ""
+    )
     replacement = (
-        f"{start_marker}"
-        f"[omitted from notebook display: {board_cell_count} occupied cells]"
+        f"{start_marker}[omitted from notebook display: "
+        f"{sequence_summary}{board_cell_count} occupied cells]"
     )
     return prompt[:start] + replacement + prompt[end:]
+
+
+def _redact_board_configuration(prompt: str, *, board_cell_count: int) -> str:
+    """Compatibility wrapper for notebooks that imported the old helper."""
+    return _redact_board_sequences(
+        prompt,
+        board_cell_count=board_cell_count,
+        board_sequence_count=None,
+    )
 
 
 def llm_run_summary(context: LLMRunContext) -> dict[str, object]:
