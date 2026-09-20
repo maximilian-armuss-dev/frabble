@@ -50,7 +50,7 @@ from src.generator.config import (
 )
 from src.llm.client import LLMCallResult
 from src.llm.env import ENV
-from visualization.evaluation_figures import (
+from visualization.src.evaluation_figures import (
     load_evaluation_results,
     plot_grammar_pass_rates,
     plot_latency_tables,
@@ -100,9 +100,9 @@ def tiny_run(
 
 class EvaluationConfigTests(unittest.TestCase):
     def test_case_set_loads_board_sizes(self):
-        config = load_case_set_config("1r_10-50-150")
+        config = load_case_set_config("1r_sanity_check")
 
-        self.assertEqual(config.board_sizes, [10, 50, 150])
+        self.assertEqual(config.board_sizes, [0])
         self.assertEqual(config.sampling_rounds, 1)
         self.assertNotIn("tiers", config.model_dump(mode="json"))
 
