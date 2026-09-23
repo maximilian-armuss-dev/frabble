@@ -41,6 +41,7 @@ from .run_figures import (
     display_llm_prompt,
     prepare_llm_transition,
 )
+from .scenario_selection_widget import ScenarioPickerSelection, show_scenario_picker
 
 
 def select_evaluation_run(
@@ -127,6 +128,17 @@ def show_scenario_animation(
         board_size=board_size,
         sampling_round=sampling_round,
     )
+    scenario = load_scenario_json(path)
+    return animate_scenario_2d(
+        scenario,
+        letter_scores=load_scenario_letter_scores(path),
+        title=str(scenario["config_name"]),
+    )
+
+
+def show_selected_scenario_animation(selection: ScenarioPickerSelection) -> object:
+    """Animate the scenario currently selected in the notebook picker."""
+    path = selection.selected_scenario().path
     scenario = load_scenario_json(path)
     return animate_scenario_2d(
         scenario,
