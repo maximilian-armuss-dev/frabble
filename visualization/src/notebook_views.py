@@ -18,16 +18,30 @@ from .board_figures import (
     load_scenario_json,
     load_scenario_letter_scores,
 )
+from .case_playground import (
+    display_case_preview,
+    display_case_set_axes,
+    case_set_axes,
+    list_prepared_cases,
+    load_saved_case_attempt,
+    prepare_selected_case,
+    run_prepared_case,
+    select_prepared_case,
+)
 from .evaluation_figures import (
     EvaluationAttemptContext,
     load_evaluation_attempt,
     load_evaluation_results,
 )
+from .overview_selection import completed_runs, display_completed_runs, filtered_run_aggregate
+from .case_selection_widget import show_case_picker, show_overview_filter
+from .notebook_workflows import open_model_playground, load_overview_selection
 from .run_figures import (
     PreparedLLMTransition,
     display_llm_prompt,
     prepare_llm_transition,
 )
+from .scenario_selection_widget import ScenarioPickerSelection, show_scenario_picker
 
 
 def select_evaluation_run(
@@ -114,6 +128,17 @@ def show_scenario_animation(
         board_size=board_size,
         sampling_round=sampling_round,
     )
+    scenario = load_scenario_json(path)
+    return animate_scenario_2d(
+        scenario,
+        letter_scores=load_scenario_letter_scores(path),
+        title=str(scenario["config_name"]),
+    )
+
+
+def show_selected_scenario_animation(selection: ScenarioPickerSelection) -> object:
+    """Animate the scenario currently selected in the notebook picker."""
+    path = selection.selected_scenario().path
     scenario = load_scenario_json(path)
     return animate_scenario_2d(
         scenario,

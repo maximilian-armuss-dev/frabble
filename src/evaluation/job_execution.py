@@ -247,6 +247,7 @@ async def execute_job(
         "case_id": evaluation_case.case_id,
         "case_file": str(job.case_path),
         "board_size": evaluation_case.board_size,
+        "dimensions": evaluation_case.dimensions or board.dimensions,
         "sampling_round": evaluation_case.sampling_round,
         "model": job.model_name,
         "reasoning_effort": job.reasoning_effort,

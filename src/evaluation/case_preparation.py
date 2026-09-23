@@ -49,16 +49,18 @@ class CaseSetPreparer:
         git_revision = _git_revision()
         for board_size in self.config.board_sizes:
             for round_index in range(self.config.sampling_rounds):
-                coordinates = CaseCoordinates(
-                    board_size=board_size,
-                    round_index=round_index,
-                )
-                grammar = self._prepare_grammar(coordinates)
-                self._prepare_case(
-                    coordinates=coordinates,
-                    grammar=grammar,
-                    git_revision=git_revision,
-                )
+                for dimensions in self.config.dimensions or [None]:
+                    coordinates = CaseCoordinates(
+                        board_size=board_size,
+                        round_index=round_index,
+                        dimensions=dimensions,
+                    )
+                    grammar = self._prepare_grammar(coordinates)
+                    self._prepare_case(
+                        coordinates=coordinates,
+                        grammar=grammar,
+                        git_revision=git_revision,
+                    )
 
     def _prepare_grammar(
         self,
@@ -195,6 +197,7 @@ class CaseSetPreparer:
                     config_hash=scenario_hash,
                     path=scenario_path,
                     board_depth=parameters.board_depth,
+                    dimensions=parameters.dimensions,
                 ),
             )
         return PreparedScenario(config=generation_config, path=scenario_path)
@@ -248,6 +251,7 @@ class CaseSetPreparer:
                 config_hash=case_hash,
                 path=case_path,
                 board_size=coordinates.board_size,
+                dimensions=parameters.dimensions,
             ),
         )
 

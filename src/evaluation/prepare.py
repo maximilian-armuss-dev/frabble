@@ -37,7 +37,8 @@ def prepare_case_set(
     if clean:
         _clean_case_set_root(root)
 
-    config_hash = content_sha256(config.model_dump(mode="json"))
+    # Keep existing single-dimension case sets compatible with their manifests.
+    config_hash = content_sha256(config.model_dump(mode="json", exclude_none=True))
     manifest = PreparationManifest.load_or_create(
         root / "prepare-manifest.json",
         config,

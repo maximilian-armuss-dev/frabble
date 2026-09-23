@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import csv
+import json
 import tempfile
 import unittest
 from contextlib import contextmanager
@@ -14,7 +15,7 @@ from openrouter import errors as openrouter_errors
 from pydantic import BaseModel
 
 from src.configuration import NamedYamlConfigSource
-from src.evaluation.artifacts import read_json, write_json_atomic
+from src.evaluation.artifacts import content_sha256, read_json, write_json_atomic
 from src.evaluation.config import (
     CaseSetConfig,
     NumericRange,
@@ -58,6 +59,16 @@ from visualization.src.evaluation_figures import (
     plot_primary_failure_bars,
     plot_token_usage_bars,
 )
+from visualization.src.case_playground import (
+    case_set_axes,
+    display_case_set_axes,
+    list_prepared_cases,
+    load_saved_case_attempt,
+    prepare_selected_case,
+    run_prepared_case,
+    select_prepared_case,
+)
+from visualization.src.overview_selection import completed_runs, filtered_run_aggregate
 
 
 class ExampleConfig(BaseModel):
@@ -65,7 +76,11 @@ class ExampleConfig(BaseModel):
     value: int
 
 
-def tiny_case_set(*, board_sizes: list[int] | None = None) -> CaseSetConfig:
+def tiny_case_set(
+    *,
+    board_sizes: list[int] | None = None,
+    dimensions: list[int] | None = None,
+) -> CaseSetConfig:
     return CaseSetConfig.model_validate(
         {
             "config_name": "tiny",
@@ -74,6 +89,7 @@ def tiny_case_set(*, board_sizes: list[int] | None = None) -> CaseSetConfig:
             "root_seed": 7,
             "sampling_rounds": 1,
             "board_sizes": board_sizes or [0],
+            "dimensions": dimensions,
         }
     )
 
@@ -106,6 +122,21 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(config.sampling_rounds, 1)
         self.assertNotIn("tiers", config.model_dump(mode="json"))
 
+    def test_case_set_rejects_invalid_dimensions(self):
+        for dimensions in ([], [1], [2, 2]):
+            with self.subTest(dimensions=dimensions):
+                with self.assertRaises(ValueError):
+                    tiny_case_set(dimensions=dimensions)
+
+    def test_legacy_case_set_hash_omits_new_optional_dimension_axis(self):
+        config = tiny_case_set()
+        previous_payload = config.model_dump(mode="json", exclude={"dimensions"})
+
+        self.assertEqual(
+            content_sha256(previous_payload),
+            content_sha256(config.model_dump(mode="json", exclude_none=True)),
+        )
+
     def test_evaluation_rejects_obsolete_reasoning_config(self):
         payload = tiny_run().model_dump(mode="json")
         payload["reasoning_effort"] = "high"
@@ -127,6 +158,19 @@ class EvaluationConfigTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "must not mix 'all'"):
             RunConfig.model_validate(payload)
+
+    def test_evaluation_plots_split_dimensions(self):
+        aggregate = _plot_aggregate()
+        group = aggregate["groups"][0]
+        group["dimensions"] = 2
+        other = {**group, "dimensions": 3}
+        aggregate["groups"] = [group, other]
+
+        figures = plot_pass_rate_heatmaps(aggregate)
+
+        self.assertEqual(len(figures), 2)
+        self.assertIn("2D", figures[0].layout.title.text)
+        self.assertIn("3D", figures[1].layout.title.text)
 
     def test_evaluation_plots_sort_failures_and_expose_resources(self):
         aggregate = _plot_aggregate()
@@ -678,6 +722,118 @@ class EvaluationConfigTests(unittest.TestCase):
                 "fixed_final_transition_length"
             ],
         )
+
+    def test_dimensions_share_grammar_and_keep_distinct_cases(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            with patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", root):
+                manifest = prepare_case_set(
+                    tiny_case_set(board_sizes=[1], dimensions=[2, 3])
+                )
+            cases = {
+                case["dimensions"]: case
+                for case in (
+                    read_json(path)
+                    for path in (root / "tiny" / "cases").glob("*.json")
+                )
+            }
+
+        self.assertEqual(len(manifest["grammars"]), 1)
+        self.assertEqual(len(manifest["scenarios"]), 2)
+        self.assertEqual(set(cases), {2, 3})
+        self.assertEqual(
+            len({case["provenance"]["grammar_sha256"] for case in cases.values()}),
+            1,
+        )
+        for dimensions, case in cases.items():
+            self.assertIn(f".d{dimensions}.", case["case_id"])
+            self.assertEqual(case["board"]["dimensions"], dimensions)
+            self.assertEqual(len(case["board"]["segments"]), 1)
+
+    def test_case_axes_and_playground_use_frozen_case_including_empty_board(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            with patch(
+                "src.evaluation.prepare.EVALUATION_OUTPUT_DIR",
+                root / "outputs" / "evaluation",
+            ):
+                prepare_case_set(tiny_case_set(board_sizes=[0, 1], dimensions=[2, 3]))
+
+            cases = list_prepared_cases("tiny", project_root=root)
+            self.assertEqual(
+                [(case.visible_sequences, case.dimensions) for case in cases],
+                [(0, 2), (0, 3), (1, 2), (1, 3)],
+            )
+            self.assertEqual(case_set_axes(cases).dimensions, (2, 3))
+            self.assertEqual(case_set_axes(cases).visible_sequences, (0, 1))
+            self.assertIn("Sequences on board", display_case_set_axes(cases, case_set="tiny").data)
+            with self.assertRaisesRegex(ValueError, "DIMENSIONS must be one of"):
+                select_prepared_case(cases, 5, 0, 0)
+            selected = select_prepared_case(cases, 2, 0, 0)
+            prepared = prepare_selected_case(selected, "openai_gpt-5", "low")
+
+            async def fake_call(_system, _user, _model, *, reasoning_effort):
+                self.assertEqual(reasoning_effort, "low")
+                return LLMCallResult(
+                    content=json.dumps(prepared.case.ground_truth_move),
+                    usage={},
+                    metadata={"finish_reason": "stop"},
+                )
+
+            context = asyncio.run(
+                run_prepared_case(
+                    prepared,
+                    output_dir=root / "llm-runs",
+                    call_llm=fake_call,
+                )
+            )
+
+            runs_dir = root / "outputs" / "evaluation" / "tiny" / "runs"
+            for name, completed_at in (
+                ("older", "2026-01-01T00:00:00+00:00"),
+                ("newer", "2026-01-02T00:00:00+00:00"),
+            ):
+                run_dir = runs_dir / name
+                write_json_atomic(
+                    run_dir / "run-manifest.json",
+                    {"status": "complete", "completed_at": completed_at},
+                )
+                write_json_atomic(run_dir / "aggregate.json", {})
+                write_json_atomic(
+                    run_dir / "attempts" / f"{context.attempt['job_id']}.json",
+                    {**context.attempt, "raw_response": name},
+                )
+                if name == "newer":
+                    other = select_prepared_case(cases, 3, 0, 0)
+                    write_json_atomic(
+                        run_dir / "attempts" / "other.json",
+                        {
+                            **context.attempt,
+                            "case_id": other.case_id,
+                            "case_file": str(other.path),
+                            "dimensions": 3,
+                            "evaluation": {"overall": False, "failure_type": "rack"},
+                        },
+                    )
+            saved = load_saved_case_attempt(selected, "openai_gpt-5")
+            runs = completed_runs("tiny", project_root=root)
+            all_run, full_aggregate, full_count = filtered_run_aggregate(
+                cases, runs, 1, [2, 3], [0, 1], [0]
+            )
+            _, sliced_aggregate, sliced_count = filtered_run_aggregate(
+                cases, runs, 1, [3], [0], [0]
+            )
+
+        self.assertEqual(len(context.board.segments), 0)
+        self.assertEqual(context.attempt["case_id"], prepared.case.case_id)
+        self.assertEqual(context.attempt["user_prompt"], prepared.user_prompt)
+        self.assertTrue(context.attempt["evaluation"]["overall"])
+        self.assertEqual(saved.attempt["raw_response"], "newer")
+        self.assertEqual(all_run.run_id, "newer")
+        self.assertEqual(full_count, 2)
+        self.assertEqual(full_aggregate["overall"]["passed"], 1)
+        self.assertEqual(sliced_count, 1)
+        self.assertEqual(sliced_aggregate["overall"]["passed"], 0)
 
     def test_prepare_reports_generation_progress_per_witness(self):
         starts: list[tuple[str, int]] = []

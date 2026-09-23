@@ -43,6 +43,7 @@ class ScenarioRecord:
     sampling_round: int | None
     seed: int | None
     path: Path
+    dimensions: int | None = None
 
 
 def evaluation_case_sets(*, project_root: str | Path = PROJECT_ROOT) -> tuple[str, ...]:
@@ -303,6 +304,15 @@ def scenarios(
         if sampling_round is not None and file_round != sampling_round:
             continue
         data = _read_object(path)
+        initial_board = data.get("initial_board")
+        config = data.get("config")
+        dimensions = (
+            initial_board.get("dimensions")
+            if isinstance(initial_board, dict)
+            else None
+        )
+        if dimensions is None and isinstance(config, dict):
+            dimensions = config.get("dimensions")
         records.append(
             ScenarioRecord(
                 source=source,
@@ -311,6 +321,7 @@ def scenarios(
                 sampling_round=file_round,
                 seed=_optional_int(data.get("seed")),
                 path=path,
+                dimensions=_optional_int(dimensions),
             )
         )
     return tuple(

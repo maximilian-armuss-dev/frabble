@@ -18,6 +18,7 @@ class EvaluationCase(BaseModel):
     case_id: str
     case_set: str
     board_size: int
+    dimensions: int | None = None
     sampling_round: int
     seeds: dict[str, int]
     parameters: dict[str, Any]

@@ -24,6 +24,7 @@ class ResultAggregationTests(unittest.TestCase):
                 {
                     "board_size": 50,
                     "sampling_round": 2,
+                    "board": {"dimensions": 3},
                 },
             )
             attempt = _attempt(
@@ -42,6 +43,7 @@ class ResultAggregationTests(unittest.TestCase):
 
         group = aggregate["groups"][0]
         self.assertEqual(group["board_size"], 50)
+        self.assertEqual(group["dimensions"], 3)
         self.assertEqual(group["reasoning_effort"], "high")
         self.assertEqual(
             group["grammars"][0]["sampling_round"],
@@ -213,6 +215,27 @@ class ResultAggregationTests(unittest.TestCase):
                 for group in aggregate["groups"]
             },
             {("low", 1), ("high", 1)},
+        )
+
+    def test_dimensions_remain_separate_in_results(self):
+        two_d = _attempt(case_id="two-d")
+        two_d["dimensions"] = 2
+        three_d = _attempt(case_id="three-d", overall=False, failure_type="rack")
+        three_d["dimensions"] = 3
+
+        aggregate = build_aggregate([two_d, three_d])
+        summary = compact_summary(aggregate)
+        rows = list(iter_result_rows(aggregate))
+
+        self.assertEqual(
+            {(group["dimensions"], group["pass_rate"]) for group in aggregate["groups"]},
+            {(2, 1.0), (3, 0.0)},
+        )
+        self.assertEqual(summary["by_dimensions"]["2"]["passed"], 1)
+        self.assertEqual(summary["by_dimensions"]["3"]["failed"], 1)
+        self.assertEqual(
+            {row["dimensions"] for row in rows if row["scope"] == "group"},
+            {2, 3},
         )
 
     def test_compact_summary_uses_weighted_counts_across_groups(self):
