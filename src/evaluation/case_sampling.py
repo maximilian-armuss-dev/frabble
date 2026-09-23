@@ -21,6 +21,7 @@ class SampledBoardParameters:
 class CaseCoordinates:
     board_size: int
     round_index: int
+    dimensions: int | None = None
 
 
 def sample_board_parameters(
@@ -36,7 +37,11 @@ def sample_board_parameters(
     )
     return SampledBoardParameters(
         seed=board_seed,
-        dimensions=base_generation.dimensions,
+        dimensions=(
+            coordinates.dimensions
+            if coordinates.dimensions is not None
+            else base_generation.dimensions
+        ),
         board_size=coordinates.board_size,
         # The scenario starts with one word already placed. Therefore a board
         # with N words needs N - 1 scenario transitions before the evaluation
@@ -114,7 +119,12 @@ def evaluation_case_id(
     case_set: str,
     coordinates: CaseCoordinates,
 ) -> str:
+    dimension_part = (
+        f".d{coordinates.dimensions}"
+        if coordinates.dimensions is not None
+        else ""
+    )
     return (
-        f"{case_set}.b{coordinates.board_size:03d}."
+        f"{case_set}{dimension_part}.b{coordinates.board_size:03d}."
         f"r{coordinates.round_index:02d}"
     )

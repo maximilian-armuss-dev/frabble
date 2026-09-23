@@ -16,7 +16,9 @@ flowchart TD
 
 Grammar configs describe how one artificial language is sampled. Generation configs describe how a scenario grows from a concrete grammar. Their behavior is documented in [Language and Grammar](../foundations/language-and-grammar.md) and [Scenario Generation](../generation/README.md).
 
-A case-set config references one grammar recipe and one generation recipe, then defines the sampling matrix through its root seed, board sizes, and rounds. Preparation resolves those recipes into concrete per-case artifacts.
+A case-set config references one grammar recipe and one generation recipe, then defines the sampling matrix through its root seed, board sizes, rounds, and optionally a list of dimensions. Without that list, the generation recipe supplies one fixed dimension. Preparation resolves those recipes into concrete per-case artifacts.
+
+The checked-in [dimension pilot](../../config/evaluation/case_sets/dimension_pilot.yaml) shows the explicit dimension axis. Its cases can be prepared locally without model calls.
 
 A run config references a completed case set. It selects model profiles and prepared board sizes and adds execution policy such as global concurrency, optional per-model concurrency, and retry limits. It never redefines the frozen cases.
 
@@ -38,6 +40,6 @@ The common filename and loading convention lives in [`src/configuration.py`](../
 
 ## Reproducibility boundary
 
-The case-set root seed, board size, and sampling round derive the grammar and board seeds. Resolved configs, actual grammar seeds, and source provenance are embedded into prepared artifacts and cases.
+The case-set root seed, board size, and sampling round derive the grammar and board seeds. A dimensional comparison reuses the same sampled grammar and board seed at each size and round, while the generator runs separately in every requested dimension. Resolved configs, actual grammar seeds, and source provenance are embedded into prepared artifacts and cases.
 
 Runtime model policy remains outside the case. Jobs record the chosen language representation, reasoning effort, and model profile, while provider-specific request translation happens inside [`src/llm/client.py`](../../src/llm/client.py) and [`src/llm/openrouter_client.py`](../../src/llm/openrouter_client.py). The same frozen case can therefore be reused across models without losing the exact context of any attempt.

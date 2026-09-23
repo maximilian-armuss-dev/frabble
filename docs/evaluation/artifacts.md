@@ -50,6 +50,6 @@ Run identity and resume lookup live in [`src/evaluation/run_artifacts.py`](../..
 
 ## Identity and provenance
 
-Case identity combines case set, board size, and sampling round. Job identity adds the model profile, reasoning effort, and language representation. Content hashes use canonical JSON over the relevant resolved config or artifact.
+Case identity combines case set, board size, and sampling round. Case sets with an explicit dimension list also include the dimension in case IDs, while older single-dimension IDs keep their original form. Job identity adds the model profile, reasoning effort, and language representation. Content hashes use canonical JSON over the relevant resolved config or artifact.
 
 Cases retain source grammar and scenario hashes plus the available Git revision. Attempts retain the provider-facing request context. Together these layers distinguish the semantic experiment from a particular machine, provider call, or execution time.

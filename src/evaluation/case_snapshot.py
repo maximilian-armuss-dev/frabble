@@ -63,7 +63,7 @@ def build_evaluation_case(
         case_id=case_id,
         case_set=case_set,
         board_size=coordinates.board_size,
-
+        dimensions=parameters.dimensions,
         sampling_round=coordinates.round_index,
         seeds={
             "grammar_requested": grammar.config.seed,

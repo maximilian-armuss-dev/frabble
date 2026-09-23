@@ -18,11 +18,24 @@ from .board_figures import (
     load_scenario_json,
     load_scenario_letter_scores,
 )
+from .case_playground import (
+    display_case_preview,
+    display_case_set_axes,
+    case_set_axes,
+    list_prepared_cases,
+    load_saved_case_attempt,
+    prepare_selected_case,
+    run_prepared_case,
+    select_prepared_case,
+)
 from .evaluation_figures import (
     EvaluationAttemptContext,
     load_evaluation_attempt,
     load_evaluation_results,
 )
+from .overview_selection import completed_runs, display_completed_runs, filtered_run_aggregate
+from .case_selection_widget import show_case_picker, show_overview_filter
+from .notebook_workflows import open_model_playground, load_overview_selection
 from .run_figures import (
     PreparedLLMTransition,
     display_llm_prompt,

@@ -534,14 +534,17 @@ def plot_latency_tables(
 def _group_slices(
     aggregate: Mapping[str, Any],
 ) -> list[tuple[str, str, list[Mapping[str, Any]]]]:
-    buckets: dict[tuple[str, str], list[Mapping[str, Any]]] = {}
+    buckets: dict[tuple[str, str, int | None], list[Mapping[str, Any]]] = {}
     for group in aggregate["groups"]:
         representation = str(group["language_representation"])
         effort = str(group.get("reasoning_effort") or "default")
-        buckets.setdefault((representation, effort), []).append(group)
+        dimensions = group.get("dimensions")
+        buckets.setdefault((representation, effort, dimensions), []).append(group)
     return [
         (representation, effort, groups)
-        for (representation, effort), groups in sorted(buckets.items())
+        for (representation, effort, _dimensions), groups in sorted(
+            buckets.items(), key=lambda item: tuple(str(part) for part in item[0])
+        )
     ]
 
 
@@ -660,11 +663,15 @@ def _plot_metadata(
         if board_size is not None
         else ", ".join(str(size) for size in _ordered_board_sizes(groups))
     )
-    return {
+    metadata = {
         "Board size": board_sizes,
         "Representation": representation,
         "Reasoning": effort,
     }
+    dimensions = {group.get("dimensions") for group in groups}
+    if len(dimensions) == 1 and None not in dimensions:
+        metadata["Dimensions"] = f"{next(iter(dimensions))}D"
+    return metadata
 
 
 def _format_seconds(value: float | None) -> str:

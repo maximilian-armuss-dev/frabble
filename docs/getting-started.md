@@ -59,7 +59,7 @@ flowchart LR
     Attempts --> Aggregates
 ```
 
-Preparation expands a case-set config into independent board-size and sampling-round combinations. Each combination receives deterministically derived seeds, its own sampled grammar, a generated scenario, and a frozen evaluation case. A board size describes how many placed word segments are visible to the model; size zero is the empty-board boundary case.
+Preparation expands a case-set config into board-size and sampling-round combinations, plus the configured dimensions when present. Cases at the same size and round share a sampled grammar across dimensions; each gets its own generated scenario and frozen evaluation case. A board size describes how many placed word segments are visible to the model; size zero is the empty-board boundary case.
 
 ```bash
 uv run prepare --config 1r_sanity_check
@@ -87,9 +87,8 @@ The conceptual boundaries are described in [Domain and Representations](foundati
 
 ## Inspecting results
 
-- [`visualization/notebooks/model_playground.ipynb`](../visualization/notebooks/model_playground.ipynb) is the interactive path for understanding one prompt and response.
-- [`visualization/notebooks/evaluation_overview.ipynb`](../visualization/notebooks/evaluation_overview.ipynb) summarizes a complete stored run.
-- [`visualization/notebooks/evaluation_attempt.ipynb`](../visualization/notebooks/evaluation_attempt.ipynb) shows the prompt, response, validation result, and board for one attempt.
+- [`visualization/notebooks/model_playground.ipynb`](../visualization/notebooks/model_playground.ipynb) uses dropdowns to select one prepared puzzle. Choose `saved` to inspect an existing answer, or `fresh` to preview a new request before running the separate, potentially paid send cell.
+- [`visualization/notebooks/evaluation_overview.ipynb`](../visualization/notebooks/evaluation_overview.ipynb) uses a run dropdown and checkboxes for dimensions, visible sequence counts, and rounds. Re-run the aggregate and plot cells after changing the filter.
 
 The test suite exercises the same boundaries without making provider calls:
 

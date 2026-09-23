@@ -20,6 +20,7 @@ CONSTRAINT_FIELDS = (
     "rack_valid",
 )
 GROUP_FIELDS = (
+    "dimensions",
     "board_size",
     "model",
     "language_representation",
@@ -27,6 +28,7 @@ GROUP_FIELDS = (
 )
 CSV_FIELDS = (
     "scope",
+    "dimensions",
     "board_size",
     "model",
     "language_representation",
@@ -62,9 +64,12 @@ def compact_summary(aggregate: Mapping[str, Any]) -> dict[str, Any]:
     overall = dict(aggregate["overall"])
     groups = list(aggregate["groups"])
     by_board_size: dict[str, dict[str, int | float | None]] = {}
+    by_dimensions: dict[str, dict[str, int | float | None]] = {}
     by_model: dict[str, dict[str, int | float | None]] = {}
     for group in groups:
         _merge_compact_bucket(by_board_size, str(group["board_size"]), group)
+        if group["dimensions"] is not None:
+            _merge_compact_bucket(by_dimensions, str(group["dimensions"]), group)
         _merge_compact_bucket(by_model, str(group["model"]), group)
 
     return {
@@ -79,6 +84,7 @@ def compact_summary(aggregate: Mapping[str, Any]) -> dict[str, Any]:
         "format_robust": overall.get("format_robust"),
         "failed_constraints": overall["failed_constraints"],
         "by_board_size": by_board_size,
+        "by_dimensions": by_dimensions,
         "by_model": by_model,
         "by_group": [
             {
@@ -455,10 +461,7 @@ def _enrich_coordinates(attempt: dict[str, Any]) -> dict[str, Any]:
             "reasoning_effort",
             model_config.get("reasoning_depth"),
         )
-    required = (
-        "board_size",
-        "sampling_round",
-    )
+    required = ("dimensions", "board_size", "sampling_round")
     if all(enriched.get(field) is not None for field in required):
         return enriched
     case_file = enriched.get("case_file")
@@ -470,7 +473,11 @@ def _enrich_coordinates(attempt: dict[str, Any]) -> dict[str, Any]:
         return enriched
     for field in required:
         if enriched.get(field) is None:
-            enriched[field] = case.get(field)
+            enriched[field] = (
+                case.get("board", {}).get("dimensions")
+                if field == "dimensions" and case.get(field) is None
+                else case.get(field)
+            )
     return enriched
 
 

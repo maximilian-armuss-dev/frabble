@@ -22,7 +22,7 @@ flowchart LR
 
 An `EvaluationCase` is the stable question shared across models. It embeds the concrete grammar, reconstructed board, rack, hidden witness, resolved generation context, seeds, hashes, and provenance needed to reproduce that question without consulting mutable YAML recipes.
 
-Board size counts the placed segments visible in the exposed state. A sampling round produces another grammar and board at that size. For positive sizes, preparation reconstructs the corresponding scenario state and uses its next transition as the hidden witness; the size-zero boundary exposes an empty board and uses the generated initial move.
+Board size counts the placed segments visible in the exposed state. A sampling round produces another grammar and board at that size. Case sets may also sample dimensions; cases at the same size and round then share a grammar but have separate board histories. For positive sizes, preparation reconstructs the corresponding scenario state and uses its next transition as the hidden witness; the size-zero boundary exposes an empty board and uses the generated initial move.
 
 The witness establishes that a solution exists but is never compared as an answer key. Prompting uses only the visible case state, and the submitted move is checked independently. The versioned case model lives in [`src/evaluation/models.py`](../../src/evaluation/models.py), with snapshot construction in [`src/evaluation/case_snapshot.py`](../../src/evaluation/case_snapshot.py).
 
@@ -44,7 +44,7 @@ Provider access remains behind [`src/llm/`](../../src/llm/), generation behind [
 
 Each job ends in one persisted attempt. Completed attempts contain the prompt, raw response, parsed move, strict and format-robust evaluation, timing, usage, provider metadata, and retry history. Transport failures remain distinguishable from completed but semantically invalid responses.
 
-Attempts feed a compact summary, a detailed grouped aggregate, and long-form CSV rows. Results are grouped across stable experiment coordinates such as model, board size, language representation, reasoning effort, and sampled grammar; quality measures remain separate from pass/fail validity.
+Attempts feed a compact summary, a detailed grouped aggregate, and long-form CSV rows. Results are grouped across stable experiment coordinates such as model, board size, dimension, language representation, reasoning effort, and sampled grammar; quality measures remain separate from pass/fail validity.
 
 The surrounding pages each own one narrower boundary:
 

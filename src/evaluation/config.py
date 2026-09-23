@@ -59,6 +59,7 @@ class CaseSetConfig(BaseModel):
     root_seed: int
     sampling_rounds: int = Field(default=1, gt=0)
     board_sizes: list[int]
+    dimensions: list[int] | None = None
 
     @field_validator("board_sizes")
     @classmethod
@@ -69,6 +70,17 @@ class CaseSetConfig(BaseModel):
             raise ValueError("Board sizes must be >= 0.")
         if len(value) != len(set(value)):
             raise ValueError("Board sizes must not contain duplicates.")
+        return value
+
+    @field_validator("dimensions")
+    @classmethod
+    def validate_dimensions(cls, value: list[int] | None) -> list[int] | None:
+        if value is None:
+            return None
+        if not value or any(isinstance(dim, bool) or dim < 2 for dim in value):
+            raise ValueError("Dimensions must be a non-empty list of integers >= 2.")
+        if len(value) != len(set(value)):
+            raise ValueError("Dimensions must not contain duplicates.")
         return value
 
 
