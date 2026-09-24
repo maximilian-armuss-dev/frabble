@@ -10,10 +10,13 @@ from typing import Iterable, Mapping, Sequence
 
 from src.domain.board import Board
 from src.domain.models import Coord
+from src.benchmark.scoring import tile_multiplier
 from src.formal.grammar.serialization import load_grammar
 from src.generator.config import resolve_scenario_grammar_path
 from src.generator.reconstruction import reconstruct_boards
 from src.generator.scenario_io import load_scenario_run
+
+from .board_palette import BONUS_COLORS
 
 BASE_TILE = "#f7f8fa"
 TEXT_COLOR = "#15181d"
@@ -134,6 +137,85 @@ def plot_board_2d(
         letter_scores=letter_scores,
         title=title,
     )
+
+
+def plot_playground_board_2d(
+    board: Board,
+    *,
+    tile_colors: Mapping[Coord, str] | None = None,
+    letter_scores: Mapping[str, int] | None = None,
+    title: str = "Board",
+) -> object:
+    """Show Scrabble tiles with the quieter palette of the 3D board viewer."""
+    import plotly.graph_objects as go
+
+    if board.dimensions != 2:
+        raise ValueError("The playground tile view requires a two-dimensional board.")
+
+    figure = go.Figure()
+    marker_size = _marker_size_2d(board, (0, 1))
+    if board.cells:
+        xs, ys = _axis_values(board, (0, 1))
+        available = [
+            (x, y)
+            for x in xs for y in ys
+            if (x, y) not in board.cells and tile_multiplier((x, y)) > 1
+        ]
+        backgrounds = {2: "#fff7e9", 3: "#f6eff9", 4: "#fff0eb"}
+        for multiplier, color in BONUS_COLORS.items():
+            coords = [coord for coord in available if tile_multiplier(coord) == multiplier]
+            if not coords:
+                continue
+            figure.add_trace(go.Scatter(
+                x=[coord[0] for coord in coords],
+                y=[coord[1] for coord in coords],
+                mode="markers+text",
+                marker={
+                    "size": marker_size, "symbol": "square",
+                    "color": backgrounds[multiplier],
+                    "line": {"color": color, "width": 1.3},
+                },
+                text=[f"×{multiplier}" if marker_size >= 24 else "" for _ in coords],
+                textfont={"color": color, "size": max(8, round(marker_size * 0.24))},
+                textposition="middle center",
+                hovertemplate=f"Available ×{multiplier} cell · (%{{x}}, %{{y}})<extra></extra>",
+                showlegend=False,
+            ))
+
+    traces = _board_2d_traces(
+        board, tile_colors=tile_colors or {}, letter_scores=letter_scores or {},
+        axes=(0, 1), plane_coords={},
+    )
+    tile_trace = traces[0]
+    coords = [tuple(values[0]) for values in tile_trace.customdata]
+    tile_trace.marker.line.color = [
+        BONUS_COLORS.get(tile_multiplier(coord), "#bccbd6") for coord in coords
+    ]
+    tile_trace.marker.line.width = 1.7
+    tile_trace.textfont.color = "#24384b"
+    tile_trace.customdata = [
+        [values[0], values[1], values[2], tile_multiplier(coord)]
+        for values, coord in zip(tile_trace.customdata, coords, strict=True)
+    ]
+    tile_trace.hovertemplate = (
+        "<b>%{text}</b> · %{customdata[0]}"
+        "<br>Letter value %{customdata[2]} · cell bonus ×%{customdata[3]}"
+        " (new tiles only)"
+        "<br>Axes %{customdata[1]}<extra></extra>"
+    )
+    for trace in traces:
+        figure.add_trace(trace)
+
+    _style_plotly_xy(figure, board, (0, 1), title)
+    figure.update_layout(
+        title={"text": title, "font": {"size": 19, "color": "#24384b"},
+               "x": 0.03, "y": 0.97},
+        font={"family": "Arial, sans-serif", "color": "#334b60"},
+        paper_bgcolor="#ffffff", plot_bgcolor="#f8fbfd",
+        margin={"l": 8, "r": 8, "t": 52, "b": 12},
+        height=figure.layout.height + 24,
+    )
+    return figure
 
 
 def plot_board_axis_pairs(

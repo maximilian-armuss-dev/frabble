@@ -1,4 +1,4 @@
-"""Compact selectors for two-dimensional scenario animations."""
+"""Compact selectors for scenario views."""
 
 from __future__ import annotations
 
@@ -24,26 +24,28 @@ class ScenarioPickerSelection:
         return record
 
 
-def show_scenario_picker() -> ScenarioPickerSelection | None:
-    """Select an existing 2D scenario without typing artifact names."""
+def show_scenario_picker(*, dimensions: int = 2) -> ScenarioPickerSelection | None:
+    """Select an existing scenario of the requested dimensionality."""
     from IPython.display import display
     from ipywidgets import Dropdown, HTML, Layout
 
     records_by_source = {
-        source: tuple(record for record in scenarios(source) if record.dimensions == 2)
+        source: tuple(record for record in scenarios(source) if record.dimensions == dimensions)
         for source in scenario_sources()
     }
     records_by_source = {
         source: records for source, records in records_by_source.items() if records
     }
     if not records_by_source:
-        display(HTML("No two-dimensional scenarios found. Generate or prepare a case set first."))
+        display(HTML(f"No {dimensions}D scenarios found. Generate or prepare a case set first."))
         return None
 
     sources = tuple(records_by_source)
     initial_source = (
         "generated/7r_final_merged"
-        if "generated/7r_final_merged" in sources
+        if dimensions == 2 and "generated/7r_final_merged" in sources
+        else "evaluation/dimension_pilot"
+        if dimensions == 3 and "evaluation/dimension_pilot" in sources
         else sources[0]
     )
     control_layout = Layout(width="calc(100% - 10px)", min_width="0")

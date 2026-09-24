@@ -9,7 +9,7 @@ from unittest.mock import patch
 from openrouter import components
 from pydantic import ValidationError
 
-from src.benchmark.scoring import BoardScoring
+from src.benchmark.scoring import BoardScoring, score_move, tile_multiplier
 from src.cli import build_parser
 from src.domain.board import Board
 from src.domain.models import AnchorCandidate, Move, SlotTemplate, TemplateCandidate
@@ -105,6 +105,49 @@ class CountingLanguage:
     ) -> tuple[int, list[int], list[tuple[int, int, int]], dict[str, int]]:
         self.automaton_calls += 1
         return self.delegate.ortools_automaton()
+
+
+class TestScoreMultipliers(unittest.TestCase):
+    def test_values_cycle_within_each_bonus_plane_in_any_dimension(self):
+        for dimensions in (2, 3, 5):
+            with self.subTest(dimensions=dimensions):
+                for line in range(-2, 5):
+                    coord = (0, 2 + 10 * line) + (0,) * (dimensions - 2)
+                    self.assertEqual(tile_multiplier(coord), 4)
+                    self.assertEqual(tile_multiplier((1, coord[1]) + coord[2:]), 1)
+
+        self.assertEqual(
+            [tile_multiplier((x, 2 - x)) for x in range(5)],
+            [4, 2, 3, 2, 4],
+        )
+        self.assertEqual(
+            [tile_multiplier((x, 2 - x, 0)) for x in range(5)],
+            [4, 2, 3, 2, 4],
+        )
+
+    def test_only_new_symbols_receive_additive_premiums(self):
+        letter_scores = {"A": 1, "B": 2, "C": 3}
+        anchored_board = Board(dimensions=2, cells={(0, 0): "B"}, segments=())
+        fresh_premium = Move(start=(0, 0), axis=1, sequence=("B", "A", "C"))
+        self.assertEqual(score_move(anchored_board, fresh_premium, letter_scores), 15)
+
+        board = Board(dimensions=2, cells={(0, 2): "B"}, segments=())
+        reused_premium = Move(start=(0, 1), axis=1, sequence=("A", "B", "C"))
+        self.assertEqual(score_move(board, reused_premium, letter_scores), 6)
+
+        two_lines = Move(start=(2, 0), axis=0, sequence=("A",) * 11)
+        self.assertEqual(score_move(Board.empty(2), two_lines, letter_scores), 16)
+
+    def test_granular_evaluation_uses_multiplier_rule(self):
+        evaluation = evaluate_granular(
+            Board.empty(2),
+            language(),
+            ("A", "B", "C"),
+            SubmittedMove(start=(0, 0), axis=1, sequence=("A", "B", "C")),
+        )
+
+        self.assertTrue(evaluation.overall)
+        self.assertEqual(evaluation.letter_score_total, 15)
 
 
 def config_dict(output_path: str, *, dimensions: int = 2) -> dict[str, object]:
@@ -1369,6 +1412,8 @@ class CoreTests(unittest.TestCase):
         self.assertIn("If the board is non-empty", system_prompt)
         self.assertIn("every maximal contiguous line", system_prompt)
         self.assertIn("## Score", system_prompt)
+        self.assertIn("S = 2 + 10k", system_prompt)
+        self.assertIn("x4, x2, x3, x2", system_prompt)
         self.assertIn("JSON object", system_prompt)
         self.assertIn("`start`, `axis`, and `sequence`", system_prompt)
         self.assertNotIn("highest-scoring valid move", user_prompt)

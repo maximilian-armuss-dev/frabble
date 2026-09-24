@@ -18,6 +18,7 @@ from .case_playground import (
 )
 from .case_selection_widget import CasePickerSelection, OverviewFilterSelection
 from .evaluation_figures import EvaluationAttemptContext
+from .board_3d import display_grounded_3d
 
 
 def _prompt_details(system_prompt: str, user_prompt: str) -> HTML:
@@ -74,14 +75,20 @@ class ModelPlaygroundSession:
                 str(self.context.attempt.get("user_prompt", "")),
             )
         )
-        for figure in figures.plot_attempt_move(self.context, move_source="parsed"):
-            display(figure)
+        self._show_move("parsed")
 
     def show_witness(self) -> None:
         if self.context is None:
             raise RuntimeError("Load or generate a response first.")
-        for figure in figures.plot_attempt_move(self.context, move_source="ground_truth"):
-            display(figure)
+        self._show_move("ground_truth")
+
+    def _show_move(self, source: figures.MoveSource) -> None:
+        assert self.context is not None
+        for figure in figures.plot_attempt_move(self.context, move_source=source):
+            if self.context.board.dimensions == 3:
+                display_grounded_3d(figure)
+            else:
+                display(figure)
 
 
 def open_model_playground(
