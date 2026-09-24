@@ -1,7 +1,31 @@
 from __future__ import annotations
 
+from typing import Mapping
+
 from ..domain.board import Board
-from ..domain.models import Coord
+from ..domain.models import Coord, Move, Symbol
+
+
+MULTIPLIER_SPACING = 10
+MULTIPLIER_OFFSET = 2
+MULTIPLIER_CYCLE = (4, 2, 3, 2)
+
+
+def tile_multiplier(coord: Coord) -> int:
+    """Periodic bonus planes with a repeating value pattern inside each plane."""
+    if (sum(coord) - MULTIPLIER_OFFSET) % MULTIPLIER_SPACING:
+        return 1
+    phase = sum((axis - 1) * value for axis, value in enumerate(coord))
+    return MULTIPLIER_CYCLE[phase % len(MULTIPLIER_CYCLE)]
+
+
+def score_move(board: Board, move: Move, letter_scores: Mapping[Symbol, int]) -> int:
+    """Score a valid move; premiums apply only to newly occupied cells."""
+    return sum(
+        letter_scores.get(symbol, 0)
+        * (tile_multiplier(coord) if board.get(coord) is None else 1)
+        for coord, symbol in zip(move.coords(), move.sequence, strict=True)
+    )
 
 
 class BoardScoring:

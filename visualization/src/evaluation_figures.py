@@ -12,7 +12,8 @@ from src.domain.models import Move
 from src.evaluation.models import EvaluationCase
 from src.formal.language import StrictlyLocalLanguage
 
-from .board_figures import PROJECT_ROOT, plot_board_axis_pairs
+from .board_figures import PROJECT_ROOT, plot_board_axis_pairs, plot_playground_board_2d
+from .board_3d import plot_board_3d
 from .run_figures import (
     TimedLLMResponse,
     _board_with_move_overlay,
@@ -989,7 +990,7 @@ def plot_attempt_move(
     *,
     move_source: MoveSource = "parsed",
 ) -> tuple[object, ...]:
-    """Plot the submitted or ground-truth move. Prints a note and returns () for >4D."""
+    """Show a tile board in 2D, a spatial board in 3D, or axis slices in 4D."""
     dims = context.board.dimensions
     if dims > _MAX_PLOTTABLE_DIMENSIONS:
         print(
@@ -1000,13 +1001,22 @@ def plot_attempt_move(
 
     move = context.parsed_move if move_source == "parsed" else context.ground_truth_move
     reference = context.ground_truth_move
+    scores = context.language.letter_score_map()
 
     if move is None:
+        if dims == 2:
+            return (plot_playground_board_2d(
+                context.board, letter_scores=scores, title="No parsed LLM move",
+            ),)
+        if dims == 3:
+            return (plot_board_3d(
+                context.board, letter_scores=scores, title="No parsed LLM move",
+            ),)
         return plot_board_axis_pairs(
             context.board,
             move_axis=reference.axis,
             plane_coord=reference.start,
-            letter_scores=context.language.letter_score_map(),
+            letter_scores=scores,
             title="No parsed LLM move",
         )
 
@@ -1015,12 +1025,34 @@ def plot_attempt_move(
     title = f"{move_source.replace('_', ' ').title()} move"
     if conflict_coords:
         title += f" ({len(conflict_coords)} symbol conflict)"
+    if dims == 2:
+        return (plot_playground_board_2d(
+            board_with_overlay,
+            tile_colors=_move_tile_colors(context.board, move),
+            letter_scores=scores,
+            title=title,
+        ),)
+    if dims == 3:
+        move_status = {
+            coord: (
+                "new" if context.board.get(coord) is None
+                else "matched" if context.board.get(coord) == symbol
+                else "conflict"
+            )
+            for coord, symbol in zip(move.coords(), move.sequence, strict=True)
+        }
+        return (plot_board_3d(
+            board_with_overlay,
+            move_status=move_status,
+            letter_scores=scores,
+            title=title,
+        ),)
     return plot_board_axis_pairs(
         board_with_overlay,
         move_axis=move.axis,
         plane_coord=move.start,
         tile_colors=_move_tile_colors(context.board, move),
-        letter_scores=context.language.letter_score_map(),
+        letter_scores=scores,
         title=title,
     )
 

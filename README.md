@@ -51,6 +51,8 @@ The valid answers add another useful signal. Models often matched or improved on
 
 These results describe the complete evaluation setup. That includes the model, provider, inference settings, and token limit. The [paper](assets/readme/frabble-paper.pdf) contains the full numbers, experimental details, and limitations.
 
+The published results used the original sum-of-symbol-values score. Current code adds coordinate-based letter multipliers, so new score values should not be compared directly with those historical results.
+
 ## 🧭 Before you use the code
 
 The commands in this repository build on each other. A grammar defines the artificial language. A generation config turns that language into a board. A case-set config freezes puzzles for comparison. A run config decides which models receive those puzzles.

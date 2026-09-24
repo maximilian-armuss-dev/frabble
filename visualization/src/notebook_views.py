@@ -17,7 +17,9 @@ from .board_figures import (
     animate_scenario_2d,
     load_scenario_json,
     load_scenario_letter_scores,
+    scenario_boards_and_placements,
 )
+from .board_3d import display_grounded_3d, plot_board_3d
 from .case_playground import (
     display_case_preview,
     display_case_set_axes,
@@ -145,6 +147,22 @@ def show_selected_scenario_animation(selection: ScenarioPickerSelection) -> obje
         letter_scores=load_scenario_letter_scores(path),
         title=str(scenario["config_name"]),
     )
+
+
+def show_selected_scenario_3d(selection: ScenarioPickerSelection | None) -> None:
+    """Display the final board of the selected three-dimensional scenario."""
+    if selection is None:
+        return
+    path = selection.selected_scenario().path
+    scenario = load_scenario_json(path)
+    boards, placements = scenario_boards_and_placements(scenario)
+    figure = plot_board_3d(
+        boards[-1],
+        latest=placements[-1],
+        letter_scores=load_scenario_letter_scores(path),
+        title=f"{scenario['config_name']} · {len(boards) - 1} placements",
+    )
+    display_grounded_3d(figure)
 
 
 def prepare_selected_model_run(

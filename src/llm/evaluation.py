@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 
+from ..benchmark.scoring import score_move
 from ..domain.board import Board
 from ..formal.language import StrictlyLocalLanguage
 from ..formal.parsing import SubmittedMove
@@ -92,7 +93,7 @@ def evaluate_granular(
             len(move.sequence) - report.rack_symbols_used if report.overall else None
         ),
         letter_score_total=(
-            sum(language.letter_score_map().get(symbol, 0) for symbol in move.sequence)
+            score_move(board, move, language.letter_score_map())
             if report.overall
             else 0
         ),

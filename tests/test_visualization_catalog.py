@@ -4,7 +4,10 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
+from src.benchmark.scoring import tile_multiplier
 from src.domain.board import Board
 from src.domain.models import Move
 from visualization.src.artifact_catalog import (
@@ -21,7 +24,19 @@ from visualization.src.artifact_catalog import (
     scenario_sources,
     scenarios,
 )
-from visualization.src.board_figures import _score_bitmap_mask_2d, plot_board_2d
+from visualization.src.board_figures import (
+    _score_bitmap_mask_2d,
+    plot_board_2d,
+    plot_playground_board_2d,
+)
+from visualization.src.board_3d import (
+    _plane_hexagon,
+    _plane_lattice_coords,
+    plot_board_3d,
+    write_grounded_html,
+)
+from visualization.src.evaluation_figures import plot_attempt_move
+from visualization.src.notebook_workflows import ModelPlaygroundSession
 
 
 class ArtifactCatalogTests(unittest.TestCase):
@@ -204,6 +219,85 @@ class ArtifactCatalogTests(unittest.TestCase):
         self.assertGreater(len(xs), 0)
         self.assertGreater(float(xs.mean()), 21.0)
         self.assertGreater(float(ys.mean()), 21.0)
+
+    def test_playground_2d_keeps_scrabble_tiles_and_marks_bonus_cells(self):
+        board = Board.empty(2).place(
+            Move(start=(0, 0), axis=0, sequence=("A", "B", "C", "D", "E"))
+        ).place(Move(start=(0, 0), axis=1, sequence=("A", "F", "G")))
+
+        figure = plot_playground_board_2d(board, letter_scores={"A": 1, "C": 3, "G": 2})
+
+        bonus = next(trace for trace in figure.data if "×2" in trace.text)
+        tiles = next(trace for trace in figure.data if trace.customdata is not None)
+        self.assertEqual(bonus.marker.symbol, "square")
+        self.assertIn((1, 1), set(zip(bonus.x, bonus.y)))
+        self.assertEqual(tiles.marker.symbol, "square")
+        self.assertEqual(set(tiles.text), set("ABCDEFG"))
+        rims = {
+            tuple(row[0]): color
+            for row, color in zip(tiles.customdata, tiles.marker.line.color, strict=True)
+        }
+        self.assertEqual(rims[(2, 0)], "#9560ad")
+        self.assertEqual(rims[(0, 2)], "#cf624c")
+        self.assertEqual(figure.layout.plot_bgcolor, "#f8fbfd")
+
+    def test_playground_3d_routes_move_to_grounded_view(self):
+        board = Board.empty(3).place(
+            Move(start=(-1, 0, 0), axis=0, sequence=("A", "B", "C"))
+        )
+        move = Move(start=(1, 0, 0), axis=1, sequence=("C", "D", "E"))
+        context = SimpleNamespace(
+            board=board, parsed_move=move, ground_truth_move=move,
+            language=SimpleNamespace(letter_score_map=lambda: {"A": 1, "B": 2, "C": 3}),
+        )
+        figure, = plot_attempt_move(context)
+
+        self.assertEqual(figure.layout.scene.dragmode, "turntable")
+        self.assertIn("New tile", [trace.name for trace in figure.data])
+        self.assertIn("Reused tile", [trace.name for trace in figure.data])
+        session = ModelPlaygroundSession(picker=None, case=None, mode="saved", context=context)
+        with patch("visualization.src.notebook_workflows.display_grounded_3d") as grounded:
+            with patch("visualization.src.notebook_workflows.display") as regular:
+                session.show_witness()
+        grounded.assert_called_once()
+        regular.assert_not_called()
+
+    def test_3d_view_shows_cell_level_multiplier_planes(self):
+        board = Board.empty(3).place(
+            Move(start=(-2, 0, 0), axis=0, sequence=("A", "B", "C", "D", "E"))
+        )
+        figure = plot_board_3d(board)
+
+        self.assertEqual(board.dimensions, 3)
+        self.assertEqual(
+            [button.label for button in figure.layout.updatemenus[0].buttons],
+            ["Σ=2"],
+        )
+        vertices = _plane_hexagon(2, (0, 0, 0), 12)
+        self.assertEqual(len(vertices), 6)
+        for vertex in vertices:
+            self.assertAlmostEqual(sum(vertex), 2)
+        center = tuple(
+            sum(coord[axis] for coord in board.cells) / len(board.cells)
+            for axis in range(3)
+        )
+        lattice = _plane_lattice_coords(2, center, 12)
+        self.assertEqual({tile_multiplier(coord) for coord in lattice}, {2, 3, 4})
+        self.assertEqual(
+            {trace.name for trace in figure.data if trace.name and trace.name.startswith("Available ×")},
+            {"Available ×2", "Available ×3", "Available ×4"},
+        )
+        self.assertEqual(figure.layout.scene.dragmode, "turntable")
+        self.assertIsNone(figure.layout.width)
+        self.assertEqual(figure.layout.height, 500)
+        self.assertEqual(figure.layout.scene.camera.up.z, 1)
+        self.assertEqual(figure.layout.scene.camera.projection.type, "orthographic")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = write_grounded_html(figure, Path(temp_dir) / "preview.html")
+            html = path.read_text(encoding="utf-8")
+        self.assertIn("graph.on('plotly_relayout', constrain)", html)
+        self.assertNotIn("plotly_relayouting", html)
+        self.assertIn("Math.asin", html)
 
     @staticmethod
     def _write_run(

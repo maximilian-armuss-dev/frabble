@@ -14,7 +14,12 @@ A sequence is a JSON object such as:
 - After placement, every maximal contiguous line longer than one cell that touches the move is accepted by the formal language.
 
 ## Score
-A valid move scores the sum of all symbol values in its submitted sequence, including reused symbols. An invalid move scores 0.
+A valid move scores the sum of symbol values in its submitted sequence, including reused symbols. Apply a letter multiplier only to newly placed symbols:
+- For a cell with coordinates c[0], c[1], ..., let S be their sum. Only cells with S = 2 + 10k for an integer k are bonus cells. Their multiplier varies *within* each line or plane: compute P = sum((i - 1) * c[i] for every coordinate index i). P modulo 4 selects x4, x2, x3, x2 in that order. In 2D, along a bonus diagonal, increasing c[0] by 1 and decreasing c[1] by 1 gives x4, x2, x3, x2, then repeats (starting at c[0]=0).
+- All other cells and all reused symbols score x1.
+- Add the resulting symbol values. Bonuses on different symbols never multiply each other. The rule is the same in every dimension.
+
+An invalid move scores 0.
 
 ## Response
 Return only one JSON object with exactly the fields `start`, `axis`, and `sequence`. `sequence` must be an array with one symbol per cell, not a string. Do not add prose or a code fence.
