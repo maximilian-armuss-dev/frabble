@@ -10,11 +10,13 @@ fixed_final_transition_length: 6
 top_anchor_count: 40
 max_anchor_count: null
 top_template_count: 200
+template_selection_window: 8
 target_witness_count: 200
 scoring:
-  anchor_centroid_weight: 0.8
-  template_centroid_weight: 1.2
-  template_local_density_penalty_weight: 0.6
+  anchor_centroid_weight: 0.5
+  anchor_recency_weight: 0.9
+  template_centroid_weight: 0.55
+  template_local_density_penalty_weight: 0.75
 # Fixed global value applied across all evaluation cases; kept at 0 for now.
 additional_rack_noise: 0
 include_search_logs: false

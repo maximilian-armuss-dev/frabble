@@ -243,7 +243,18 @@ class ScenarioGenerator:
         previous_attempts: tuple[SolverAttempt, ...] = (),
     ) -> TemplateSearchResult:
         attempts: list[SolverAttempt] = list(previous_attempts)
-        for candidate in top_templates:
+        candidates = list(top_templates)
+        window = self.config.template_selection_window
+        if window > 1:
+            candidates = [
+                candidate
+                for start in range(0, len(candidates), window)
+                for candidate in self.rng.sample(
+                    candidates[start : start + window],
+                    k=len(candidates[start : start + window]),
+                )
+            ]
+        for candidate in candidates:
             domains = (
                 [set(domain) for domain in candidate.domains]
                 if candidate.domains

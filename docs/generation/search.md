@@ -17,15 +17,17 @@ flowchart TD
     Lengths -->|exhausted| Failure
 ```
 
-For an unchanged board, each configured word length is considered at most once. Occupied coordinates paired with unused crossing axes form anchors. Anchors are expanded in batches into concrete slots, allowing the generator to widen from central candidates toward more distant parts of the board without reconsidering previous work.
+For an unchanged board, each configured word length is considered at most once. Occupied coordinates paired with unused crossing axes form anchors. Anchors are expanded in batches into concrete slots, allowing the generator to widen from preferred candidates toward more distant parts of the board without reconsidering previous work.
 
 Templates are removed before solving when their geometry conflicts with the board, they repeat a known slot, they would deterministically extend an existing word, or cross-word analysis leaves an empty symbol domain. The surviving templates share a cumulative solver-attempt budget for the current length.
 
 ## Ranking
 
-Anchor ranking uses distance from the current board centroid as an inexpensive early signal. Once a complete template exists, ranking can also consider the mean distance of its new cells and their local occupied density. Features are normalized within the current candidate pool before configured weights are applied.
+Anchor ranking combines distance from the current board centroid with the recency of the most recent sequence crossing that cell. Once a complete template exists, ranking also considers the mean distance of its new cells and their local occupied density. Local density counts contacts between new cells and the existing board, excluding contacts within the proposed word. A penalty for extra contacts favors branches over placements that fill crowded gaps. Features are normalized within the current candidate pool before configured weights are applied.
 
-These scores express a preference for compact growth and manageable local interaction. They do not predict legality: a highly ranked template may have no language solution, while a later candidate may validate successfully.
+The generator can shuffle templates within small consecutive ranking windows. This breaks coordinate-order ties and introduces local variety while keeping the seed reproducible. A window of one preserves strict ranking. The evaluation-base recipe combines a recency preference, a local density penalty, and a window of eight. This favors branching growth while reducing filled-in blocks without checking for particular board shapes.
+
+These scores express a preference for where growth should happen. They do not predict legality: a highly ranked template may have no language solution, while a later candidate may validate successfully.
 
 Feature calculation and stable ordering live in [`src/generator/candidates.py`](../../src/generator/candidates.py), with geometric measurements in [`src/benchmark/scoring.py`](../../src/benchmark/scoring.py). Weights and search bounds belong to [`src/generator/config.py`](../../src/generator/config.py) and the checked-in generation recipes.
 

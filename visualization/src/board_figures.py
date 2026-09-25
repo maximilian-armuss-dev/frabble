@@ -197,12 +197,16 @@ def plot_playground_board_2d(
         [values[0], values[1], values[2], tile_multiplier(coord)]
         for values, coord in zip(tile_trace.customdata, coords, strict=True)
     ]
-    tile_trace.hovertemplate = (
+    tile_trace.hovertemplate = [
         "<b>%{text}</b> · %{customdata[0]}"
-        "<br>Letter value %{customdata[2]} · cell bonus ×%{customdata[3]}"
-        " (new tiles only)"
-        "<br>Axes %{customdata[1]}<extra></extra>"
-    )
+        "<br>Letter value %{customdata[2]}"
+        + (
+            " · cell bonus ×%{customdata[3]} (new tiles only)"
+            if tile_multiplier(coord) > 1 else ""
+        )
+        + "<br>Axes %{customdata[1]}<extra></extra>"
+        for coord in coords
+    ]
     for trace in traces:
         figure.add_trace(trace)
 

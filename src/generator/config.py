@@ -40,6 +40,7 @@ class ScoringConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     anchor_centroid_weight: float = Field(ge=0)
+    anchor_recency_weight: float = Field(default=0, ge=0)
     template_centroid_weight: float = Field(ge=0)
     template_local_density_penalty_weight: float = Field(ge=0)
 
@@ -59,6 +60,7 @@ class GeneratorConfig(BaseModel):
     top_anchor_count: int = Field(gt=0)
     max_anchor_count: int | None = Field(default=None, gt=0)
     top_template_count: int = Field(gt=0)
+    template_selection_window: int = Field(default=1, gt=0)
     target_witness_count: int = Field(gt=0)
     scoring: ScoringConfig
     additional_rack_noise: int = Field(default=0, ge=0)

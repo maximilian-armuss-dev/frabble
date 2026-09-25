@@ -13,6 +13,7 @@ from .case_selection_widget import _axis_grid, _field, _panel
 class ScenarioPickerSelection:
     widget: Any
     source: Any
+    dimensions: Any
     sequences: Any
     round_index: Any
     scenario: Any
@@ -24,35 +25,36 @@ class ScenarioPickerSelection:
         return record
 
 
-def show_scenario_picker(*, dimensions: int = 2) -> ScenarioPickerSelection | None:
-    """Select an existing scenario of the requested dimensionality."""
+def show_scenario_picker() -> ScenarioPickerSelection | None:
+    """Select an existing scenario that has a direct 2D or 3D view."""
     from IPython.display import display
     from ipywidgets import Dropdown, HTML, Layout
 
     records_by_source = {
-        source: tuple(record for record in scenarios(source) if record.dimensions == dimensions)
+        source: tuple(record for record in scenarios(source) if record.dimensions in (2, 3))
         for source in scenario_sources()
     }
     records_by_source = {
         source: records for source, records in records_by_source.items() if records
     }
     if not records_by_source:
-        display(HTML(f"No {dimensions}D scenarios found. Generate or prepare a case set first."))
+        display(HTML("No 2D or 3D scenarios found. Generate or prepare a case set first."))
         return None
 
-    sources = tuple(records_by_source)
-    initial_source = (
-        "generated/7r_final_merged"
-        if dimensions == 2 and "generated/7r_final_merged" in sources
-        else "evaluation/dimension_pilot"
-        if dimensions == 3 and "evaluation/dimension_pilot" in sources
-        else sources[0]
+    available_dimensions = tuple(
+        sorted({record.dimensions for records in records_by_source.values() for record in records})
     )
     control_layout = Layout(width="calc(100% - 10px)", min_width="0")
-    source = Dropdown(options=sources, value=initial_source, layout=control_layout)
+    dimensions = Dropdown(
+        options=tuple((f"{value}D", value) for value in available_dimensions),
+        value=2 if 2 in available_dimensions else available_dimensions[0],
+        layout=control_layout,
+    )
+    source = Dropdown(layout=control_layout)
     sequences = Dropdown(layout=control_layout)
     rounds = Dropdown(layout=control_layout)
     scenario = Dropdown(layout=control_layout)
+    dimension_field = _field("Dimension", dimensions)
     sequence_field = _field("Sequences on board", sequences)
     round_field = _field("Sampling round", rounds)
     scenario_field = _field("Scenario", scenario)
@@ -69,7 +71,25 @@ def show_scenario_picker(*, dimensions: int = 2) -> ScenarioPickerSelection | No
             return
         updating = True
         try:
-            records = records_by_source[source.value]
+            matching_sources = tuple(
+                name for name, source_records in records_by_source.items()
+                if any(record.dimensions == dimensions.value for record in source_records)
+            )
+            preferred = (
+                "generated/7r_final_merged" if dimensions.value == 2
+                else "evaluation/dimension_pilot"
+            )
+            previous_source = source.value
+            source.options = matching_sources
+            source.value = (
+                previous_source if previous_source in matching_sources
+                else preferred if preferred in matching_sources
+                else matching_sources[0]
+            )
+            records = tuple(
+                record for record in records_by_source[source.value]
+                if record.dimensions == dimensions.value
+            )
             structured = all(
                 record.board_size is not None and record.sampling_round is not None
                 for record in records
@@ -104,15 +124,17 @@ def show_scenario_picker(*, dimensions: int = 2) -> ScenarioPickerSelection | No
         finally:
             updating = False
 
-    for dropdown in (source, sequences, rounds):
+    for dropdown in (dimensions, source, sequences, rounds):
         dropdown.observe(refresh, names="value")
     refresh()
     if 10 in dict(sequences.options).values():
         sequences.value = 10
     panel = _panel(
         HTML("<div style='font-size:20px; font-weight:700'>Select a scenario</div>"),
+        dimension_field,
         _field("Source", source),
         _axis_grid(sequence_field, round_field, scenario_field),
+        HTML("<span style='font-size:12px; opacity:.7'>Boards above 3D cannot be visualized directly here, so only 2D and 3D are available.</span>"),
     )
     display(panel)
-    return ScenarioPickerSelection(panel, source, sequences, rounds, scenario)
+    return ScenarioPickerSelection(panel, source, dimensions, sequences, rounds, scenario)

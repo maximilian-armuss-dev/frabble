@@ -679,6 +679,20 @@ class CoreTests(unittest.TestCase):
 
         self.assertEqual(center_axes, {1, 2})
 
+    def test_anchor_recency_prefers_recent_crossing_cells(self):
+        board = Board.empty(2)
+        board = board.place(Move(start=(-1, 0), axis=0, sequence=("A", "B", "C")))
+        board = board.place(Move(start=(0, -1), axis=1, sequence=("A", "B", "C")))
+        scoring = GeneratorConfig.model_validate(config_dict("unused.json")).scoring
+        scoring = scoring.model_copy(update={
+            "anchor_centroid_weight": 0,
+            "anchor_recency_weight": 1,
+        })
+
+        anchors = top_anchors(board, None, scoring)
+
+        self.assertEqual({anchor.coord for anchor in anchors[:2]}, {(0, -1), (0, 1)})
+
     def test_3d_board_allows_crossing_on_third_axis(self):
         sl = language()
         board = Board.empty(3)
@@ -1265,6 +1279,21 @@ class CoreTests(unittest.TestCase):
         self.assertNotIn("board_after_move", data["transitions"][0])
         self.assertNotIn("top_anchors", data["transitions"][0]["search_log"])
         self.assertNotIn("top_templates", data["transitions"][0]["search_log"])
+
+    def test_template_selection_window_is_seeded(self):
+        data = config_dict("unused.json") | {
+            "target_witness_count": 10,
+            "template_selection_window": 8,
+        }
+        config = GeneratorConfig.model_validate(data)
+
+        first = ScenarioGenerator(config).generate()
+        second = ScenarioGenerator(config).generate()
+
+        self.assertEqual(
+            [transition.move for transition in first.transitions],
+            [transition.move for transition in second.transitions],
+        )
 
     def test_generator_accepts_nd_config(self):
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -11,6 +11,7 @@ from src.benchmark.scoring import tile_multiplier
 from src.domain.board import Board
 from src.domain.models import Move
 from visualization.src.artifact_catalog import (
+    ScenarioRecord,
     display_evaluation_config_run_catalog,
     evaluation_attempts,
     evaluation_case_sets,
@@ -37,9 +38,35 @@ from visualization.src.board_3d import (
 )
 from visualization.src.evaluation_figures import plot_attempt_move
 from visualization.src.notebook_workflows import ModelPlaygroundSession
+from visualization.src.scenario_selection_widget import show_scenario_picker
 
 
 class ArtifactCatalogTests(unittest.TestCase):
+    def test_scenario_picker_switches_to_source_with_requested_dimension(self):
+        records = {
+            "generated/7r_final_merged": (
+                ScenarioRecord("generated/7r_final_merged", "two", 10, 1, 1, Path("two.json"), 2),
+            ),
+            "evaluation/dimension_pilot": (
+                ScenarioRecord("evaluation/dimension_pilot", "three", 10, 1, 1, Path("three.json"), 3),
+                ScenarioRecord("evaluation/dimension_pilot", "four", 10, 1, 1, Path("four.json"), 4),
+            ),
+        }
+        with (
+            patch("visualization.src.scenario_selection_widget.scenario_sources", return_value=tuple(records)),
+            patch("visualization.src.scenario_selection_widget.scenarios", side_effect=records.get),
+            patch("IPython.display.display"),
+        ):
+            picker = show_scenario_picker()
+
+        self.assertIsNotNone(picker)
+        self.assertEqual(tuple(value for _, value in picker.dimensions.options), (2, 3))
+        self.assertEqual(picker.source.value, "generated/7r_final_merged")
+        self.assertEqual(picker.selected_scenario().name, "two")
+        picker.dimensions.value = 3
+        self.assertEqual(picker.source.value, "evaluation/dimension_pilot")
+        self.assertEqual(picker.selected_scenario().name, "three")
+
     def test_evaluation_catalog_resolves_latest_completed_run_with_aggregate(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -239,6 +266,12 @@ class ArtifactCatalogTests(unittest.TestCase):
         }
         self.assertEqual(rims[(2, 0)], "#9560ad")
         self.assertEqual(rims[(0, 2)], "#cf624c")
+        hover = {
+            tuple(row[0]): template
+            for row, template in zip(tiles.customdata, tiles.hovertemplate, strict=True)
+        }
+        self.assertNotIn("cell bonus", hover[(0, 0)])
+        self.assertIn("cell bonus", hover[(2, 0)])
         self.assertEqual(figure.layout.plot_bgcolor, "#f8fbfd")
 
     def test_playground_3d_routes_move_to_grounded_view(self):

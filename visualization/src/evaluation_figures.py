@@ -783,6 +783,13 @@ def load_evaluation_attempt(
     evaluation_case = EvaluationCase.model_validate(
         json.loads(case_path.read_text(encoding="utf-8"))
     )
+    if attempt["ground_truth_move"] != evaluation_case.ground_truth_move:
+        raise ValueError(
+            f"Saved attempt {attempt_path.name!r} has a different witness from "
+            f"the current case file for {evaluation_case.case_id!r}. The case may "
+            "have been regenerated under the same ID. Run the model again for "
+            "the current case before plotting its answer."
+        )
     board = evaluation_case.to_board()
     language = evaluation_case.to_language()
     return EvaluationAttemptContext(
