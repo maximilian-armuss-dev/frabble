@@ -46,7 +46,7 @@ def _generation_progress(
     with tqdm(
         total=total,
         desc=scenario_id,
-        unit="witness",
+        unit="move",
         disable=not sys.stderr.isatty(),
     ) as progress:
         yield progress.update

@@ -278,7 +278,14 @@ async def execute_job(
         ),
         "evaluation": evaluation.to_json(),
         "evaluation_format_robust": evaluation_format_robust.to_json(),
-        "ground_truth_move": evaluation_case.ground_truth_move,
+        **(
+            {
+                "optimal_move": evaluation_case.reference_move,
+                "optimal_score": evaluation_case.optimal_score,
+            }
+            if evaluation_case.schema_version == 2
+            else {"ground_truth_move": evaluation_case.reference_move}
+        ),
     }
 
 

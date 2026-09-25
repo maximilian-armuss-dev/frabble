@@ -10,7 +10,8 @@ flowchart TD
     Lengths --> Anchors["Ranked anchor-axis pairs"]
     Anchors --> Templates["Feasible slot templates"]
     Templates --> Solver["Slot attempts"]
-    Solver -->|success| NextBoard
+    Solver -->|candidate found| Optimizer["Optimize for candidate rack"]
+    Optimizer -->|certified| NextBoard
     Solver -->|budget remains| Templates
     Templates -->|batch exhausted| Anchors
     Anchors -->|length exhausted| Lengths
@@ -35,6 +36,6 @@ Feature calculation and stable ordering live in [`src/generator/candidates.py`](
 
 Terminal errors distinguish broad exhaustion points such as missing anchors, no feasible templates, no local solver solution, or validator rejection. These categories describe the path actually searched and help identify restrictive configs or broken invariants.
 
-An exhausted search is not a proof that the board has no legal move. It only means that the configured lengths, anchor range, template budget, and solver attempts did not produce another witness. A scenario is considered successful only after reaching its requested witness count; incomplete growth is not persisted as a completed result.
+An exhausted candidate search is not a proof that the board has no legal move. It only means that the configured lengths, anchor range, template budget, and solver attempts did not produce a rack from a valid candidate. Once a rack exists, exact optimization must certify its best move before the transition is saved. A scenario is successful only after reaching its requested transition count; incomplete growth is not persisted as a completed result.
 
 The search loop and failure accounting live in [`src/generator/engine.py`](../../src/generator/engine.py). The distinction between a local solver result and full move validity is explained in [Local Slot Solver](slot-solver.md).

@@ -718,9 +718,9 @@ class EvaluationConfigTests(unittest.TestCase):
                 self.assertEqual(len(case["board"]["segments"]), board_size)
         self.assertEqual(cases[0]["board"]["occupied"], [])
         self.assertEqual(
-            len(cases[0]["ground_truth_move"]["sequence"]),
+            len(cases[0]["optimal_move"]["sequence"]),
             cases[0]["parameters"]["generation"][
-                "fixed_final_transition_length"
+                "fixed_final_candidate_length"
             ],
         )
 
@@ -776,7 +776,7 @@ class EvaluationConfigTests(unittest.TestCase):
             async def fake_call(_system, _user, _model, *, reasoning_effort):
                 self.assertEqual(reasoning_effort, "low")
                 return LLMCallResult(
-                    content=json.dumps(prepared.case.ground_truth_move),
+                    content=json.dumps(prepared.case.optimal_move),
                     usage={},
                     metadata={"finish_reason": "stop"},
                 )
@@ -823,13 +823,13 @@ class EvaluationConfigTests(unittest.TestCase):
                 stale_path,
                 {
                     **context.attempt,
-                    "ground_truth_move": {
-                        **context.attempt["ground_truth_move"],
+                    "optimal_move": {
+                        **context.attempt["optimal_move"],
                         "start": [99, 99],
                     },
                 },
             )
-            with self.assertRaisesRegex(ValueError, "different witness"):
+            with self.assertRaisesRegex(ValueError, "different reference move"):
                 load_evaluation_attempt(stale_path)
             runs = completed_runs("tiny", project_root=root)
             all_run, full_aggregate, full_count = filtered_run_aggregate(
@@ -851,7 +851,7 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(sliced_count, 1)
         self.assertEqual(sliced_aggregate["overall"]["passed"], 0)
 
-    def test_prepare_reports_generation_progress_per_witness(self):
+    def test_prepare_reports_generation_progress_per_move(self):
         starts: list[tuple[str, int]] = []
         updates: list[tuple[str, int]] = []
 

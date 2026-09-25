@@ -33,6 +33,7 @@ analyze-grammar = "src.formal.grammar.cli:cmd_analyze"
 prepare = "src.evaluation.cli:cmd_prepare"
 evaluate = "src.evaluation.cli:cmd_evaluate"
 decompose = "src.evaluation.cli:cmd_decompose"
+optimize-score = "src.benchmark.optimality:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src", "visualization"]

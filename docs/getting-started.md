@@ -34,7 +34,7 @@ uv run analyze-grammar evaluation_base_grammar --max-length 10
 
 The analysis command reports how many accepted sequences exist at different lengths and how quickly the language grows. This makes it possible to inspect whether a sampled language is large enough for board generation before involving the generator.
 
-A generation config combines a saved grammar with board dimensionality and search preferences. The generator places an initial word and then adds known-valid witness moves until the requested scenario is complete.
+A generation config combines a saved grammar with board dimensionality and search preferences. The generator builds a rack from a valid candidate, certifies the best move for that board and rack, and uses that move to grow the scenario. The initial empty-board move is optimized too.
 
 ```bash
 uv run generate --config evaluation_base_sanity_check
@@ -42,7 +42,7 @@ uv run generate --config evaluation_base_sanity_check
 
 The default standalone artifacts appear under `outputs/grammars/` and `outputs/scenarios/`. Their path rules are defined alongside the corresponding config models in [`src/formal/grammar/config.py`](../src/formal/grammar/config.py) and [`src/generator/config.py`](../src/generator/config.py).
 
-[`visualization/notebooks/scenario_viewer.ipynb`](../visualization/notebooks/scenario_viewer.ipynb) shows the final board of a 2D or 3D scenario. Its optional 2D animation reconstructs the witness history and shows how the board changes from one transition to the next.
+[`visualization/notebooks/scenario_viewer.ipynb`](../visualization/notebooks/scenario_viewer.ipynb) shows the final board of a 2D or 3D scenario. Its optional 2D animation replays the optimal move history.
 
 ## Prepared evaluation
 
@@ -65,7 +65,7 @@ Preparation expands a case-set config into board-size and sampling-round combina
 uv run prepare --config 1r_sanity_check
 ```
 
-An evaluation case embeds the exact board, rack, grammar, hidden witness, resolved parameters, hashes, and provenance required to reproduce the question. Evaluation therefore does not depend on whatever the YAML recipes or grammar files contain later.
+An evaluation case embeds the exact board, rack, grammar, certified optimal move and score, resolved parameters, hashes, and provenance required to reproduce the question. Evaluation therefore does not depend on whatever the YAML recipes or grammar files contain later.
 
 A run config selects model profiles and prepared board sizes. Each case/model pair becomes an independent job. Completed attempts are persisted as they finish, so an interrupted run can continue without resending final jobs.
 
@@ -81,7 +81,7 @@ Evaluation artifacts live under `outputs/evaluation/<case-set>/`. Prepared gramm
 
 The model sees a sparse board, a rack, symbol scores, and a complete description of the sampled language. It returns one JSON move containing a start coordinate, an axis, and the full symbol sequence across the proposed slot.
 
-The hidden witness proves that the case has at least one solution, but it is not the only accepted answer and need not be the highest-scoring move. The submitted move is parsed and checked independently for language membership, spatial consistency, overlap, word extension, cross-words, and rack usage.
+The hidden optimal move proves that the case has a solution and establishes its maximum score. It is not the only accepted answer: the submitted move is parsed and checked independently for language membership, spatial consistency, overlap, word extension, cross-words, and rack usage. Historical version-1 cases contain only a feasible reference move and have no optimality certificate.
 
 The conceptual boundaries are described in [Domain and Representations](foundations/domain-and-representations.md) and [Move Validation](foundations/move-validation.md). Their implementation lives in [`src/llm/prompting.py`](../src/llm/prompting.py), [`src/llm/representers.py`](../src/llm/representers.py), [`src/formal/parsing.py`](../src/formal/parsing.py), and [`src/formal/validation.py`](../src/formal/validation.py).
 

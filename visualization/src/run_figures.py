@@ -34,7 +34,7 @@ from .board_figures import (
 )
 
 
-MoveSource = Literal["parsed", "ground_truth"]
+MoveSource = Literal["parsed", "optimal"]
 
 
 @dataclass(frozen=True)
@@ -45,7 +45,8 @@ class LLMRunContext:
     board: Board
     rack: tuple[str, ...]
     parsed_move: Move | None
-    ground_truth_move: Move
+    reference_move: Move
+    reference_is_optimal: bool
     language: StrictlyLocalLanguage
 
 
@@ -57,7 +58,8 @@ class PreparedLLMTransition:
     reasoning_effort: str | None
     board: Board
     rack: tuple[str, ...]
-    ground_truth_move: Move
+    reference_move: Move
+    optimal_score: int | None
     language: StrictlyLocalLanguage
     representers: RepresenterConfig
     system_prompt: str
@@ -93,7 +95,10 @@ def load_llm_run_context(
         board=board,
         rack=transition.rack,
         parsed_move=_move_from_object(run_log.get("parsed_move")),
-        ground_truth_move=_move_from_object(run_log["ground_truth_move"]),
+        reference_move=_move_from_object(
+            run_log.get("optimal_move", run_log.get("ground_truth_move"))
+        ),
+        reference_is_optimal="optimal_move" in run_log,
         language=language,
     )
 
@@ -167,7 +172,8 @@ def prepare_llm_transition(
         reasoning_effort=reasoning_effort,
         board=board,
         rack=transition.rack,
-        ground_truth_move=transition.move,
+        reference_move=transition.move,
+        optimal_score=transition.optimal_score,
         language=language,
         representers=active_representers,
         system_prompt=system_prompt,
@@ -267,7 +273,14 @@ def finalize_llm_transition(
         "raw_response": response.raw_response,
         "parsed_move": submitted.model_dump() if submitted is not None else None,
         "evaluation": evaluation.to_json(),
-        "ground_truth_move": prepared.ground_truth_move.to_json(),
+        **(
+            {
+                "optimal_move": prepared.reference_move.to_json(),
+                "optimal_score": prepared.optimal_score,
+            }
+            if prepared.optimal_score is not None
+            else {"ground_truth_move": prepared.reference_move.to_json()}
+        ),
     }
     output_path.write_text(
         json.dumps(run_log, indent=2, ensure_ascii=False),
@@ -514,7 +527,14 @@ def llm_run_summary(context: LLMRunContext) -> dict[str, object]:
         "overlap_count": evaluation.get("overlap_count"),
         "letter_score_total": evaluation.get("letter_score_total"),
         "parsed_move": parsed_move.to_json() if parsed_move is not None else None,
-        "ground_truth_move": context.ground_truth_move.to_json(),
+        **(
+            {
+                "optimal_move": context.reference_move.to_json(),
+                "optimal_score": context.run_log.get("optimal_score"),
+            }
+            if context.reference_is_optimal
+            else {"ground_truth_move": context.reference_move.to_json()}
+        ),
         "revalidated_failure_type": None
         if validation is None
         else validation.failure_type,
@@ -690,7 +710,7 @@ def plot_llm_run_move(
 ) -> tuple[object, ...]:
     move = _select_move(context, move_source)
     if move is None:
-        reference_move = context.ground_truth_move
+        reference_move = context.reference_move
         return plot_board_axis_pairs(
             context.board,
             move_axis=reference_move.axis,
@@ -701,6 +721,8 @@ def plot_llm_run_move(
     board = _board_with_move_overlay(context.board, move)
     conflict_coords = _move_conflict_coords(context.board, move)
     title = f"{move_source.replace('_', ' ').title()} move"
+    if move_source == "optimal" and not context.reference_is_optimal:
+        title = "Saved reference move"
     if conflict_coords:
         title += f" ({len(conflict_coords)} symbol conflict)"
     return plot_board_axis_pairs(
@@ -716,8 +738,8 @@ def plot_llm_run_move(
 def _select_move(context: LLMRunContext, move_source: MoveSource) -> Move | None:
     if move_source == "parsed":
         return context.parsed_move
-    if move_source == "ground_truth":
-        return context.ground_truth_move
+    if move_source == "optimal":
+        return context.reference_move
     raise ValueError(f"Unknown move source: {move_source}")
 
 

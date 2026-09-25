@@ -21,11 +21,11 @@ The model receives a partially filled board, a rack of scored symbols, and the c
 ## 🎯 How it works
 
 1. **Frabble creates a small artificial language.** A rule can say that certain short symbol combinations are not allowed. A sequence is valid when it follows all of these rules.
-2. **The generator builds a valid board.** It places one valid sequence after another. It also saves a known next move, so the resulting puzzle is guaranteed to have a solution.
+2. **The generator builds a valid board.** For each rack it certifies the highest-scoring move, saves that move and its score, and uses it to grow the board.
 3. **The known move is hidden from the model.** The model only sees the board, its rack, the symbol scores, and the language rules. It must find its own move.
 4. **The submitted move is checked by code.** It must use the rack correctly, connect to the board, avoid conflicts, and keep every newly formed sequence valid.
 
-The saved solution is called a *witness*. It proves that the puzzle can be solved, but it is not necessarily the best possible move. A model can find a different move and may even achieve a higher score.
+For newly generated cases, Frabble saves a certified optimal move and score for the given board and rack. The model can return that move or any other valid move; its answer is checked independently.
 
 ## 💡 Why Frabble?
 
@@ -47,7 +47,7 @@ Gemini and Grok usually returned a final move, but some of those moves broke a g
 
 That difference changes how we should interpret a failure. A wrong move points to a mistake in reasoning or rule following. No move at all is less clear. The model may have been unable to find a valid move, or it may have found one and continued searching for a better score until its token budget ran out.
 
-The valid answers add another useful signal. Models often matched or improved on the hidden witness move. This suggests that they were not only searching for any valid answer. They were also responding to the instruction to find a high-scoring move.
+The historical valid answers add another useful signal. Models often matched or improved on the feasible move saved with those earlier cases. This suggests that they were also responding to the instruction to find a high-scoring move. Those earlier references were not certified optima.
 
 These results describe the complete evaluation setup. That includes the model, provider, inference settings, and token limit. The [paper](assets/readme/frabble-paper.pdf) contains the full numbers, experimental details, and limitations.
 

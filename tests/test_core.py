@@ -10,6 +10,7 @@ from openrouter import components
 from pydantic import ValidationError
 
 from src.benchmark.scoring import BoardScoring, score_move, tile_multiplier
+from src.benchmark.optimality import optimize_move
 from src.cli import build_parser
 from src.domain.board import Board
 from src.domain.models import AnchorCandidate, Move, SlotTemplate, TemplateCandidate
@@ -162,7 +163,7 @@ def config_dict(output_path: str, *, dimensions: int = 2) -> dict[str, object]:
         "top_anchor_count": 12,
         "max_anchor_count": None,
         "top_template_count": 24,
-        "target_witness_count": 3,
+        "target_transition_count": 3,
         "scoring": {
             "anchor_centroid_weight": 1.0,
             "template_centroid_weight": 1.0,
@@ -455,7 +456,7 @@ class CoreTests(unittest.TestCase):
             )
             mocked_call.assert_not_called()
             mocked_call.return_value = LLMCallResult(
-                content=json.dumps(prepared.ground_truth_move.to_json()),
+                content=json.dumps(prepared.reference_move.to_json()),
                 usage={
                     "prompt_tokens": 100,
                     "completion_tokens": 25,
@@ -763,7 +764,7 @@ class CoreTests(unittest.TestCase):
 
     def test_2d_animation_shows_only_current_step_number_beside_slider(self):
         config = GeneratorConfig.model_validate(
-            config_dict("unused.json") | {"target_witness_count": 1}
+            config_dict("unused.json") | {"target_transition_count": 1}
         )
         scenario = scenario_run_to_json(ScenarioGenerator(config).generate())
 
@@ -787,7 +788,7 @@ class CoreTests(unittest.TestCase):
 
     def test_2d_image_animation_uses_single_png_trace_per_frame(self):
         config = GeneratorConfig.model_validate(
-            config_dict("unused.json") | {"target_witness_count": 1}
+            config_dict("unused.json") | {"target_transition_count": 1}
         )
         scenario = scenario_run_to_json(ScenarioGenerator(config).generate())
 
@@ -801,7 +802,7 @@ class CoreTests(unittest.TestCase):
 
     def test_2d_canvas_animation_returns_preloaded_html(self):
         config = GeneratorConfig.model_validate(
-            config_dict("unused.json") | {"target_witness_count": 1}
+            config_dict("unused.json") | {"target_transition_count": 1}
         )
         scenario = scenario_run_to_json(ScenarioGenerator(config).generate())
 
@@ -1145,7 +1146,7 @@ class CoreTests(unittest.TestCase):
         data = config_dict("unused.json") | {
             "length_distribution": {"start": 3, "end": 3},
             "top_anchor_count": 1,
-            "target_witness_count": 1,
+            "target_transition_count": 1,
         }
         config = GeneratorConfig.model_validate(data)
         generator = ScenarioGenerator(config)
@@ -1230,12 +1231,12 @@ class CoreTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             GeneratorConfig.model_validate(invalid)
 
-    def test_evaluation_base_config_fixes_final_transition_length(self):
+    def test_evaluation_base_config_fixes_final_candidate_length(self):
         config = load_generator_config("evaluation_base")
 
         self.assertEqual(config.length_distribution.start, 3)
         self.assertGreater(config.length_distribution.end, config.length_distribution.start)
-        self.assertEqual(config.fixed_final_transition_length, 6)
+        self.assertEqual(config.fixed_final_candidate_length, 6)
 
     def test_generator_is_reproducible_and_writes_incremental_transitions(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -1262,10 +1263,44 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(progress_updates, [1, 1, 1])
         self.assertTrue(
             all(
-                len(transition.rack) == len(transition.placed) + 1
+                0 < len(transition.placed) <= len(transition.rack)
                 for transition in first.transitions
             )
         )
+        self.assertEqual(data["schema_version"], 2)
+        self.assertEqual(data["initial_optimal_score"], first.initial_optimal_score)
+        verifier = ScenarioGenerator(config)
+        initial = verifier.generate_initial_transition()
+        self.assertEqual(initial.optimal_score, first.initial_optimal_score)
+        self.assertEqual(initial.rack, first.initial_rack)
+        self.assertEqual(data["initial_rack"], list(first.initial_rack))
+        self.assertEqual(
+            initial.optimal_score,
+            score_move(
+                Board.empty(config.dimensions),
+                initial.move,
+                verifier.language.letter_score_map(),
+            ),
+        )
+        self.assertEqual(initial.move, Move(
+            first.initial_board.segments[0].start,
+            first.initial_board.segments[0].axis,
+            first.initial_board.segments[0].sequence,
+        ))
+        for index, transition in enumerate(first.transitions):
+            self.assertEqual(
+                transition.optimal_score,
+                score_move(
+                    run_boards[index], transition.move,
+                    verifier.language.letter_score_map(),
+                ),
+            )
+            reference = optimize_move(
+                run_boards[index], verifier.language, transition.rack,
+                incumbent=transition.move,
+            )
+            self.assertEqual(reference.status, "optimal")
+            self.assertEqual(reference.score, transition.optimal_score)
         self.assertEqual(len(loaded_boards), 4)
         self.assertIn('\n  "initial_board"', written_text)
         self.assertIn('"grammar_name"', written_text)
@@ -1282,7 +1317,7 @@ class CoreTests(unittest.TestCase):
 
     def test_template_selection_window_is_seeded(self):
         data = config_dict("unused.json") | {
-            "target_witness_count": 10,
+            "target_transition_count": 10,
             "template_selection_window": 8,
         }
         config = GeneratorConfig.model_validate(data)
@@ -1303,7 +1338,7 @@ class CoreTests(unittest.TestCase):
                         str(Path(temp_dir) / "scenarios.json"),
                         dimensions=dimensions,
                     )
-                    data["target_witness_count"] = 1
+                    data["target_transition_count"] = 1
                     config = GeneratorConfig.model_validate(data)
 
                     run = ScenarioGenerator(config).generate()
@@ -1325,7 +1360,7 @@ class CoreTests(unittest.TestCase):
             "top_anchor_count": 1,
             "max_anchor_count": 1,
             "top_template_count": 1,
-            "target_witness_count": 10,
+            "target_transition_count": 10,
         }
         config = GeneratorConfig.model_validate(data)
 
@@ -1353,11 +1388,11 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(sorted(failure.length for failure in failures), [3, 4, 5])
         self.assertEqual({failure.reason for failure in failures}, {"no_anchor_candidates"})
 
-    def test_generator_uses_fixed_length_for_final_transition(self):
+    def test_generator_uses_fixed_length_for_final_candidate(self):
         data = config_dict("unused.json") | {
             "length_distribution": {"start": 3, "end": 5},
-            "fixed_final_transition_length": 6,
-            "target_witness_count": 1,
+            "fixed_final_candidate_length": 6,
+            "target_transition_count": 1,
         }
         config = GeneratorConfig.model_validate(data)
         board = Board.empty(2)

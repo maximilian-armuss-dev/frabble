@@ -27,9 +27,9 @@ def main() -> None:
         config = load_generator_config(args.config)
         generator = ScenarioGenerator(config)
         with tqdm(
-            total=config.target_witness_count,
-            desc="witnesses",
-            unit="witness",
+            total=config.target_transition_count,
+            desc="optimal moves",
+            unit="move",
             disable=not sys.stderr.isatty(),
         ) as progress:
             scenario_run = generator.generate(progress_callback=progress.update)
@@ -39,7 +39,7 @@ def main() -> None:
         raise SystemExit(1) from exc
 
     print(
-        f"generated {len(scenario_run.transitions)} witness transitions "
+        f"generated {len(scenario_run.transitions)} optimal transitions "
         f"with config {config.config_name!r}"
     )
     print(f"output: {output_path}")

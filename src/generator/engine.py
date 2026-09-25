@@ -4,6 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 import random
 
+from ..benchmark.optimality import optimize_move
 from ..benchmark.scoring import BoardScoring
 from ..domain.board import Board
 from ..domain.models import (
@@ -56,16 +57,18 @@ class ScenarioGenerator:
         grammar_path = resolve_grammar_path(config)
         self.language, _cfg, self.grammar_name = load_grammar(grammar_path)
         self.solver = SlotCSP(self.language, rng=self.rng)
+        self._initial_transition: ScenarioTransition | None = None
 
     def generate(
         self,
         progress_callback: Callable[[int], None] | None = None,
     ) -> ScenarioRun:
-        initial_board = self._initial_board()
+        initial_transition = self.generate_initial_transition()
+        initial_board = Board.empty(self.config.dimensions).place(initial_transition.move)
         board = initial_board
         transitions: list[ScenarioTransition] = []
 
-        while len(transitions) < self.config.target_witness_count:
+        while len(transitions) < self.config.target_transition_count:
             board, transition, failures = self._generate_next_transition(
                 board,
                 next_transition_index=len(transitions),
@@ -74,7 +77,7 @@ class ScenarioGenerator:
                 raise GenerationError(
                     _format_generation_failure(
                         produced=len(transitions),
-                        target=self.config.target_witness_count,
+                        target=self.config.target_transition_count,
                         failures=failures,
                     )
                 )
@@ -90,18 +93,26 @@ class ScenarioGenerator:
             forbidden_snippets=self.language.forbidden_snippets,
             initial_board=initial_board,
             transitions=tuple(transitions),
+            initial_optimal_score=initial_transition.optimal_score,
+            initial_rack=initial_transition.rack,
         )
 
     def generate_initial_transition(self) -> ScenarioTransition:
-        """Recreate the first-word placement represented by ``initial_board``."""
+        """Recreate the optimal first-word placement represented by ``initial_board``."""
+        if self._initial_transition is not None:
+            return self._initial_transition
         empty_board = Board.empty(self.config.dimensions)
-        move = self._initial_move()
-        return ScenarioTransition(
-            rack=self._rack_for_move(empty_board, move),
+        candidate = self._initial_move()
+        rack = self._rack_for_move(empty_board, candidate)
+        move, score = self._optimal_move(empty_board, rack, candidate)
+        self._initial_transition = ScenarioTransition(
+            rack=rack,
             move=move,
             placed=_placed_cells(empty_board, move),
             search_log=None,
+            optimal_score=score,
         )
+        return self._initial_transition
 
     def _generate_next_transition(
         self,
@@ -175,7 +186,19 @@ class ScenarioGenerator:
                 if result.solved:
                     if result.transition is None:
                         raise GenerationError("Solved template search returned no transition.")
-                    return result.board, result.transition, tuple(failures)
+                    candidate = result.transition
+                    move, score = self._optimal_move(board, candidate.rack, candidate.move)
+                    transition = ScenarioTransition(
+                        rack=candidate.rack,
+                        move=move,
+                        placed=_placed_cells(board, move),
+                        search_log=(
+                            candidate.search_log
+                            if self.config.include_search_logs else None
+                        ),
+                        optimal_score=score,
+                    )
+                    return board.place(move), transition, tuple(failures)
 
             if template_count == 0:
                 failures.append(
@@ -206,10 +229,10 @@ class ScenarioGenerator:
 
     def _length_candidates(self, next_transition_index: int) -> list[int]:
         if (
-            self.config.fixed_final_transition_length is not None
-            and next_transition_index == self.config.target_witness_count - 1
+            self.config.fixed_final_candidate_length is not None
+            and next_transition_index == self.config.target_transition_count - 1
         ):
-            return [self.config.fixed_final_transition_length]
+            return [self.config.fixed_final_candidate_length]
         return list(
             range(
                 self.config.length_distribution.start,
@@ -221,7 +244,30 @@ class ScenarioGenerator:
         return write_scenario_run(resolve_output_path(self.config), scenario_run)
 
     def _initial_board(self) -> Board:
-        return Board.empty(self.config.dimensions).place(self._initial_move())
+        return Board.empty(self.config.dimensions).place(
+            self.generate_initial_transition().move
+        )
+
+    def _optimal_move(
+        self,
+        board: Board,
+        rack: tuple[Symbol, ...],
+        candidate: Move,
+    ) -> tuple[Move, int]:
+        result = optimize_move(
+            board,
+            self.language,
+            rack,
+            time_limit_seconds=self.config.optimality_time_limit_seconds,
+            incumbent=candidate,
+        )
+        if result.status != "optimal" or result.move is None or result.score is None:
+            raise GenerationError(
+                "Could not certify an optimal move for this rack: "
+                f"best={result.score}, upper_bound={result.upper_bound}. "
+                "Increase optimality_time_limit_seconds."
+            )
+        return result.move, result.score
 
     def _initial_move(self) -> Move:
         sequences = enumerate_accepted_sequences(self.language, self.config.initial_word_length)
@@ -418,7 +464,7 @@ def _format_generation_failure(
     failures: tuple[LengthFailure, ...],
 ) -> str:
     lines = [
-        f"Generator produced {produced} of {target} target witnesses.",
+        f"Generator produced {produced} of {target} target transitions.",
         "All lengths in length_distribution were tried once for the current board state.",
     ]
     if failures:

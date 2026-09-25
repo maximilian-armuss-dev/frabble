@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..domain.board import Board
+from ..domain.models import Move, ScenarioTransition
 from ..formal.grammar.config import GrammarConfig
 from ..generator.config import GeneratorConfig
-from ..generator.engine import ScenarioGenerator
 from ..generator.reconstruction import board_before_transition
 from ..generator.scenario_codec import board_to_json
 from ..generator.scenario_io import load_scenario_run
@@ -45,11 +45,19 @@ def build_evaluation_case(
     scenario_run = load_scenario_run(scenario.path)
     if parameters.board_size == 0:
         board = Board.empty(parameters.dimensions)
-        transition = ScenarioGenerator(scenario.config).generate_initial_transition()
-        if board.place(transition.move) != scenario_run.initial_board:
-            raise ValueError(
-                "Generated initial transition does not match scenario initial_board."
-            )
+        if scenario_run.initial_rack is None or scenario_run.initial_optimal_score is None:
+            raise ValueError("Scenario lacks a certified initial move.")
+        segment = scenario_run.initial_board.segments[0]
+        move = Move(segment.start, segment.axis, segment.sequence)
+        transition = ScenarioTransition(
+            rack=scenario_run.initial_rack,
+            move=move,
+            placed=tuple(zip(move.coords(), move.sequence, strict=True)),
+            search_log=None,
+            optimal_score=scenario_run.initial_optimal_score,
+        )
+        if board.place(move) != scenario_run.initial_board:
+            raise ValueError("Stored initial move does not match initial_board.")
     else:
         board = board_before_transition(scenario_run, parameters.board_depth)
         transition = scenario_run.transitions[parameters.board_depth]
@@ -59,6 +67,8 @@ def build_evaluation_case(
             "Evaluation board size mismatch: "
             f"expected {coordinates.board_size} words, got {len(board.segments)}."
         )
+    if transition.optimal_score is None:
+        raise ValueError("Generated transition lacks a certified optimal score.")
     return EvaluationCase(
         case_id=case_id,
         case_set=case_set,
@@ -78,7 +88,8 @@ def build_evaluation_case(
         grammar=read_json(grammar.path),
         board=board_to_json(board),
         rack=transition.rack,
-        ground_truth_move=transition.move.to_json(),
+        optimal_move=transition.move.to_json(),
+        optimal_score=transition.optimal_score,
         provenance={
             "grammar_artifact": project_relative(grammar.path),
             "scenario_artifact": project_relative(scenario.path),

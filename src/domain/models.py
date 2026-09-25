@@ -181,6 +181,7 @@ class ScenarioTransition:
     move: Move
     placed: tuple[tuple[Coord, Symbol], ...]
     search_log: SearchLog | None
+    optimal_score: int | None = None
 
 
 @dataclass(frozen=True)
@@ -193,6 +194,8 @@ class ScenarioRun:
     initial_board: "Board"
     # TODO generally not the biggest fan of having a tuple list for the transitions here as this may loose the ordering ot the transitions in case something goes wrong at the serialization. Maybe lets add something like a move counter in the transitions so that we can the directly tell the order. 
     transitions: tuple[ScenarioTransition, ...]
+    initial_optimal_score: int | None = None
+    initial_rack: tuple[Symbol, ...] | None = None
 
 
 @dataclass(frozen=True)

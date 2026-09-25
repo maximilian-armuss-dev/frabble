@@ -6,11 +6,11 @@ initial_word_length: 5
 length_distribution:
   start: 3
   end: 6
-fixed_final_transition_length: 6
+fixed_final_candidate_length: 6
 top_anchor_count: 40
 max_anchor_count: null
 top_template_count: 200
-target_witness_count: 1
+target_transition_count: 1
 scoring:
   anchor_centroid_weight: 0.8
   template_centroid_weight: 1.2

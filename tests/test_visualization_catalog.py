@@ -36,7 +36,7 @@ from visualization.src.board_3d import (
     plot_board_3d,
     write_grounded_html,
 )
-from visualization.src.evaluation_figures import plot_attempt_move
+from visualization.src.evaluation_figures import display_attempt_summary, plot_attempt_move
 from visualization.src.notebook_workflows import ModelPlaygroundSession
 from visualization.src.scenario_selection_widget import show_scenario_picker
 
@@ -280,7 +280,7 @@ class ArtifactCatalogTests(unittest.TestCase):
         )
         move = Move(start=(1, 0, 0), axis=1, sequence=("C", "D", "E"))
         context = SimpleNamespace(
-            board=board, parsed_move=move, ground_truth_move=move,
+            board=board, parsed_move=move, reference_move=move,
             language=SimpleNamespace(letter_score_map=lambda: {"A": 1, "B": 2, "C": 3}),
         )
         figure, = plot_attempt_move(context)
@@ -291,9 +291,91 @@ class ArtifactCatalogTests(unittest.TestCase):
         session = ModelPlaygroundSession(picker=None, case=None, mode="saved", context=context)
         with patch("visualization.src.notebook_workflows.display_grounded_3d") as grounded:
             with patch("visualization.src.notebook_workflows.display") as regular:
-                session.show_witness()
+                session.show_optimal_move()
         grounded.assert_called_once()
         regular.assert_not_called()
+
+    def test_playground_answer_compares_scores_and_boards_before_details(self):
+        board = Board.empty(4).place(Move((0, 0, 0, 0), 0, ("A", "B")))
+        move = Move((0, 0, 0, 0), 1, ("A", "B"))
+        context = SimpleNamespace(
+            board=board,
+            parsed_move=move,
+            reference_move=move,
+            reference_is_optimal=True,
+            language=SimpleNamespace(letter_score_map=lambda: {"A": 1, "B": 2}),
+            attempt={
+                "evaluation": {"overall": True, "letter_score_total": 12},
+                "optimal_score": 20,
+                "system_prompt": "system",
+                "user_prompt": "user",
+            },
+        )
+        session = ModelPlaygroundSession(
+            picker=None, case=None, mode="saved", context=context
+        )
+        def three_slices(_context, *, move_source):
+            return tuple(
+                SimpleNamespace(
+                    to_html=lambda index=index, **_kwargs: (
+                        f"<div>{move_source} board {index}</div>"
+                    )
+                )
+                for index in range(3)
+            )
+
+        with (
+            patch("visualization.src.notebook_workflows.display") as shown,
+            patch(
+                "visualization.src.notebook_workflows.figures.plot_attempt_move",
+                side_effect=three_slices,
+            ) as plots,
+            patch(
+                "visualization.src.notebook_workflows.figures.display_attempt_response",
+                return_value="response details",
+            ),
+            patch(
+                "visualization.src.notebook_workflows.figures.display_attempt_summary",
+                return_value="evaluation details",
+            ),
+        ):
+            session.show_answer()
+
+        displayed = [call.args[0] for call in shown.call_args_list]
+        self.assertEqual(len(displayed), 4)
+        comparison = displayed[0].data
+        self.assertEqual(comparison.count("Parsed move"), 1)
+        self.assertEqual(comparison.count("Optimal move"), 1)
+        self.assertIn(">12 <span", comparison)
+        self.assertIn(">20 <span", comparison)
+        self.assertEqual(comparison.count("parsed board 0"), 1)
+        self.assertEqual(comparison.count("optimal board 0"), 1)
+        self.assertNotIn("board 1", comparison)
+        self.assertNotIn("board 2", comparison)
+        self.assertEqual(displayed[1:3], ["response details", "evaluation details"])
+        self.assertEqual(
+            [call.kwargs["move_source"] for call in plots.call_args_list],
+            ["parsed", "optimal"],
+        )
+
+    def test_playground_summary_shows_optimal_score_after_letter_score(self):
+        board = Board.empty(2).place(Move((0, 0), 0, ("A", "B")))
+        context = SimpleNamespace(
+            board=board,
+            rack=("A", "B"),
+            parsed_move=None,
+            reference_move=Move((0, 0), 1, ("A", "B")),
+            reference_is_optimal=True,
+            attempt={
+                "evaluation": {"letter_score_total": 12},
+                "optimal_score": 20,
+            },
+        )
+
+        markup = display_attempt_summary(context).data
+
+        self.assertLess(markup.index("letter score"), markup.index("optimal score"))
+        self.assertIn(">20</td>", markup)
 
     def test_3d_view_shows_cell_level_multiplier_planes(self):
         board = Board.empty(3).place(

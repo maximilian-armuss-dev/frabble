@@ -7,7 +7,7 @@ Frabble generates board puzzles over sampled artificial languages, presents froz
 ```mermaid
 flowchart LR
     Grammar["Sampled language"] --> Generator["Scenario generation"]
-    Generator --> Scenario["Witness history"]
+    Generator --> Scenario["Optimal move history"]
     Scenario --> Case["Frozen evaluation case"]
     Case --> Prompt["Model prompt"]
     Prompt --> Move["Submitted move"]
@@ -15,7 +15,7 @@ flowchart LR
     Validation --> Results["Attempts and aggregates"]
 ```
 
-A grammar defines valid symbol sequences and their scores. Scenario generation grows a sparse board while retaining known-valid continuations. Evaluation freezes one board state, rack, grammar, and hidden witness before any model call. The returned move is then evaluated independently rather than compared with that witness.
+A grammar defines valid symbol sequences and their scores. Scenario generation proposes a rack, certifies the highest-scoring move for that rack, and grows the board with that move. Evaluation freezes one board state, rack, grammar, optimal move, and optimal score before any model call. The returned move is validated independently.
 
 For a practical path through commands and artifacts, start with the [Workflow Guide](getting-started.md).
 
@@ -33,7 +33,7 @@ These pages define concepts shared by generation and evaluation:
 
 | Page | Boundary |
 |---|---|
-| [Generation Overview](generation/README.md) | How a grammar becomes a reproducible scenario with hidden witness moves. |
+| [Generation Overview](generation/README.md) | How a grammar becomes a reproducible scenario with certified optimal moves. |
 | [Candidate Search](generation/search.md) | Geometry, ranking, search budgets, and what exhausted search means. |
 | [Local Slot Solver](generation/slot-solver.md) | How one slot's symbol domains become an accepted sequence. |
 

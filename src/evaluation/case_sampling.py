@@ -92,18 +92,18 @@ def resolve_generation_config(
             "grammar": None,
             "grammar_path": str(grammar_path),
             # For positive sizes, the last generated transition is the
-            # ground-truth move after exactly board_size words. For size zero,
+            # optimal move after exactly board_size words. For size zero,
             # one transition is still generated so GeneratorConfig remains
-            # valid; the initial word itself becomes the ground-truth move.
-            "target_witness_count": max(parameters.board_size, 1),
+            # valid; the initial word itself becomes the optimal move.
+            "target_transition_count": max(parameters.board_size, 1),
             "output_path": str(output_path),
         }
     )
     if (
         parameters.board_size == 0
-        and base.fixed_final_transition_length is not None
+        and base.fixed_final_candidate_length is not None
     ):
-        data["initial_word_length"] = base.fixed_final_transition_length
+        data["initial_word_length"] = base.fixed_final_candidate_length
     return GeneratorConfig.model_validate(data)
 
 
