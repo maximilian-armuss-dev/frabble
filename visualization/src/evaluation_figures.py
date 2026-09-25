@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, Mapping
 
+from src.benchmark.scoring import score_move
 from src.domain.board import Board
 from src.domain.models import Move
 from src.evaluation.models import EvaluationCase
@@ -794,6 +795,14 @@ def load_evaluation_attempt(
             "have been regenerated under the same ID. Run the model again for "
             "the current case before plotting its answer."
         )
+    if (
+        evaluation_case.schema_version == 2
+        and attempt.get("optimal_score") != evaluation_case.optimal_score
+    ):
+        raise ValueError(
+            f"Saved attempt {attempt_path.name!r} has a different optimal score "
+            f"from the current case file for {evaluation_case.case_id!r}."
+        )
     board = evaluation_case.to_board()
     language = evaluation_case.to_language()
     return EvaluationAttemptContext(
@@ -898,6 +907,17 @@ def display_attempt_summary(context: EvaluationAttemptContext) -> object:
         ("overlap count", evaluation.get("overlap_count")),
         ("letter score", evaluation.get("letter_score_total")),
     ]
+    if context.reference_is_optimal:
+        scores.append(("optimal score", attempt.get("optimal_score")))
+    else:
+        scores.append((
+            "reference score",
+            score_move(
+                context.board,
+                context.reference_move,
+                context.language.letter_score_map(),
+            ),
+        ))
     score_rows = "\n".join(
         f"""
         <tr>

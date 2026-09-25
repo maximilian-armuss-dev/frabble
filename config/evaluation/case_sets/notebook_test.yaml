@@ -6,7 +6,9 @@ dimensions:
   - 2
   - 3
   - 4
+  - 5
 board_sizes:
   - 25
   - 50
   - 100
+  - 500

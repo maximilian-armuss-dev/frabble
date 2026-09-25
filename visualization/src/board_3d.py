@@ -375,10 +375,14 @@ def display_grounded_3d(figure: object) -> None:
     """Display the same guarded view inside a trusted Jupyter notebook."""
     from IPython.display import HTML, display
 
-    plot = figure.to_html(
+    display(HTML(f'<div style="width:100%;max-width:760px">{grounded_3d_markup(figure)}</div>'))
+
+
+def grounded_3d_markup(figure: object) -> str:
+    """Return a guarded 3D plot for embedding beside another notebook view."""
+    return figure.to_html(
         include_plotlyjs="cdn",
         full_html=False,
         post_script=CAMERA_GUARD_SCRIPT,
         config=FIGURE_CONFIG,
     )
-    display(HTML(f'<div style="width:100%;max-width:760px">{plot}</div>'))

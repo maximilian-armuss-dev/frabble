@@ -8,6 +8,8 @@ from html import escape
 from IPython.display import HTML, display
 from openrouter import errors as openrouter_errors
 
+from src.benchmark.scoring import score_move
+
 from . import evaluation_figures as figures
 from .case_playground import (
     PreparedCasePlayground,
@@ -18,7 +20,7 @@ from .case_playground import (
 )
 from .case_selection_widget import CasePickerSelection, OverviewFilterSelection
 from .evaluation_figures import EvaluationAttemptContext
-from .board_3d import display_grounded_3d
+from .board_3d import display_grounded_3d, grounded_3d_markup
 
 
 def _prompt_details(system_prompt: str, user_prompt: str) -> HTML:
@@ -67,6 +69,7 @@ class ModelPlaygroundSession:
     def show_answer(self) -> None:
         if self.context is None:
             raise RuntimeError("Run step 3 to get a new response.")
+        self._show_move_comparison()
         display(figures.display_attempt_response(self.context))
         display(figures.display_attempt_summary(self.context))
         display(
@@ -75,7 +78,66 @@ class ModelPlaygroundSession:
                 str(self.context.attempt.get("user_prompt", "")),
             )
         )
-        self._show_move("parsed")
+
+    def _show_move_comparison(self) -> None:
+        assert self.context is not None
+        context = self.context
+        evaluation = context.attempt.get("evaluation", {})
+        parsed_score = evaluation.get("letter_score_total")
+        if parsed_score is None:
+            parsed_label = "—"
+            parsed_note = "No scored move"
+        elif evaluation.get("overall"):
+            parsed_label = str(parsed_score)
+            parsed_note = "Valid move"
+        else:
+            parsed_label = str(parsed_score)
+            parsed_note = "Invalid move"
+
+        reference_is_optimal = getattr(context, "reference_is_optimal", True)
+        reference_score = context.attempt.get("optimal_score")
+        if reference_score is None:
+            reference_score = score_move(
+                context.board,
+                context.reference_move,
+                context.language.letter_score_map(),
+            )
+        reference_title = "Optimal move" if reference_is_optimal else "Saved reference move"
+        reference_note = "Certified maximum" if reference_is_optimal else "Not certified optimal"
+
+        parsed_panel = (
+            _move_score_card("Parsed move", parsed_label, parsed_note)
+            + self._comparison_figure("parsed")
+        )
+        reference_panel = (
+            _move_score_card(reference_title, str(reference_score), reference_note)
+            + self._comparison_figure("optimal")
+        )
+        display(HTML(
+            "<div style='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));"
+            "gap:16px;width:100%;max-width:1200px;align-items:start'>"
+            f"<div style='min-width:0;overflow-x:auto'>{parsed_panel}</div>"
+            f"<div style='min-width:0;overflow-x:auto'>{reference_panel}</div>"
+            "</div>"
+        ))
+
+    def _comparison_figure(self, source: figures.MoveSource) -> str:
+        assert self.context is not None
+        if self.context.board.dimensions > 4:
+            return "<p>Board plots are available up to 4D.</p>"
+        # In 4D the general plotting helper returns three axis slices. The
+        # comparison uses one slice per move so scores and boards stay paired.
+        plots = figures.plot_attempt_move(self.context, move_source=source)
+        if not plots:
+            return "<p>No board plot available.</p>"
+        figure = plots[0]
+        if self.context.board.dimensions == 3:
+            return grounded_3d_markup(figure)
+        return figure.to_html(
+            include_plotlyjs="cdn",
+            full_html=False,
+            config={"displaylogo": False, "responsive": True},
+        )
 
     def show_optimal_move(self) -> None:
         if self.context is None:
@@ -86,11 +148,27 @@ class ModelPlaygroundSession:
 
     def _show_move(self, source: figures.MoveSource) -> None:
         assert self.context is not None
+        if self.context.board.dimensions > 4:
+            display(HTML("<p>Board plots are available up to 4D.</p>"))
+            return
         for figure in figures.plot_attempt_move(self.context, move_source=source):
             if self.context.board.dimensions == 3:
                 display_grounded_3d(figure)
             else:
                 display(figure)
+
+
+def _move_score_card(title: str, score: str, note: str) -> str:
+    return (
+        "<div style='font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;"
+        "border:1px solid #d0d7de;border-radius:8px;padding:12px 14px;"
+        "margin:0 0 10px;background:#f6f8fa;color:#1f2937'>"
+        f"<div style='font-size:13px;font-weight:700'>{escape(title)}</div>"
+        f"<div style='font-size:25px;font-weight:750;line-height:1.25'>{escape(score)}"
+        " <span style='font-size:13px;font-weight:500'>points</span></div>"
+        f"<div style='font-size:12px;color:#6b7280'>{escape(note)}</div>"
+        "</div>"
+    )
 
 
 def open_model_playground(
