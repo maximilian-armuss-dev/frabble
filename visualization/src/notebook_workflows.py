@@ -77,10 +77,12 @@ class ModelPlaygroundSession:
         )
         self._show_move("parsed")
 
-    def show_witness(self) -> None:
+    def show_optimal_move(self) -> None:
         if self.context is None:
             raise RuntimeError("Load or generate a response first.")
-        self._show_move("ground_truth")
+        if not getattr(self.context, "reference_is_optimal", True):
+            print("Historical case: the saved move is not certified optimal.")
+        self._show_move("optimal")
 
     def _show_move(self, source: figures.MoveSource) -> None:
         assert self.context is not None

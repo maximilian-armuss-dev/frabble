@@ -23,8 +23,8 @@ The central concepts are:
 | Segment | Placement history for one sequence already on the board. | [`src/domain/models.py`](../../src/domain/models.py) |
 | Move | One complete proposed sequence, including consistent overlaps. | [`src/domain/models.py`](../../src/domain/models.py) |
 | Slot template | A possible straight placement before free symbols are solved. | [`src/domain/models.py`](../../src/domain/models.py) |
-| Scenario transition | A known-valid move coupled with its rack and newly placed cells. | [`src/domain/models.py`](../../src/domain/models.py) |
-| Scenario run | An initial board followed by an ordered witness history. | [`src/domain/models.py`](../../src/domain/models.py) |
+| Scenario transition | A certified optimal move coupled with its rack, score, and newly placed cells. | [`src/domain/models.py`](../../src/domain/models.py) |
+| Scenario run | An initial board followed by an ordered optimal move history. | [`src/domain/models.py`](../../src/domain/models.py) |
 
 Coordinates are zero-based integer vectors whose length equals the board dimensionality. An axis selects the coordinate component that advances along a sequence. Coordinates may be negative because the board has no finite outer boundary.
 
@@ -35,7 +35,7 @@ Cells describe current visible state, while segments preserve how that state was
 | Layer | Purpose | Implementation |
 |---|---|---|
 | Domain | Geometry, placement history, and immutable board updates. | [`src/domain/`](../../src/domain/) |
-| Scenario artifact | Reproducible storage of the initial board and witness transitions. | [`src/generator/scenario_codec.py`](../../src/generator/scenario_codec.py) |
+| Scenario artifact | Reproducible storage of the initial board and optimal transitions. | [`src/generator/scenario_codec.py`](../../src/generator/scenario_codec.py) |
 | Evaluation case | Portable snapshot of one exact model question and its provenance. | [`src/evaluation/models.py`](../../src/evaluation/models.py), [`src/evaluation/case_snapshot.py`](../../src/evaluation/case_snapshot.py) |
 | Prompt | Model-readable language, existing sequence placements, rack, and scores. | [`src/llm/representers.py`](../../src/llm/representers.py), [`src/llm/prompting.py`](../../src/llm/prompting.py) |
 | Response | Minimal structured proposal for one move. | [`src/formal/parsing.py`](../../src/formal/parsing.py) |
@@ -58,6 +58,6 @@ The sequence describes the complete run across the board. Existing symbols remai
 
 ## From scenario to evaluation case
 
-A scenario stores one initial board plus witness transitions, so later states can be reconstructed by replay instead of persisted as repeated snapshots. Evaluation exposes one reconstructed state together with the next transition's rack, while hiding that transition's move from the model.
+A scenario stores one initial board plus optimal transitions, so later states can be reconstructed by replay instead of persisted as repeated snapshots. Evaluation exposes one reconstructed state together with the next transition's rack, while hiding its optimal move and score from the model.
 
 The frozen case also carries the concrete grammar, resolved generation context, seeds, hashes, and provenance. It is the boundary after which model execution can no longer change the puzzle being compared. Scenario replay lives in [`src/generator/reconstruction.py`](../../src/generator/reconstruction.py); case construction lives in [`src/evaluation/case_snapshot.py`](../../src/evaluation/case_snapshot.py).

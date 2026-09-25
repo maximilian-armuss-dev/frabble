@@ -56,12 +56,13 @@ class GeneratorConfig(BaseModel):
     initial_word_axis: int
     initial_word_length: int
     length_distribution: LengthDistribution
-    fixed_final_transition_length: int | None = Field(default=None, gt=0)
+    fixed_final_candidate_length: int | None = Field(default=None, gt=0)
     top_anchor_count: int = Field(gt=0)
     max_anchor_count: int | None = Field(default=None, gt=0)
     top_template_count: int = Field(gt=0)
     template_selection_window: int = Field(default=1, gt=0)
-    target_witness_count: int = Field(gt=0)
+    target_transition_count: int = Field(gt=0)
+    optimality_time_limit_seconds: float = Field(default=30.0, gt=0)
     scoring: ScoringConfig
     additional_rack_noise: int = Field(default=0, ge=0)
     output_path: str | None = None
@@ -157,12 +158,12 @@ def load_generator_config(
             f"grammar min_word_length ({grammar.min_word_length})."
         )
     if (
-        config.fixed_final_transition_length is not None
-        and config.fixed_final_transition_length < grammar.min_word_length
+        config.fixed_final_candidate_length is not None
+        and config.fixed_final_candidate_length < grammar.min_word_length
     ):
         raise ConfigError(
-            "fixed_final_transition_length "
-            f"({config.fixed_final_transition_length}) must be >= "
+            "fixed_final_candidate_length "
+            f"({config.fixed_final_candidate_length}) must be >= "
             f"grammar min_word_length ({grammar.min_word_length})."
         )
 

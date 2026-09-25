@@ -184,7 +184,7 @@ class CaseSetPreparer:
             else:
                 with self.generation_progress_factory(
                     scenario_id,
-                    generation_config.target_witness_count,
+                    generation_config.target_transition_count,
                 ) as update_progress:
                     scenario_run = generator.generate(
                         progress_callback=update_progress,

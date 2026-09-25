@@ -15,8 +15,16 @@ from ..domain.models import (
 
 
 def scenario_run_to_json(scenario_run: ScenarioRun) -> dict[str, object]:
+    has_scores = [
+        scenario_run.initial_optimal_score is not None,
+        scenario_run.initial_rack is not None,
+        *(transition.optimal_score is not None for transition in scenario_run.transitions),
+    ]
+    if any(has_scores) and not all(has_scores):
+        raise ValueError("Scenario has only some optimality certificates.")
+    certified = all(has_scores)
     data: dict[str, object] = {
-        "schema_version": 1,
+        "schema_version": 2 if certified else 1,
         "config_name": scenario_run.config_name,
         "config": scenario_run.config,
         "seed": scenario_run.seed,
@@ -25,6 +33,13 @@ def scenario_run_to_json(scenario_run: ScenarioRun) -> dict[str, object]:
             list(snippet) for snippet in scenario_run.forbidden_snippets
         ],
         "initial_board": board_to_json(scenario_run.initial_board),
+        **(
+            {
+                "initial_optimal_score": scenario_run.initial_optimal_score,
+                "initial_rack": list(scenario_run.initial_rack or ()),
+            }
+            if certified else {}
+        ),
         "transitions": [
             transition_to_json(
                 transition,
@@ -39,8 +54,14 @@ def scenario_run_to_json(scenario_run: ScenarioRun) -> dict[str, object]:
 
 
 def scenario_run_from_json(data: dict[str, object]) -> ScenarioRun:
-    if data.get("schema_version") != 1:
+    if data.get("schema_version") not in (1, 2):
         raise ValueError("Unsupported scenario schema_version.")
+    if data["schema_version"] == 2:
+        if "initial_optimal_score" not in data or "initial_rack" not in data or any(
+            "optimal_score" not in transition
+            for transition in cast(list[dict[str, object]], data["transitions"])
+        ):
+            raise ValueError("Version-2 scenario is missing optimal scores.")
     return ScenarioRun(
         config_name=str(data["config_name"]),
         config=cast(dict[str, object], data["config"]),
@@ -55,6 +76,14 @@ def scenario_run_from_json(data: dict[str, object]) -> ScenarioRun:
             transition_from_json(transition_data)
             for transition_data in cast(list[dict[str, object]], data["transitions"])
         ),
+        initial_optimal_score=(
+            int(data["initial_optimal_score"])
+            if data.get("schema_version") == 2 else None
+        ),
+        initial_rack=(
+            tuple(str(symbol) for symbol in cast(list[str], data["initial_rack"]))
+            if data.get("schema_version") == 2 else None
+        ),
     )
 
 
@@ -68,6 +97,8 @@ def transition_to_json(
         "move": move_to_compact_json(transition.move),
         "placed": cells_to_json(transition.placed),
     }
+    if transition.optimal_score is not None:
+        data["optimal_score"] = transition.optimal_score
     if include_search_logs and transition.search_log is None:
         raise ValueError("Cannot include missing transition search_log.")
     if include_search_logs and transition.search_log is not None:
@@ -84,6 +115,9 @@ def transition_from_json(data: dict[str, object]) -> ScenarioTransition:
         search_log=None
         if raw_search_log is None
         else search_log_from_json(cast(dict[str, object], raw_search_log)),
+        optimal_score=(
+            int(data["optimal_score"]) if "optimal_score" in data else None
+        ),
     )
 
 

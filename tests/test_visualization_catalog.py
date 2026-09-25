@@ -280,7 +280,7 @@ class ArtifactCatalogTests(unittest.TestCase):
         )
         move = Move(start=(1, 0, 0), axis=1, sequence=("C", "D", "E"))
         context = SimpleNamespace(
-            board=board, parsed_move=move, ground_truth_move=move,
+            board=board, parsed_move=move, reference_move=move,
             language=SimpleNamespace(letter_score_map=lambda: {"A": 1, "B": 2, "C": 3}),
         )
         figure, = plot_attempt_move(context)
@@ -291,7 +291,7 @@ class ArtifactCatalogTests(unittest.TestCase):
         session = ModelPlaygroundSession(picker=None, case=None, mode="saved", context=context)
         with patch("visualization.src.notebook_workflows.display_grounded_3d") as grounded:
             with patch("visualization.src.notebook_workflows.display") as regular:
-                session.show_witness()
+                session.show_optimal_move()
         grounded.assert_called_once()
         regular.assert_not_called()
 

@@ -728,7 +728,7 @@ def _style_figure(
 # Individual attempt inspection
 # ---------------------------------------------------------------------------
 
-MoveSource = Literal["parsed", "ground_truth"]
+MoveSource = Literal["parsed", "optimal"]
 _MAX_PLOTTABLE_DIMENSIONS = 4
 _EVALUATION_DIR = PROJECT_ROOT / "outputs" / "evaluation"
 
@@ -740,7 +740,8 @@ class EvaluationAttemptContext:
     board: Board
     rack: tuple[str, ...]
     parsed_move: Move | None
-    ground_truth_move: Move
+    reference_move: Move
+    reference_is_optimal: bool
     language: StrictlyLocalLanguage
 
 
@@ -783,9 +784,12 @@ def load_evaluation_attempt(
     evaluation_case = EvaluationCase.model_validate(
         json.loads(case_path.read_text(encoding="utf-8"))
     )
-    if attempt["ground_truth_move"] != evaluation_case.ground_truth_move:
+    reference_key = (
+        "optimal_move" if evaluation_case.schema_version == 2 else "ground_truth_move"
+    )
+    if attempt.get(reference_key) != evaluation_case.reference_move:
         raise ValueError(
-            f"Saved attempt {attempt_path.name!r} has a different witness from "
+            f"Saved attempt {attempt_path.name!r} has a different reference move from "
             f"the current case file for {evaluation_case.case_id!r}. The case may "
             "have been regenerated under the same ID. Run the model again for "
             "the current case before plotting its answer."
@@ -798,7 +802,8 @@ def load_evaluation_attempt(
         board=board,
         rack=evaluation_case.rack,
         parsed_move=_move_from_object(attempt.get("parsed_move")),
-        ground_truth_move=_move_from_object(attempt["ground_truth_move"]),
+        reference_move=_move_from_object(attempt[reference_key]),
+        reference_is_optimal=evaluation_case.schema_version == 2,
         language=language,
     )
 
@@ -1006,8 +1011,8 @@ def plot_attempt_move(
         )
         return ()
 
-    move = context.parsed_move if move_source == "parsed" else context.ground_truth_move
-    reference = context.ground_truth_move
+    move = context.parsed_move if move_source == "parsed" else context.reference_move
+    reference = context.reference_move
     scores = context.language.letter_score_map()
 
     if move is None:
@@ -1030,6 +1035,8 @@ def plot_attempt_move(
     board_with_overlay = _board_with_move_overlay(context.board, move)
     conflict_coords = _move_conflict_coords(context.board, move)
     title = f"{move_source.replace('_', ' ').title()} move"
+    if move_source == "optimal" and not getattr(context, "reference_is_optimal", True):
+        title = "Saved reference move"
     if conflict_coords:
         title += f" ({len(conflict_coords)} symbol conflict)"
     if dims == 2:

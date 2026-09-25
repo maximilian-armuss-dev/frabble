@@ -20,11 +20,11 @@ flowchart LR
 
 ## Comparison boundary
 
-An `EvaluationCase` is the stable question shared across models. It embeds the concrete grammar, reconstructed board, rack, hidden witness, resolved generation context, seeds, hashes, and provenance needed to reproduce that question without consulting mutable YAML recipes.
+An `EvaluationCase` is the stable question shared across models. New version-2 cases embed the concrete grammar, reconstructed board, rack, hidden optimal move and score, resolved generation context, seeds, hashes, and provenance needed to reproduce that question without consulting mutable YAML recipes.
 
-Board size counts the placed segments visible in the exposed state. A sampling round produces another grammar and board at that size. Case sets may also sample dimensions; cases at the same size and round then share a grammar but have separate board histories. For positive sizes, preparation reconstructs the corresponding scenario state and uses its next transition as the hidden witness; the size-zero boundary exposes an empty board and uses the generated initial move.
+Board size counts the placed segments visible in the exposed state. A sampling round produces another grammar and board at that size. Case sets may also sample dimensions; cases at the same size and round then share a grammar but have separate board histories. For positive sizes, preparation reconstructs the corresponding scenario state and uses its next optimal transition; the size-zero boundary exposes an empty board and uses the optimized initial move.
 
-The witness establishes that a solution exists but is never compared as an answer key. Prompting uses only the visible case state, and the submitted move is checked independently. The versioned case model lives in [`src/evaluation/models.py`](../../src/evaluation/models.py), with snapshot construction in [`src/evaluation/case_snapshot.py`](../../src/evaluation/case_snapshot.py).
+The stored optimum establishes both solvability and the highest attainable score. Prompting uses only the visible case state, and the submitted move is checked independently. Historical version-1 cases retain a feasible reference move without a certificate. The versioned case model lives in [`src/evaluation/models.py`](../../src/evaluation/models.py), with snapshot construction in [`src/evaluation/case_snapshot.py`](../../src/evaluation/case_snapshot.py).
 
 ## Package boundaries
 

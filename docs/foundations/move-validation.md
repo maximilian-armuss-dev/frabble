@@ -1,6 +1,6 @@
 # Move Validation
 
-Validation turns a parsed response into a deterministic benchmark result. The hidden witness proves that a case is solvable but is not an answer key: every submitted move is checked independently against the board, rack, and concrete language.
+Validation turns a parsed response into a deterministic benchmark result. New cases carry a hidden certified optimum for score comparison, while every submitted move is still checked independently against the board, rack, and concrete language.
 
 ## Validation flow
 
