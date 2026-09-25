@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -183,34 +184,40 @@ def load_saved_case_attempt(
     case: PreparedCaseRecord,
     model_name: str,
 ) -> EvaluationAttemptContext:
-    """Use the newest completed evaluation attempt for this case and model."""
+    """Use the newest completed evaluation or notebook attempt for this case."""
     runs_dir = case.path.parent.parent / "runs"
-    manifests = sorted(
-        runs_dir.glob("*/run-manifest.json"),
-        key=lambda path: (
-            str(read_json(path).get("completed_at") or ""),
-            path.parent.name,
-        ),
-        reverse=True,
-    )
     pattern = f"{safe_id(case.case_id)}__{safe_id(model_name)}__*.json"
-    for manifest_path in manifests:
-        if read_json(manifest_path).get("status") != "complete":
-            continue
-        attempts = []
-        for path in (manifest_path.parent / "attempts").glob(pattern):
+    attempts: list[tuple[str, str, Path]] = []
+
+    def collect(paths: Iterable[Path], completed_at: str = "") -> None:
+        for path in paths:
             attempt = read_json(path)
             if (
                 attempt.get("status") == "complete"
                 and attempt.get("case_id") == case.case_id
                 and attempt.get("model") == model_name
             ):
-                attempts.append((str(attempt.get("timestamp") or ""), path))
-        if attempts:
-            return load_evaluation_attempt(max(attempts)[1])
+                attempts.append(
+                    (str(attempt.get("timestamp") or completed_at), completed_at, path)
+                )
+
+    for manifest_path in runs_dir.glob("*/run-manifest.json"):
+        manifest = read_json(manifest_path)
+        if manifest.get("status") != "complete":
+            continue
+        collect(
+            (manifest_path.parent / "attempts").glob(pattern),
+            str(manifest.get("completed_at") or ""),
+        )
+
+    notebook_dir = case.path.parents[3] / "llm-runs"
+    collect(notebook_dir.glob(pattern))
+    if attempts:
+        return load_evaluation_attempt(max(attempts)[2])
     raise FileNotFoundError(
-        f"No completed evaluation attempt for case {case.case_id!r} "
-        f"and model {model_name!r}. Choose another model or MODE='fresh'."
+        f"Case {case.case_id!r} is prepared, but no completed saved response exists "
+        f"for model {model_name!r}. Choose a case and model with a saved response "
+        "or set MODE='fresh' to make a new request."
     )
 
 

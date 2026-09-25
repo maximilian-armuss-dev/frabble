@@ -42,7 +42,7 @@ uv run generate --config evaluation_base_sanity_check
 
 The default standalone artifacts appear under `outputs/grammars/` and `outputs/scenarios/`. Their path rules are defined alongside the corresponding config models in [`src/formal/grammar/config.py`](../src/formal/grammar/config.py) and [`src/generator/config.py`](../src/generator/config.py).
 
-[`visualization/notebooks/scenario_viewer.ipynb`](../visualization/notebooks/scenario_viewer.ipynb) reconstructs the witness history and shows how the board changes from one transition to the next.
+[`visualization/notebooks/scenario_viewer.ipynb`](../visualization/notebooks/scenario_viewer.ipynb) shows the final board of a 2D or 3D scenario. Its optional 2D animation reconstructs the witness history and shows how the board changes from one transition to the next.
 
 ## Prepared evaluation
 

@@ -14,9 +14,11 @@ from .artifact_catalog import (
     resolve_scenario_selection,
 )
 from .board_figures import (
+    NEW_MOVE_TILE,
     animate_scenario_2d,
     load_scenario_json,
     load_scenario_letter_scores,
+    plot_playground_board_2d,
     scenario_boards_and_placements,
 )
 from .board_3d import display_grounded_3d, plot_board_3d
@@ -138,9 +140,14 @@ def show_scenario_animation(
     )
 
 
-def show_selected_scenario_animation(selection: ScenarioPickerSelection) -> object:
+def show_selected_scenario_animation(selection: ScenarioPickerSelection | None) -> object | None:
     """Animate the scenario currently selected in the notebook picker."""
-    path = selection.selected_scenario().path
+    if selection is None:
+        return None
+    record = selection.selected_scenario()
+    if record.dimensions != 2:
+        raise ValueError("The growth animation is available only for 2D scenarios.")
+    path = record.path
     scenario = load_scenario_json(path)
     return animate_scenario_2d(
         scenario,
@@ -149,20 +156,33 @@ def show_selected_scenario_animation(selection: ScenarioPickerSelection) -> obje
     )
 
 
-def show_selected_scenario_3d(selection: ScenarioPickerSelection | None) -> None:
-    """Display the final board of the selected three-dimensional scenario."""
+def show_selected_scenario(selection: ScenarioPickerSelection | None) -> object | None:
+    """Display the selected scenario's final board in its native dimensions."""
     if selection is None:
         return
     path = selection.selected_scenario().path
     scenario = load_scenario_json(path)
     boards, placements = scenario_boards_and_placements(scenario)
+    board = boards[-1]
+    title = f"{scenario['config_name']} · {len(boards) - 1} placements"
+    letter_scores = load_scenario_letter_scores(path)
+    if board.dimensions == 2:
+        return plot_playground_board_2d(
+            board,
+            tile_colors={coord: NEW_MOVE_TILE for coord in placements[-1]},
+            letter_scores=letter_scores,
+            title=title,
+        )
+    if board.dimensions != 3:
+        raise ValueError("Only 2D and 3D scenarios can be displayed directly.")
     figure = plot_board_3d(
-        boards[-1],
+        board,
         latest=placements[-1],
-        letter_scores=load_scenario_letter_scores(path),
-        title=f"{scenario['config_name']} · {len(boards) - 1} placements",
+        letter_scores=letter_scores,
+        title=title,
     )
     display_grounded_3d(figure)
+    return None
 
 
 def prepare_selected_model_run(

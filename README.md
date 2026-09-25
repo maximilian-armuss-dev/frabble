@@ -79,7 +79,7 @@ uv run analyze-grammar evaluation_base_grammar --max-length 10
 uv run generate --config evaluation_base_sanity_check
 ```
 
-These commands do not call an LLM. They create a sampled grammar and a small generated scenario. Open [`visualization/notebooks/scenario_viewer.ipynb`](visualization/notebooks/scenario_viewer.ipynb), select the generated scenario in its first cells, and run the notebook to watch the board grow.
+These commands do not call an LLM. They create a sampled grammar and a small generated scenario. Open [`visualization/notebooks/scenario_viewer.ipynb`](visualization/notebooks/scenario_viewer.ipynb) to inspect a 2D or 3D scenario. The optional final cell animates 2D board growth.
 
 ### Run an evaluation
 

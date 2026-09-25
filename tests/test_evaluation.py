@@ -52,6 +52,7 @@ from src.generator.config import (
 from src.llm.client import LLMCallResult
 from src.llm.env import ENV
 from visualization.src.evaluation_figures import (
+    load_evaluation_attempt,
     load_evaluation_results,
     plot_grammar_pass_rates,
     plot_latency_tables,
@@ -783,10 +784,11 @@ class EvaluationConfigTests(unittest.TestCase):
             context = asyncio.run(
                 run_prepared_case(
                     prepared,
-                    output_dir=root / "llm-runs",
+                    output_dir=root / "outputs" / "llm-runs",
                     call_llm=fake_call,
                 )
             )
+            saved_notebook = load_saved_case_attempt(selected, "openai_gpt-5")
 
             runs_dir = root / "outputs" / "evaluation" / "tiny" / "runs"
             for name, completed_at in (
@@ -816,6 +818,19 @@ class EvaluationConfigTests(unittest.TestCase):
                         },
                     )
             saved = load_saved_case_attempt(selected, "openai_gpt-5")
+            stale_path = root / "outputs" / "llm-runs" / "stale.json"
+            write_json_atomic(
+                stale_path,
+                {
+                    **context.attempt,
+                    "ground_truth_move": {
+                        **context.attempt["ground_truth_move"],
+                        "start": [99, 99],
+                    },
+                },
+            )
+            with self.assertRaisesRegex(ValueError, "different witness"):
+                load_evaluation_attempt(stale_path)
             runs = completed_runs("tiny", project_root=root)
             all_run, full_aggregate, full_count = filtered_run_aggregate(
                 cases, runs, 1, [2, 3], [0, 1], [0]
@@ -826,6 +841,7 @@ class EvaluationConfigTests(unittest.TestCase):
 
         self.assertEqual(len(context.board.segments), 0)
         self.assertEqual(context.attempt["case_id"], prepared.case.case_id)
+        self.assertEqual(saved_notebook.attempt["job_id"], context.attempt["job_id"])
         self.assertEqual(context.attempt["user_prompt"], prepared.user_prompt)
         self.assertTrue(context.attempt["evaluation"]["overall"])
         self.assertEqual(saved.attempt["raw_response"], "newer")

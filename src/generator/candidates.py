@@ -16,17 +16,22 @@ def top_anchors(
 ) -> tuple[AnchorCandidate, ...]:
     if centroid is None:
         centroid = BoardScoring.centroid(board)
-    raw_candidates: list[tuple[Coord, str, int, float]] = []
+    raw_candidates: list[tuple[Coord, str, int, float, int]] = []
     for coord, symbol in board.occupied_sorted():
         for axis in _cross_axes(board, coord):
             distance = BoardScoring.distance_to_centroid(coord, centroid)
-            raw_candidates.append((coord, symbol, axis, distance))
+            recency = max(board.coord_segments[coord])
+            raw_candidates.append((coord, symbol, axis, distance, recency))
 
     normalized_distance = _normalize_feature(item[3] for item in raw_candidates)
+    normalized_recency = _normalize_feature(item[4] for item in raw_candidates)
 
     candidates: list[AnchorCandidate] = []
-    for index, (coord, symbol, axis, distance) in enumerate(raw_candidates):
-        score = -scoring.anchor_centroid_weight * normalized_distance[index]
+    for index, (coord, symbol, axis, distance, _) in enumerate(raw_candidates):
+        score = (
+            -scoring.anchor_centroid_weight * normalized_distance[index]
+            + scoring.anchor_recency_weight * normalized_recency[index]
+        )
         candidates.append(
             AnchorCandidate(
                 coord=coord,
