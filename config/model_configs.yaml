@@ -33,9 +33,6 @@ models:
     api_key_env: OPENROUTER_API_KEY
     base_url_env: OPENROUTER_API_BASE
     provider: deepseek
-    # DeepSeek does not reserve output room under max_completion_tokens; cap the
-    # reasoning phase explicitly (overrides reasoning effort) so the answer prints.
-    reasoning_max_tokens: 50000
 
   - name: or_glm-5-3
     model: openrouter/z-ai/glm-5.3

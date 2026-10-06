@@ -455,9 +455,12 @@ class EvaluationConfigTests(unittest.TestCase):
             )
         )
 
-    def test_reasoning_effort_is_backend_specific(self):
-        self.assertEqual(evaluation_reasoning_effort("openai_gpt-5"), "high")
-        self.assertEqual(evaluation_reasoning_effort("or_gpt-5-5"), "xhigh")
+    def test_reasoning_effort_is_high_for_both_backends(self):
+        for backend in ("litellm", "openrouter"):
+            with self.subTest(backend=backend), patch.object(
+                ENV, "get_model_config", return_value=SimpleNamespace(backend=backend)
+            ):
+                self.assertEqual(evaluation_reasoning_effort("example"), "high")
 
     def test_summary_groups_models_board_sizes_failures_and_constraints(self):
         attempts = [

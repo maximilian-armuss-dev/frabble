@@ -10,7 +10,7 @@ from ..llm.env import ENV
 from .config import DEFAULT_LANGUAGE_REPRESENTATION, RunConfig
 
 EVALUATION_REASONING_EFFORT = "high"
-EVALUATION_OPENROUTER_REASONING_EFFORT = "xhigh"
+EVALUATION_OPENROUTER_REASONING_EFFORT = "high"
 
 
 @dataclass(frozen=True)
