@@ -51,6 +51,7 @@ from src.generator.config import (
 )
 from src.llm.client import LLMCallResult
 from src.llm.env import ENV
+from src.evaluation.run_artifacts import select_or_create_run
 from visualization.src.evaluation_figures import (
     load_evaluation_attempt,
     load_evaluation_results,
@@ -116,6 +117,60 @@ def tiny_run(
 
 
 class EvaluationConfigTests(unittest.TestCase):
+    def test_matching_incomplete_run_resumes_by_default(self):
+        config = tiny_run()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            original, _ = select_or_create_run(root, config, "same-config")
+            resumed, _ = select_or_create_run(root, config, "same-config")
+            self.assertEqual(resumed, original)
+
+    def test_new_run_preserves_and_bypasses_matching_incomplete_run(self):
+        config = tiny_run()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            original, _ = select_or_create_run(root, config, "same-config")
+            attempt = original / "attempts" / "completed.json"
+            write_json_atomic(attempt, {"status": "complete"})
+            fresh, manifest = select_or_create_run(
+                root, config, "same-config", new_run=True
+            )
+            self.assertNotEqual(fresh, original)
+            self.assertEqual(read_json(attempt), {"status": "complete"})
+            self.assertEqual(manifest["attempted_jobs"], 0)
+            self.assertFalse((fresh / "attempts").exists())
+
+    def test_execution_changes_resume_existing_run_and_preserve_attempts(self):
+        config = tiny_run(concurrency=7, concurrency_per_model=1)
+        changed = config.model_copy(update={
+            "execution": config.execution.model_copy(update={
+                "max_concurrency": 35,
+                "max_concurrency_per_model": 5,
+                "max_retries": 1,
+            })
+        })
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            original, _ = select_or_create_run(root, config, "old-hash")
+            attempt = original / "attempts" / "completed.json"
+            write_json_atomic(attempt, {"status": "complete"})
+            resumed, manifest = select_or_create_run(root, changed, "new-hash")
+            self.assertEqual(resumed, original)
+            self.assertEqual(read_json(attempt), {"status": "complete"})
+            self.assertEqual(manifest["config"]["execution"]["max_concurrency"], 35)
+            self.assertEqual(manifest["config_hash"], "new-hash")
+
+    def test_model_selection_changes_create_separate_run(self):
+        config = tiny_run()
+        changed = config.model_copy(update={
+            "models": {next(iter(config.models)): [0]}
+        })
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            original, _ = select_or_create_run(root, config, "old-hash")
+            fresh, _ = select_or_create_run(root, changed, "new-hash")
+            self.assertNotEqual(fresh, original)
+
     def test_case_set_loads_board_sizes(self):
         config = load_case_set_config("1r_sanity_check")
 

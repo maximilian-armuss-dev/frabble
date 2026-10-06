@@ -8,6 +8,6 @@ models:
   or_glm-5-3: [all]
   or_qwen3-8-max-0902: [all]
 execution:
-  max_concurrency: 7
-  max_concurrency_per_model: 1
+  max_concurrency: 35
+  max_concurrency_per_model: 5
   max_retries: 1

@@ -22,12 +22,15 @@ ProgressCallback = Callable[[int, int], None]
 async def evaluate_run(
     config: RunConfig,
     *,
+    new_run: bool = False,
     progress_callback: ProgressCallback | None = None,
 ) -> dict[str, Any]:
     case_root = EVALUATION_OUTPUT_DIR / config.case_set
     prepare_manifest = _load_completed_prepare_manifest(case_root, config.case_set)
     config_hash = content_sha256(config.model_dump(mode="json"))
-    run_dir, manifest = select_or_create_run(case_root, config, config_hash)
+    run_dir, manifest = select_or_create_run(
+        case_root, config, config_hash, new_run=new_run
+    )
     jobs = build_evaluation_jobs(config, prepare_manifest)
     pending_jobs = _pending_jobs(
         jobs,

@@ -17,15 +17,25 @@ def select_or_create_run(
     case_root: Path,
     config: RunConfig,
     config_hash: str,
+    *,
+    new_run: bool = False,
 ) -> tuple[Path, dict[str, Any]]:
+    if new_run:
+        return _create_run(case_root / "runs", config, config_hash)
     resumable = _matching_runs(
         case_root / "runs",
         config_hash,
         statuses={"in_progress", "incomplete"},
         timestamp_field="created_at",
+        resume_config=config,
     )
     if resumable:
         _, path, manifest = max(resumable, key=lambda item: item[0])
+        # Execution policy may change between sessions without changing the jobs.
+        manifest["config"] = config.model_dump(mode="json")
+        manifest["config_hash"] = config_hash
+        manifest["updated_at"] = utc_now()
+        write_json_atomic(path / "run-manifest.json", manifest)
         return path, manifest
     return _create_run(case_root / "runs", config, config_hash)
 
@@ -105,6 +115,7 @@ def _matching_runs(
     *,
     statuses: set[str],
     timestamp_field: str,
+    resume_config: RunConfig | None = None,
 ) -> list[tuple[str, Path, dict[str, Any]]]:
     if not runs_dir.exists():
         return []
@@ -112,8 +123,15 @@ def _matching_runs(
     candidates: list[tuple[str, Path, dict[str, Any]]] = []
     for manifest_path in runs_dir.glob("*/run-manifest.json"):
         manifest = read_json(manifest_path)
+        if resume_config is None:
+            config_matches = manifest.get("config_hash") == config_hash
+        else:
+            stored_config = manifest.get("config", {})
+            config_matches = isinstance(stored_config, dict) and {
+                key: value for key, value in stored_config.items() if key != "execution"
+            } == resume_config.model_dump(mode="json", exclude={"execution"})
         if (
-            manifest.get("config_hash") == config_hash
+            config_matches
             and manifest.get("status") in statuses
         ):
             candidates.append(

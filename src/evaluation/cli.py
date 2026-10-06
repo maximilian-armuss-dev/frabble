@@ -53,7 +53,13 @@ def _generation_progress(
 
 
 def cmd_evaluate() -> None:
-    args = _config_parser("Evaluate a prepared case set.").parse_args()
+    parser = _config_parser("Evaluate a prepared case set.")
+    parser.add_argument(
+        "--new",
+        action="store_true",
+        help="Start a new run instead of resuming an incomplete matching run.",
+    )
+    args = parser.parse_args()
     progress: tqdm | None = None
 
     def update_progress(finished: int, total: int) -> None:
@@ -72,6 +78,7 @@ def cmd_evaluate() -> None:
         result = asyncio.run(
             evaluate_run(
                 load_run_config(args.config),
+                new_run=args.new,
                 progress_callback=update_progress,
             )
         )
