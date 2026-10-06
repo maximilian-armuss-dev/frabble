@@ -29,6 +29,7 @@ class ModelConfig:
     provider: str | None = None
     quantizations: tuple[str, ...] | None = None
     reasoning_max_tokens: int | None = None
+    reasoning_effort: str = "high"
 
     @property
     def backend(self) -> str:
@@ -112,9 +113,19 @@ class Environment:
             quantizations = self._optional_list_config_value(
                 raw_model, "quantizations"
             )
+            reasoning_config = {**defaults, **raw_model}
             reasoning_max_tokens = self._optional_int_config_value(
-                raw_model, "reasoning_max_tokens"
+                reasoning_config, "reasoning_max_tokens"
             )
+            reasoning_effort = str(
+                reasoning_config.get("reasoning_effort", "high")
+            ).strip()
+            if reasoning_effort not in {
+                "none", "minimal", "low", "medium", "high", "xhigh", "max"
+            }:
+                raise RuntimeError(
+                    f"Invalid reasoning_effort for model {name!r}: {reasoning_effort!r}"
+                )
             if backend == "openrouter" and provider is None and not quantizations:
                 raise RuntimeError(
                     f"OpenRouter model profile '{name}' must configure a provider "
@@ -131,6 +142,7 @@ class Environment:
                 provider=provider,
                 quantizations=quantizations,
                 reasoning_max_tokens=reasoning_max_tokens,
+                reasoning_effort=reasoning_effort,
             )
         return configs
 

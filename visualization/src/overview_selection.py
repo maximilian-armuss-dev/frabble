@@ -11,6 +11,7 @@ from src.evaluation.result_aggregation import build_aggregate
 from .artifact_catalog import EvaluationRunRecord, _display_table, evaluation_runs
 from .board_figures import PROJECT_ROOT
 from .case_playground import PreparedCaseRecord, case_set_axes
+from .overview_data import overview_payload
 
 
 def completed_runs(
@@ -90,14 +91,16 @@ def filtered_run_aggregate(
         raise ValueError("No prepared cases match those three axis lists.")
 
     run = runs[run_number - 1]
+    all_attempts = load_attempts(run.path)
     attempts = []
-    for attempt in load_attempts(run.path):
+    for attempt in all_attempts:
         case_id = attempt.get("case_id") or Path(str(attempt.get("case_file") or "")).stem
         case = selected.get(str(case_id))
         if case is None:
             continue
         enriched = dict(attempt)
         enriched.update(
+            case_id=case.case_id,
             dimensions=case.dimensions,
             board_size=case.visible_sequences,
             sampling_round=case.sampling_round,
@@ -108,4 +111,6 @@ def filtered_run_aggregate(
             "The selected run has no attempts for those dimensions, sequence counts, "
             "and rounds. Choose another run or expand the lists."
         )
-    return run, build_aggregate(attempts), len(attempts)
+    aggregate = build_aggregate(attempts)
+    aggregate["overview"] = overview_payload(all_attempts, attempts, run_id=run.run_id)
+    return run, aggregate, len(attempts)

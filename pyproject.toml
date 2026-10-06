@@ -5,6 +5,7 @@ description = "Formal-language Scrabble-style benchmark for LLM spatial reasonin
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "httpx>=0.28.0",
     "automata-lib>=8.0.0",
     "litellm>=1.88.0",
     "matplotlib>=3.9.0",

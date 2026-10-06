@@ -1,6 +1,7 @@
 defaults:
   temperature: 1
-  max_completion_tokens: 50000
+  max_completion_tokens: 100000
+  reasoning_effort: high
   timeout_seconds: 3600
 
 models:
@@ -32,7 +33,7 @@ models:
     model: openrouter/deepseek/deepseek-v4-pro-0813
     api_key_env: OPENROUTER_API_KEY
     base_url_env: OPENROUTER_API_BASE
-    provider: nextbit/fp8
+    provider: nebius/fp8
 
   - name: or_glm-5-3
     model: openrouter/z-ai/glm-5.3

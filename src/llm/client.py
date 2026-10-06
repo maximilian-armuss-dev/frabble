@@ -141,7 +141,9 @@ def _completion_kwargs(
             {"role": "user", "content": user_prompt},
         ],
         "temperature": config.temperature,
-        "reasoning_effort": reasoning_effort,
+        "reasoning_effort": (
+            reasoning_effort if reasoning_effort is not None else config.reasoning_effort
+        ),
         "max_completion_tokens": config.max_completion_tokens,
         "response_format": SubmittedMove,
         # Retries are owned by the evaluation runner so they can be counted,

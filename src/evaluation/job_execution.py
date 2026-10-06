@@ -322,7 +322,9 @@ def model_config_snapshot(job: EvaluationJob) -> dict[str, Any]:
         "backend": model_config.backend,
         "reasoning_effort": job.reasoning_effort,
         "reasoning": (
-            openrouter_reasoning(job.reasoning_effort)
+            openrouter_reasoning(
+                job.reasoning_effort, max_tokens=model_config.reasoning_max_tokens
+            )
             if is_openrouter
             else None
         ),
@@ -332,6 +334,7 @@ def model_config_snapshot(job: EvaluationJob) -> dict[str, Any]:
             else None
         ),
         "max_completion_tokens": model_config.max_completion_tokens,
+        "reasoning_max_tokens": model_config.reasoning_max_tokens,
         "request_max_tokens": (
             model_config.max_completion_tokens if is_openrouter else None
         ),

@@ -513,7 +513,7 @@ class EvaluationConfigTests(unittest.TestCase):
     def test_reasoning_effort_is_high_for_both_backends(self):
         for backend in ("litellm", "openrouter"):
             with self.subTest(backend=backend), patch.object(
-                ENV, "get_model_config", return_value=SimpleNamespace(backend=backend)
+                ENV, "get_model_config", return_value=SimpleNamespace(backend=backend, reasoning_effort="high")
             ):
                 self.assertEqual(evaluation_reasoning_effort("example"), "high")
 

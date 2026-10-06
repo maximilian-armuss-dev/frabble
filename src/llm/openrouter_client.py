@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+import json
 from typing import Any
 
+import httpx
 from openrouter import OpenRouter, components
 
 from ..formal.parsing import SubmittedMove
@@ -14,6 +16,41 @@ OPENROUTER_PROVIDER_DEFAULTS = {
 }
 
 
+class _ReasoningBudgetRequest:
+    """Preserve reasoning.max_tokens missing from the SDK's chat schema.
+
+    Apply it at the public HTTP-client boundary, after SDK serialization. This
+    can be removed once ChatRequestReasoning supports max_tokens natively.
+    """
+
+    def __init__(self, *, reasoning_max_tokens: int | None, **kwargs):
+        self.reasoning_max_tokens = reasoning_max_tokens
+        super().__init__(**kwargs)
+
+    def build_request(self, *args, **kwargs) -> httpx.Request:
+        request = super().build_request(*args, **kwargs)
+        if self.reasoning_max_tokens is None:
+            return request
+        if request.method != "POST" or not request.url.path.endswith("/chat/completions"):
+            return request
+        body = json.loads(request.content)
+        body["reasoning"] = {"max_tokens": self.reasoning_max_tokens}
+        headers = request.headers.copy()
+        headers.pop("content-length", None)
+        return httpx.Request(
+            request.method, request.url, headers=headers, json=body,
+            extensions=request.extensions,
+        )
+
+
+class _BudgetClient(_ReasoningBudgetRequest, httpx.Client):
+    pass
+
+
+class _AsyncBudgetClient(_ReasoningBudgetRequest, httpx.AsyncClient):
+    pass
+
+
 def call_openrouter_detailed(
     config: ModelConfig,
     system_prompt: str,
@@ -21,7 +58,9 @@ def call_openrouter_detailed(
     *,
     reasoning_effort: str | None,
 ) -> LLMCallResult:
-    with OpenRouter(**_client_kwargs(config)) as client:
+    with _BudgetClient(
+        reasoning_max_tokens=config.reasoning_max_tokens, follow_redirects=True,
+    ) as http_client, OpenRouter(**_client_kwargs(config), client=http_client) as client:
         response = client.chat.send(
             **_request_kwargs(
                 config,
@@ -40,7 +79,9 @@ async def acall_openrouter_detailed(
     *,
     reasoning_effort: str | None,
 ) -> LLMCallResult:
-    async with OpenRouter(**_client_kwargs(config)) as client:
+    async with _AsyncBudgetClient(
+        reasoning_max_tokens=config.reasoning_max_tokens, follow_redirects=True,
+    ) as http_client, OpenRouter(**_client_kwargs(config), async_client=http_client) as client:
         response = await client.chat.send_async(
             **_request_kwargs(
                 config,
@@ -88,7 +129,7 @@ def _request_kwargs(
         },
         "provider": openrouter_provider_preferences(config),
         "reasoning": openrouter_reasoning(
-            reasoning_effort,
+            reasoning_effort if reasoning_effort is not None else config.reasoning_effort,
             max_tokens=config.reasoning_max_tokens,
         ),
         "x_open_router_metadata": "enabled",

@@ -5,6 +5,7 @@ import html
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import Decimal, ROUND_DOWN
 from pathlib import Path
 from time import perf_counter
 from typing import Literal, Mapping, Sequence
@@ -306,6 +307,7 @@ def llm_call_diagnostics(response: TimedLLMResponse) -> dict[str, object]:
         "provider_processing_seconds": provider_seconds,
         "prompt_tokens": response.usage.get("prompt_tokens"),
         "completion_tokens": response.usage.get("completion_tokens"),
+        "cost_usd": response.usage.get("cost"),
         "reasoning_tokens": completion_details.get("reasoning_tokens"),
         "visible_output_tokens": completion_details.get("text_tokens"),
         "model": response.metadata.get("model"),
@@ -324,11 +326,18 @@ def display_llm_response(response: TimedLLMResponse) -> object:
     model = diagnostics.get("configured_model") or diagnostics.get("model")
     elapsed = diagnostics.get("wall_seconds")
     elapsed_text = "n/a" if elapsed is None else f"{float(elapsed):.1f}s"
+    cost = diagnostics.get("cost_usd")
+    cost_text = "Not reported"
+    if isinstance(cost, (int, float)) and not isinstance(cost, bool):
+        amount = Decimal(str(cost))
+        if amount.is_finite():
+            cost_text = f"${amount.quantize(Decimal('0.01'), rounding=ROUND_DOWN):.2f}"
     rows = (
         ("model", model),
         ("backend", diagnostics.get("backend")),
         ("reasoning", diagnostics.get("reasoning_effort")),
         ("LLM time", elapsed_text),
+        ("request cost (USD)", cost_text),
         ("prompt tokens", diagnostics.get("prompt_tokens")),
         ("reasoning tokens", diagnostics.get("reasoning_tokens")),
         ("completion tokens", diagnostics.get("completion_tokens")),

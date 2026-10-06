@@ -66,9 +66,7 @@ def build_evaluation_jobs(
 
 def evaluation_reasoning_effort(model_name: str) -> str:
     model_config = ENV.get_model_config(model_name)
-    if model_config.backend == "openrouter":
-        return EVALUATION_OPENROUTER_REASONING_EFFORT
-    return EVALUATION_REASONING_EFFORT
+    return model_config.reasoning_effort
 
 
 def resolve_model_board_sizes(

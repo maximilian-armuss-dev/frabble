@@ -317,9 +317,9 @@ def _show_overview_filter(
     )
 
 
-def show_overview_filter() -> OverviewFilterSelection | None:
+def show_overview_filter(default_case_set: str = "7r") -> OverviewFilterSelection | None:
     """Show run and checkbox controls for the evaluation overview."""
-    return _show_overview_filter("7r", include_run=True)
+    return _show_overview_filter(default_case_set, include_run=True)
 
 
 def show_overview_filter_mock() -> OverviewFilterSelection | None:
