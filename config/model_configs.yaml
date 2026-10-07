@@ -5,43 +5,43 @@ defaults:
   timeout_seconds: 3600
 
 models:
-  - name: or_gpt-6-1-sol
+  - name: sol
     model: openrouter/openai/gpt-6.1-sol
     api_key_env: OPENROUTER_API_KEY
     base_url_env: OPENROUTER_API_BASE
     provider: openai
 
-  - name: or_claude-opus-5-5
+  - name: opus
     model: openrouter/anthropic/claude-opus-5.5
     api_key_env: OPENROUTER_API_KEY
     base_url_env: OPENROUTER_API_BASE
     provider: anthropic
 
-  - name: or_gemini-3-1-pro
+  - name: gemini
     model: openrouter/google/gemini-3.1-pro-preview
     api_key_env: OPENROUTER_API_KEY
     base_url_env: OPENROUTER_API_BASE
     provider: google-ai-studio
 
-  - name: or_grok-4-7
+  - name: grok
     model: openrouter/x-ai/grok-4.7
     api_key_env: OPENROUTER_API_KEY
     base_url_env: OPENROUTER_API_BASE
     provider: xai
 
-  - name: or_deepseek-v4-pro-0813
+  - name: deepseek
     model: openrouter/deepseek/deepseek-v4-pro-0813
     api_key_env: OPENROUTER_API_KEY
     base_url_env: OPENROUTER_API_BASE
     provider: nebius/fp8
 
-  - name: or_glm-5-3
+  - name: glm
     model: openrouter/z-ai/glm-5.3
     api_key_env: OPENROUTER_API_KEY
     base_url_env: OPENROUTER_API_BASE
-    provider: akashml/fp8
+    provider: parasail/fp8
 
-  - name: or_qwen3-8-max-0902
+  - name: qwen
     model: openrouter/qwen/qwen3.8-max-0902
     api_key_env: OPENROUTER_API_KEY
     base_url_env: OPENROUTER_API_BASE

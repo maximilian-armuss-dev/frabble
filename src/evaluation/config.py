@@ -89,7 +89,7 @@ class ExecutionConfig(BaseModel):
 
     max_concurrency: int = Field(default=10, gt=0)
     max_concurrency_per_model: int | None = Field(default=None, gt=0)
-    max_retries: int = Field(default=5, ge=0)
+    max_retries: int = Field(default=0, ge=0)
 
 
 class RunConfig(BaseModel):

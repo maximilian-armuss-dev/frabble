@@ -1,7 +1,0 @@
-case_set: 7r
-models:
-  or_kimi-k2-6: [all]
-execution:
-  max_concurrency: 7
-  max_concurrency_per_model: 7
-  max_retries: 1

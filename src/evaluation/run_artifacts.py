@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .artifacts import read_json, utc_now, write_json_atomic
+from .attempts import attempt_has_valid_response
 from .config import RunConfig
 from .result_aggregation import (
     build_aggregate,
@@ -22,15 +23,15 @@ def select_or_create_run(
 ) -> tuple[Path, dict[str, Any]]:
     if new_run:
         return _create_run(case_root / "runs", config, config_hash)
-    resumable = _matching_runs(
+    matching = _matching_runs(
         case_root / "runs",
         config_hash,
-        statuses={"in_progress", "incomplete"},
+        statuses={"in_progress", "incomplete", "complete"},
         timestamp_field="created_at",
         resume_config=config,
     )
-    if resumable:
-        _, path, manifest = max(resumable, key=lambda item: item[0])
+    if matching:
+        _, path, manifest = max(matching, key=lambda item: item[0])
         # Execution policy may change between sessions without changing the jobs.
         manifest["config"] = config.model_dump(mode="json")
         manifest["config_hash"] = config_hash
@@ -55,13 +56,7 @@ def latest_completed_run(runs_dir: Path, config_hash: str) -> Path | None:
 def attempt_is_final(path: Path) -> bool:
     if not path.exists():
         return False
-    attempt = read_json(path)
-    if attempt.get("status") == "complete":
-        return True
-    return attempt.get("status") == "transport_error" and not attempt.get(
-        "retryable",
-        False,
-    )
+    return attempt_has_valid_response(read_json(path))
 
 
 def load_attempts(run_dir: Path) -> list[dict[str, Any]]:
@@ -76,25 +71,19 @@ def finalize_run(
     manifest: dict[str, Any],
 ) -> dict[str, Any]:
     attempts = load_attempts(run_dir)
-    configured_max_retries = int(
-        manifest.get("config", {})
-        .get("execution", {})
-        .get("max_retries", 0)
-    )
-    has_retryable_errors = any(
-        attempt.get("status") == "transport_error"
-        and bool(attempt.get("retryable"))
-        and int(attempt.get("retry_count", 0)) < configured_max_retries
-        for attempt in attempts
-    )
-    manifest["status"] = "incomplete" if has_retryable_errors else "complete"
-    manifest["completed_at"] = None if has_retryable_errors else utc_now()
     manifest["completed_jobs"] = sum(
-        attempt.get("status") == "complete" for attempt in attempts
+        attempt_has_valid_response(attempt) for attempt in attempts
     )
-    manifest["error_jobs"] = sum(
-        attempt.get("status") == "transport_error" for attempt in attempts
+    manifest["error_jobs"] = len(attempts) - manifest["completed_jobs"]
+    is_complete = (
+        manifest["error_jobs"] == 0
+        and manifest["completed_jobs"] == manifest.get("total_jobs", len(attempts))
     )
+    manifest["status"] = "complete" if is_complete else "incomplete"
+    manifest["completed_at"] = (
+        (manifest.get("completed_at") or utc_now()) if is_complete else None
+    )
+    manifest["updated_at"] = utc_now()
     write_json_atomic(run_dir / "run-manifest.json", manifest)
 
     aggregate = build_aggregate(attempts)

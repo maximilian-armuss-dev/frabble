@@ -220,28 +220,7 @@ async def execute_job(
         raise
     elapsed = perf_counter() - started_at
     finish_reason = _finish_reason(result)
-    submitted, parse_error = _parse_response(result.content)
-    evaluation = evaluate_granular(
-        board,
-        language,
-        transition.rack,
-        submitted,
-        parse_error,
-        finish_reason=finish_reason,
-    )
-    # Format-robust pass: tolerate serialization quirks (string sequences,
-    # un-split words) so that a correct move is not scored 0 for formatting.
-    # The strict `evaluation` above stays the headline number.
-    submitted_lenient, parse_error_lenient = _parse_response_lenient(result.content)
-    evaluation_format_robust = evaluate_granular(
-        board,
-        language,
-        transition.rack,
-        submitted_lenient,
-        parse_error_lenient,
-        finish_reason=finish_reason,
-    )
-    return {
+    attempt = {
         "schema_version": 1,
         "job_id": job.job_id,
         "case_id": evaluation_case.case_id,
@@ -272,12 +251,6 @@ async def execute_job(
         "system_prompt": system_prompt,
         "user_prompt": user_prompt,
         "raw_response": result.content,
-        "parsed_move": submitted.model_dump(mode="json") if submitted else None,
-        "parsed_move_lenient": (
-            submitted_lenient.model_dump(mode="json") if submitted_lenient else None
-        ),
-        "evaluation": evaluation.to_json(),
-        "evaluation_format_robust": evaluation_format_robust.to_json(),
         **(
             {
                 "optimal_move": evaluation_case.reference_move,
@@ -287,6 +260,44 @@ async def execute_job(
             else {"ground_truth_move": evaluation_case.reference_move}
         ),
     }
+    if finish_reason == "error":
+        attempt.update(
+            status="provider_response_error",
+            error_type="ProviderResponseError",
+            error="Provider returned finish_reason=error.",
+        )
+        return attempt
+
+    submitted, parse_error = _parse_response(result.content)
+    evaluation = evaluate_granular(
+        board,
+        language,
+        transition.rack,
+        submitted,
+        parse_error,
+        finish_reason=finish_reason,
+    )
+    # Format-robust pass: tolerate serialization quirks (string sequences,
+    # un-split words) so that a correct move is not scored 0 for formatting.
+    # The strict `evaluation` above stays the headline number.
+    submitted_lenient, parse_error_lenient = _parse_response_lenient(result.content)
+    evaluation_format_robust = evaluate_granular(
+        board,
+        language,
+        transition.rack,
+        submitted_lenient,
+        parse_error_lenient,
+        finish_reason=finish_reason,
+    )
+    attempt.update(
+        parsed_move=submitted.model_dump(mode="json") if submitted else None,
+        parsed_move_lenient=(
+            submitted_lenient.model_dump(mode="json") if submitted_lenient else None
+        ),
+        evaluation=evaluation.to_json(),
+        evaluation_format_robust=evaluation_format_robust.to_json(),
+    )
+    return attempt
 
 
 def transport_error_result(

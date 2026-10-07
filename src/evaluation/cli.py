@@ -57,7 +57,7 @@ def cmd_evaluate() -> None:
     parser.add_argument(
         "--new",
         action="store_true",
-        help="Start a new run instead of resuming an incomplete matching run.",
+        help="Start a new run instead of reusing the latest matching run.",
     )
     args = parser.parse_args()
     progress: tqdm | None = None
@@ -90,6 +90,17 @@ def cmd_evaluate() -> None:
             progress.close()
     print(f"evaluation run: {result['run_dir']}")
     print(f"summary: {result['summary']}")
+    if result["manifest"]["status"] == "complete":
+        print(
+            "All runs are valid (no transport or provider response errors). "
+            f"Start a new run with: uv run evaluate --config {args.config} --new"
+        )
+    else:
+        print(
+            "Some jobs are still missing valid responses. "
+            "Retry them with: "
+            f"uv run evaluate --config {args.config}"
+        )
 
 
 def cmd_decompose() -> None:

@@ -14,6 +14,7 @@ outputs/evaluation/<case-set>/
 └── runs/<run-id>/
     ├── run-manifest.json
     ├── attempts/
+    ├── attempt-history/
     ├── summary.json
     ├── aggregate.json
     └── results.csv
@@ -38,9 +39,11 @@ Preparation creates or loads the manifest and materializes each grammar, scenari
 
 ## Run lifecycle
 
-A run is identified by the canonical hash of its resolved run config. An incomplete matching run can resume; otherwise evaluation creates a timestamped run directory. Stable job IDs identify each case/model combination.
+A run records the canonical hash of its resolved run config. By default, evaluation reuses the latest matching run, including one previously marked complete. Matching compares the experiment configuration while allowing execution policy, such as concurrency and retry limits, to change between invocations. A timestamped run directory is created when no matching run exists or when `--new` is supplied. Stable job IDs identify each case/model combination.
 
-Every terminal job writes one attempt immediately. When no jobs remain pending, the run manifest is finalized and attempts become three views:
+Each invocation schedules only jobs without a valid provider response. Transport errors and provider response errors keep the run incomplete, even after automatic retries are exhausted. A completed model response remains final even when its evaluated move fails. Once every job has a valid provider response, repeating the command makes no further provider calls and reports that a new run can be started with `uv run evaluate --config <name> --new`.
+
+Every finished job writes its current attempt immediately. Replacing an unsuccessful attempt archives the previous JSON under `attempt-history/<job-id>/`, preserving error diagnostics across manual retries without counting them again in evaluation metrics. After the pending jobs have been attempted, the manifest records whether the run is complete and current attempts become three views:
 
 - `summary.json` contains compact headline metrics;
 - `aggregate.json` retains detailed grouped measurements;

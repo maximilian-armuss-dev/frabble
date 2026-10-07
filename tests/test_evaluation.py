@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import csv
+import io
 import json
 import tempfile
 import unittest
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stdout
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -16,8 +17,10 @@ from pydantic import BaseModel
 
 from src.configuration import NamedYamlConfigSource
 from src.evaluation.artifacts import content_sha256, read_json, write_json_atomic
+from src.evaluation.cli import cmd_evaluate
 from src.evaluation.config import (
     CaseSetConfig,
+    ExecutionConfig,
     NumericRange,
     RunConfig,
     load_case_set_config,
@@ -117,6 +120,9 @@ def tiny_run(
 
 
 class EvaluationConfigTests(unittest.TestCase):
+    def test_automatic_retries_are_disabled_by_default(self):
+        self.assertEqual(ExecutionConfig().max_retries, 0)
+
     def test_matching_incomplete_run_resumes_by_default(self):
         config = tiny_run()
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -170,6 +176,46 @@ class EvaluationConfigTests(unittest.TestCase):
             original, _ = select_or_create_run(root, config, "old-hash")
             fresh, _ = select_or_create_run(root, changed, "new-hash")
             self.assertNotEqual(fresh, original)
+
+    def test_latest_completed_run_is_reused_before_older_incomplete_run(self):
+        config = tiny_run()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            select_or_create_run(root, config, "same-config")
+            latest, manifest = select_or_create_run(
+                root, config, "same-config", new_run=True
+            )
+            manifest["status"] = "complete"
+            write_json_atomic(latest / "run-manifest.json", manifest)
+
+            reused, _ = select_or_create_run(root, config, "same-config")
+
+            self.assertEqual(reused, latest)
+            self.assertEqual(len(list((root / "runs").iterdir())), 2)
+
+    def test_cli_reports_valid_runs_and_explicit_new_command(self):
+        for status in ("complete", "incomplete"):
+            with self.subTest(status=status):
+                output = io.StringIO()
+                with (
+                    patch("sys.argv", ["evaluate", "--config", "tiny_run"]),
+                    patch("src.evaluation.cli.load_run_config", return_value=tiny_run()),
+                    patch("src.evaluation.cli.evaluate_run", return_value={
+                        "run_dir": "run",
+                        "manifest": {"status": status},
+                        "summary": {},
+                    }),
+                    redirect_stdout(output),
+                ):
+                    cmd_evaluate()
+                message = output.getvalue()
+                if status == "complete":
+                    self.assertIn("All runs are valid", message)
+                    self.assertIn("uv run evaluate --config tiny_run --new", message)
+                else:
+                    self.assertIn("Retry them with: uv run evaluate --config tiny_run", message)
+                    self.assertNotIn("All runs are valid", message)
+                    self.assertNotIn("--new", message)
 
     def test_case_set_loads_board_sizes(self):
         config = load_case_set_config("1r_sanity_check")
@@ -586,14 +632,14 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(letter_score_total["count"], 3)
         self.assertEqual(letter_score_total["mean"], 4.0)
 
-    def test_exhausted_transport_error_finishes_run(self):
+    def test_exhausted_transport_error_keeps_run_incomplete(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             run_dir = Path(temp_dir) / "case-set" / "runs" / "run"
             write_json_atomic(
                 run_dir / "attempts" / "timeout.json",
                 {
                     "status": "transport_error",
-                    "retryable": True,
+                    "retryable": False,
                     "retry_count": 0,
                     "llm_elapsed_seconds_total": 600.0,
                 },
@@ -607,9 +653,36 @@ class EvaluationConfigTests(unittest.TestCase):
 
             finalize_run(run_dir, manifest)
 
-        self.assertEqual(manifest["status"], "complete")
+        self.assertEqual(manifest["status"], "incomplete")
         self.assertEqual(manifest["error_jobs"], 1)
-        self.assertIsNotNone(manifest["completed_at"])
+        self.assertIsNone(manifest["completed_at"])
+
+    def test_provider_errors_are_excluded_from_completed_results(self):
+        for status in ("complete", "provider_response_error"):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as temp_dir:
+                run_dir = Path(temp_dir)
+                write_json_atomic(run_dir / "attempts" / "provider.json", {
+                    "status": status,
+                    "provider_metadata": {"finish_reason": "error"},
+                    "evaluation": {"overall": False, "failure_type": "parse"},
+                })
+                manifest = {"status": "complete", "completed_at": "old"}
+
+                summary = finalize_run(run_dir, manifest)
+
+                self.assertEqual(manifest["status"], "incomplete")
+                self.assertEqual(manifest["error_jobs"], 1)
+                self.assertIsNone(manifest["completed_at"])
+                self.assertEqual(summary["completed"], 0)
+                self.assertEqual(summary["failed"], 0)
+                self.assertEqual(summary["transport_errors"], 1)
+
+    def test_missing_jobs_keep_run_incomplete(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manifest = {"total_jobs": 1}
+            finalize_run(Path(temp_dir), manifest)
+        self.assertEqual(manifest["status"], "incomplete")
+        self.assertIsNone(manifest["completed_at"])
 
     def test_named_yaml_source_derives_name_and_rejects_explicit_config_name(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -950,6 +1023,96 @@ class EvaluationConfigTests(unittest.TestCase):
 
 
 class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
+    async def test_manual_resume_retries_errors_preserves_history_and_then_stops(self):
+        invalid_answer = LLMCallResult(
+            content="not a move", usage={}, metadata={"finish_reason": "stop"}
+        )
+        provider_error = LLMCallResult(
+            content="partial response",
+            usage={"total_tokens": 7},
+            metadata={"finish_reason": "error", "response_id": "provider-error"},
+        )
+        request_error = openrouter_errors.OpenRouterError(
+            "Provider returned error",
+            raw_response=SimpleNamespace(
+                status_code=400, text="provider diagnostics", headers={}
+            ),
+        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            with (
+                patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", root),
+                patch("src.evaluation.runner.EVALUATION_OUTPUT_DIR", root),
+                patch("src.evaluation.runner.acall_llm_detailed") as call,
+            ):
+                prepare_case_set(tiny_case_set(board_sizes=[0, 1, 2, 3]))
+                call.side_effect = [
+                    invalid_answer,
+                    openrouter_errors.NoResponseError("timeout"),
+                    request_error,
+                    provider_error,
+                ]
+                first = await evaluate_run(tiny_run())
+                self.assertEqual(call.await_count, 4)
+                self.assertEqual(first["manifest"]["status"], "incomplete")
+                self.assertEqual(first["manifest"]["error_jobs"], 3)
+                self.assertEqual(first["summary"]["completed"], 1)
+                run_dir = Path(first["run_dir"])
+                attempts = list((run_dir / "attempts").glob("*.json"))
+                good_path = next(p for p in attempts if read_json(p)["status"] == "complete")
+                good_bytes = good_path.read_bytes()
+                response_path = next(
+                    p for p in attempts if read_json(p)["status"] == "provider_response_error"
+                )
+                response = read_json(response_path)
+                self.assertEqual(response["raw_response"], "partial response")
+                self.assertEqual(response["usage"]["total_tokens"], 7)
+                self.assertNotIn("evaluation", response)
+
+                # Emulate older artifacts that incorrectly marked errors complete.
+                response["status"] = "complete"
+                response["evaluation"] = {"overall": False, "failure_type": "parse"}
+                write_json_atomic(response_path, response)
+                first["manifest"]["status"] = "complete"
+                write_json_atomic(run_dir / "run-manifest.json", first["manifest"])
+                call.reset_mock()
+                call.side_effect = openrouter_errors.NoResponseError("still unavailable")
+                second = await evaluate_run(tiny_run())
+                self.assertEqual(second["run_dir"], first["run_dir"])
+                self.assertEqual(call.await_count, 3)
+                self.assertEqual(second["manifest"]["status"], "incomplete")
+
+                call.reset_mock()
+                call.side_effect = None
+                call.return_value = invalid_answer
+                resumed = await evaluate_run(tiny_run())
+                self.assertEqual(resumed["run_dir"], first["run_dir"])
+                self.assertEqual(call.await_count, 3)
+                self.assertEqual(resumed["manifest"]["status"], "complete")
+                self.assertEqual(resumed["summary"]["completed"], 4)
+                self.assertEqual(resumed["summary"]["transport_errors"], 0)
+                self.assertEqual(good_path.read_bytes(), good_bytes)
+                history = [read_json(p) for p in (run_dir / "attempt-history").glob("*/*.json")]
+                self.assertEqual(len(history), 6)
+                self.assertIn(response, history)
+                self.assertTrue(any(
+                    a.get("error_body") == "provider diagnostics" for a in history
+                ))
+
+                call.reset_mock()
+                finished = await evaluate_run(tiny_run())
+                call.assert_not_awaited()
+                self.assertEqual(finished["run_dir"], first["run_dir"])
+                self.assertEqual(
+                    finished["manifest"]["completed_at"],
+                    resumed["manifest"]["completed_at"],
+                )
+                self.assertEqual(len(list((root / "tiny" / "runs").iterdir())), 1)
+
+                fresh = await evaluate_run(tiny_run(), new_run=True)
+                self.assertNotEqual(fresh["run_dir"], first["run_dir"])
+                self.assertEqual(call.await_count, 4)
+
     async def test_per_model_semaphore_limits_same_model_calls(self):
         active = 0
         peak = 0
@@ -1121,6 +1284,9 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
         jobs = [
             SimpleNamespace(job_id="done"),
             SimpleNamespace(job_id="retryable"),
+            SimpleNamespace(job_id="exhausted"),
+            SimpleNamespace(job_id="provider"),
+            SimpleNamespace(job_id="legacy-provider"),
             SimpleNamespace(job_id="missing"),
         ]
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -1136,12 +1302,21 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
                     "retryable": True,
                 },
             )
+            write_json_atomic(run_dir / "attempts" / "exhausted.json", {
+                "status": "transport_error", "retryable": False,
+            })
+            write_json_atomic(run_dir / "attempts" / "provider.json", {
+                "status": "provider_response_error",
+            })
+            write_json_atomic(run_dir / "attempts" / "legacy-provider.json", {
+                "status": "complete", "provider_metadata": {"finish_reason": "error"},
+            })
 
             pending = _pending_jobs(jobs, run_dir, "config-hash")
 
         self.assertEqual(
             {job.job_id for job in pending},
-            {"retryable", "missing"},
+            {"retryable", "exhausted", "provider", "legacy-provider", "missing"},
         )
 
 

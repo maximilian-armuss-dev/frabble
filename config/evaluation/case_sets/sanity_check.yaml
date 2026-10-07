@@ -1,0 +1,12 @@
+generation_config: evaluation_base
+grammar_config: evaluation_base_grammar
+root_seed: 20261007
+sampling_rounds: 1
+dimensions:
+  - 2
+  - 3
+  - 4
+  - 5
+board_sizes:
+  - 1
+  - 5

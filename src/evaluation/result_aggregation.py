@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .artifacts import read_json
+from .attempts import attempt_has_valid_response
 
 CONSTRAINT_FIELDS = (
     "parse_ok",
@@ -131,7 +132,7 @@ def _aggregate_group(
     *,
     dimensions: dict[str, Any],
 ) -> dict[str, Any]:
-    completed = [item for item in attempts if item.get("status") == "complete"]
+    completed = [item for item in attempts if attempt_has_valid_response(item)]
     passed = [item for item in completed if _attempt_passed(item)]
     failed = [item for item in completed if not _attempt_passed(item)]
     primary_failures = Counter(

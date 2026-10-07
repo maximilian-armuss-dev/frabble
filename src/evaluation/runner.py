@@ -9,6 +9,7 @@ from typing import Any
 from ..generator.config import PROJECT_ROOT
 from ..llm.client import acall_llm_detailed
 from .artifacts import content_sha256, read_json, utc_now, write_json_atomic
+from .attempts import persist_attempt
 from .config import RunConfig
 from .job_execution import AsyncLLMCaller, ModelCooldowns, execute_with_retries
 from .jobs import EvaluationJob, build_evaluation_jobs
@@ -37,6 +38,11 @@ async def evaluate_run(
         run_dir,
         config_hash,
     )
+    manifest["total_jobs"] = len(jobs)
+    if pending_jobs:
+        manifest["status"] = "in_progress"
+        manifest["completed_at"] = None
+    write_json_atomic(run_dir / "run-manifest.json", manifest)
     progress = {"finished": len(jobs) - len(pending_jobs), "total": len(jobs)}
     if progress_callback is not None:
         progress_callback(progress["finished"], progress["total"])
@@ -96,7 +102,7 @@ async def _run_and_persist(
         cooldowns=cooldowns,
         call_llm=call_llm,
     )
-    write_json_atomic(run_dir / "attempts" / f"{job.job_id}.json", result)
+    persist_attempt(run_dir, job.job_id, result)
     async with manifest_lock:
         manifest["updated_at"] = utc_now()
         manifest["attempted_jobs"] = int(manifest.get("attempted_jobs", 0)) + 1
