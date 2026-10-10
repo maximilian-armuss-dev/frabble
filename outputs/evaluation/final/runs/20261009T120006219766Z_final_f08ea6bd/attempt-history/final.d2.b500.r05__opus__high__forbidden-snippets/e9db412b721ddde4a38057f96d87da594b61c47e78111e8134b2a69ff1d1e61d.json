@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "job_id": "final.d2.b500.r05__opus__high__forbidden-snippets",
+  "case_file": "/Users/maxi/code/repos/frabble/outputs/evaluation/final/cases/final.d2.b500.r05.json",
+  "model": "opus",
+  "reasoning_effort": "high",
+  "model_config": {
+    "model": "anthropic/claude-opus-5.5",
+    "configured_model": "openrouter/anthropic/claude-opus-5.5",
+    "backend": "openrouter",
+    "reasoning_effort": "high",
+    "reasoning": {
+      "effort": "high"
+    },
+    "provider": {
+      "only": [
+        "anthropic"
+      ],
+      "allow_fallbacks": false,
+      "require_parameters": true
+    },
+    "max_completion_tokens": 60000,
+    "reasoning_max_tokens": null,
+    "request_max_tokens": 60000,
+    "timeout_seconds": 3600.0,
+    "provider_max_retries": 0
+  },
+  "language_representation": "forbidden-snippets",
+  "status": "transport_error",
+  "retryable": false,
+  "retry_count": 0,
+  "error_type": "PaymentRequiredResponseError",
+  "error": "This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.",
+  "http_status_code": 402,
+  "error_body": "{\"error\":{\"message\":\"This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.\",\"code\":402,\"metadata\":{\"reason\":\"in_flight_budget_exhausted\",\"limit_source\":\"openrouter_in_flight_budget\",\"remedy_hint\":\"Retry after your in-flight requests settle (see the Retry-After header). Adding credits at https://openrouter.ai/settings/credits raises your in-flight budget, up to a capped ceiling.\",\"headers\":{\"Retry-After\":\"120\"},\"provider_name\":null}},\"user_id\":\"org_3FzG8jPpSdZG4EaqB3ZVnnPDQ4b\",\"openrouter_metadata\":{\"requested\":\"anthropic/claude-opus-5.5\",\"strategy\":\"direct\",\"region\":\"MUC\",\"summary\":\"available=1\",\"attempt\":0,\"is_byok\":false,\"endpoints\":{\"total\":11,\"available\":[{\"provider\":\"Anthropic\",\"model\":\"anthropic/claude-opus-5.5-20260921\",\"selected\":false}]}}}",
+  "timestamp": "2026-10-09T12:30:45.842120+00:00",
+  "error_retryable": false,
+  "request_attempt_count": 1,
+  "llm_elapsed_seconds_total": 0.11245591600891203,
+  "retry_wait_seconds_total": 0.0,
+  "failed_attempts": [
+    {
+      "attempt_index": 0,
+      "elapsed_seconds": 0.11245591600891203,
+      "error_type": "PaymentRequiredResponseError",
+      "error": "This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.",
+      "retryable": false,
+      "http_status_code": 402,
+      "error_body": "{\"error\":{\"message\":\"This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.\",\"code\":402,\"metadata\":{\"reason\":\"in_flight_budget_exhausted\",\"limit_source\":\"openrouter_in_flight_budget\",\"remedy_hint\":\"Retry after your in-flight requests settle (see the Retry-After header). Adding credits at https://openrouter.ai/settings/credits raises your in-flight budget, up to a capped ceiling.\",\"headers\":{\"Retry-After\":\"120\"},\"provider_name\":null}},\"user_id\":\"org_3FzG8jPpSdZG4EaqB3ZVnnPDQ4b\",\"openrouter_metadata\":{\"requested\":\"anthropic/claude-opus-5.5\",\"strategy\":\"direct\",\"region\":\"MUC\",\"summary\":\"available=1\",\"attempt\":0,\"is_byok\":false,\"endpoints\":{\"total\":11,\"available\":[{\"provider\":\"Anthropic\",\"model\":\"anthropic/claude-opus-5.5-20260921\",\"selected\":false}]}}}"
+    }
+  ]
+}

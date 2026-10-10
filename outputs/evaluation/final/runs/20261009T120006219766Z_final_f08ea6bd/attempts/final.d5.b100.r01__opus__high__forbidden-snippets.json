@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "job_id": "final.d5.b100.r01__opus__high__forbidden-snippets",
+  "case_id": "final.d5.b100.r01",
+  "case_file": "/Users/maxi/code/repos/frabble/outputs/evaluation/final/cases/final.d5.b100.r01.json",
+  "board_size": 100,
+  "dimensions": 5,
+  "sampling_round": 1,
+  "model": "opus",
+  "reasoning_effort": "high",
+  "model_config": {
+    "model": "anthropic/claude-opus-5.5",
+    "configured_model": "openrouter/anthropic/claude-opus-5.5",
+    "backend": "openrouter",
+    "reasoning_effort": "high",
+    "reasoning": {
+      "effort": "high"
+    },
+    "provider": {
+      "only": [
+        "anthropic"
+      ],
+      "allow_fallbacks": false,
+      "require_parameters": true
+    },
+    "max_completion_tokens": 60000,
+    "reasoning_max_tokens": null,
+    "request_max_tokens": 60000,
+    "timeout_seconds": 3600.0,
+    "provider_max_retries": 0
+  },
+  "language_representation": "forbidden-snippets",
+  "status": "complete",
+  "retry_count": 0,
+  "timestamp": "2026-10-09T12:12:09.777546+00:00",
+  "llm_elapsed_seconds": 32.651582124992274,
+  "usage": {
+    "completion_tokens": 3169,
+    "prompt_tokens": 7439,
+    "total_tokens": 10608,
+    "completion_tokens_details": {
+      "audio_tokens": 0,
+      "reasoning_tokens": 3114
+    },
+    "cost": 0.093136,
+    "cost_details": {
+      "upstream_inference_completions_cost": 0.06338,
+      "upstream_inference_prompt_cost": 0.029756,
+      "upstream_inference_cost": 0.093136
+    },
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+      "video_tokens": 0
+    }
+  },
+  "provider_metadata": {
+    "backend": "openrouter-sdk",
+    "response_id": "gen-1791547897-UhjIN7BM8wd04IRTC40Z",
+    "model": "anthropic/claude-opus-5.5",
+    "finish_reason": "stop",
+    "service_tier": "default",
+    "reasoning": "This is a complex puzzle, so I need to find a valid, ideally high-scoring move without exhaustive search. I'm considering what \"complete\" means here—likely that every existing sequence is already accepted and can't be extended along its own axis, though crossing it should still be fine—so I'm looking for a simple approach like picking an existing cell and building off it.\n\nI'm scanning through my rack (E, G, L, V, Z, with Z worth 5 and bonus squares worth 2+10k) and checking various grid positions to find an isolated spot where I can place a perpendicular line without colliding with neighboring occupied cells or extending a completed sequence. I'm tracing through several candidate cells and their surrounding axes, checking coordinates carefully to see which regions are open enough to place tiles safely.\n\nThat confirms [0,2,0,0,0] as Z, matching both axis1 and axis4. Now I'm checking neighbors around [0,0,0,0,0] along axis2 for new occupied cells, testing adjacency along axes 0, 1, and 3 to see which are already filled versus empty.\n\nChecking those adjacencies, I find they're mostly unoccupied except at z=0, meaning any crossing words would only run along axis2 itself. So I'm considering placing a word containing J using the rack letters E, G, L, V, Z, with length up to 6, and computing the score by summing letter values across positions z, factoring in bonus multipliers at specific coordinates like z=2.\n\nWorking through the position math, placing Z at z=2 triggers a x3 multiplier, giving a score of 15 for that letter alone — combined with the rest of the rack (E, G, L, V worth 4, plus J worth 1), that's 20 total. I'm wondering if there's a better arrangement using an x4 bonus instead, perhaps reusing a higher-value letter, but for now I want to find a valid 6-letter word that fits with J at z=0 and Z at z=2, trying out different letter orderings across that span.\n\nChecking the forbidden trigram list, J-E-Z, J-G-Z, and J-L-Z all seem allowed, while J-V-Z is forbidden. Trying a layout like three unknown letters, then J, then another letter, then Z — testing E in that middle slot to see if a legitimate word emerges.\n\nWith E Z confirmed valid, I'm testing permutations of G, L, V for the remaining three positions, checking whether their trigrams with J and each other violate the forbidden list. L J E works but G J E and V J E are both blocked, so the placement before J needs to end in L specifically — I'm now testing whether G or L can occupy the final slot before that, with V L G and L V G both running into forbidden trigram conflicts.\n\nSo for c=L, I try G V L J E Z and verify every consecutive trigram against the forbidden set — GVL, VLJ, LJE, JEZ all check out clean. That gives me a valid length-6 word, so I map it to positions along one axis starting at [0,0,-3,0,0], and now I'm checking which cells carry bonus markers like S.\n\nChecking Z at z=2, with P=2 giving a x3 multiplier while the rest are x1, the total comes to 20. I try to see if Z could land on a x4 multiplier instead by testing other axes (axis 0, axis 4), but each attempt still lands on P mod 4 = 2, giving x3 again, so I'm not finding a better placement yet and need to also check the rule about not overlapping an existing word along the move axis.\n\nNow I'm testing a reused cell near coordinate [0,3,0,0,0], trying different axes through it to see if the bonus multiplier at the Z position comes out better — axis 2 gives P mod 4 = 3 (x2), axis 4 gives P mod 4 = 1 (x2), still checking axis 0.\n\nI'll settle on 20 as the result, but first verify there aren't overlapping neighbor sequences I'm missing — checking cells with coord1 or coord3 equal to ±1 while other coordinates are zero, and confirming none of those give extra valid overlaps beyond the ones already found.\n\n",
+    "reasoning_details": [
+      {
+        "type": "reasoning.text",
+        "format": null,
+        "index": 0,
+        "signature": "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.eyJlbmRwb2ludF9zbHVnIjoiYW50aHJvcGljL2NsYXVkZS1vcHVzLTUuNS0yMDI2MDkyMXxhbnRocm9waWMifQ",
+        "text": "This is a complex puzzle, so I need to find a valid, ideally high-scoring move without exhaustive search. I'm considering what \"complete\" means here—likely that every existing sequence is already accepted and can't be extended along its own axis, though crossing it should still be fine—so I'm looking for a simple approach like picking an existing cell and building off it.\n\nI'm scanning through my rack (E, G, L, V, Z, with Z worth 5 and bonus squares worth 2+10k) and checking various grid positions to find an isolated spot where I can place a perpendicular line without colliding with neighboring occupied cells or extending a completed sequence. I'm tracing through several candidate cells and their surrounding axes, checking coordinates carefully to see which regions are open enough to place tiles safely.\n\nThat confirms [0,2,0,0,0] as Z, matching both axis1 and axis4. Now I'm checking neighbors around [0,0,0,0,0] along axis2 for new occupied cells, testing adjacency along axes 0, 1, and 3 to see which are already filled versus empty.\n\nChecking those adjacencies, I find they're mostly unoccupied except at z=0, meaning any crossing words would only run along axis2 itself. So I'm considering placing a word containing J using the rack letters E, G, L, V, Z, with length up to 6, and computing the score by summing letter values across positions z, factoring in bonus multipliers at specific coordinates like z=2.\n\nWorking through the position math, placing Z at z=2 triggers a x3 multiplier, giving a score of 15 for that letter alone — combined with the rest of the rack (E, G, L, V worth 4, plus J worth 1), that's 20 total. I'm wondering if there's a better arrangement using an x4 bonus instead, perhaps reusing a higher-value letter, but for now I want to find a valid 6-letter word that fits with J at z=0 and Z at z=2, trying out different letter orderings across that span.\n\nChecking the forbidden trigram list, J-E-Z, J-G-Z, and J-L-Z all seem allowed, while J-V-Z is forbidden. Trying a layout like three unknown letters, then J, then another letter, then Z — testing E in that middle slot to see if a legitimate word emerges.\n\nWith E Z confirmed valid, I'm testing permutations of G, L, V for the remaining three positions, checking whether their trigrams with J and each other violate the forbidden list. L J E works but G J E and V J E are both blocked, so the placement before J needs to end in L specifically — I'm now testing whether G or L can occupy the final slot before that, with V L G and L V G both running into forbidden trigram conflicts.\n\nSo for c=L, I try G V L J E Z and verify every consecutive trigram against the forbidden set — GVL, VLJ, LJE, JEZ all check out clean. That gives me a valid length-6 word, so I map it to positions along one axis starting at [0,0,-3,0,0], and now I'm checking which cells carry bonus markers like S.\n\nChecking Z at z=2, with P=2 giving a x3 multiplier while the rest are x1, the total comes to 20. I try to see if Z could land on a x4 multiplier instead by testing other axes (axis 0, axis 4), but each attempt still lands on P mod 4 = 2, giving x3 again, so I'm not finding a better placement yet and need to also check the rule about not overlapping an existing word along the move axis.\n\nNow I'm testing a reused cell near coordinate [0,3,0,0,0], trying different axes through it to see if the bonus multiplier at the Z position comes out better — axis 2 gives P mod 4 = 3 (x2), axis 4 gives P mod 4 = 1 (x2), still checking axis 0.\n\nI'll settle on 20 as the result, but first verify there aren't overlapping neighbor sequences I'm missing — checking cells with coord1 or coord3 equal to ±1 while other coordinates are zero, and confirming none of those give extra valid overlaps beyond the ones already found.\n\n"
+      }
+    ],
+    "openrouter": {
+      "attempt": 1,
+      "endpoints": {
+        "available": [
+          {
+            "model": "anthropic/claude-opus-5.5-20260921",
+            "provider": "Anthropic",
+            "selected": true
+          }
+        ],
+        "total": 11
+      },
+      "is_byok": false,
+      "region": "MUC",
+      "requested": "anthropic/claude-opus-5.5",
+      "strategy": "direct",
+      "summary": "available=1, selected=Anthropic"
+    }
+  },
+  "prompt_sha256": {
+    "system": "4679a6c992108c22fecb1a4450e74f41ae667e9557e9a45affbeb1d31974ff7c",
+    "user": "7b526e1a224dff830f02a5b134601d06bf5856ab59211225491ffa9fb3f30e8e",
+    "combined": "d8382a3af7bd2e304da0ea72aef4468c79cf246e8b6a292b9e1d8b5e127239a3"
+  },
+  "system_prompt": "You solve Frabble, a multidimensional formal-language placement puzzle. Find the highest-scoring valid move for the supplied case.\n\n## Representation\nA sequence is a JSON object such as:\n{\"start\": [0, 0], \"axis\": 0, \"sequence\": [\"A\", \"B\", \"C\"]}\n\n`start` is the coordinate of the first symbol. For each following symbol, increment by 1 the coordinate component selected by `axis`. The board is already valid and is given as a list of these sequence objects. Their union defines the occupied cells; overlapping objects agree on their shared symbols. Every unlisted cell is empty. The list order has no meaning.\n\n## Valid move\n- The submitted `sequence` is accepted by the formal language.\n- It places at least one new symbol. If the board is non-empty, it also reuses at least one occupied cell with the same symbol.\n- Only new symbols consume the rack, including multiplicities.\n- A move may cross an existing sequence, but may not lengthen one that is already complete. Along the move axis, it must not overlap or continue a complete existing sequence. On another axis, a new symbol must not extend a complete existing sequence.\n- After placement, every maximal contiguous line longer than one cell that touches the move is accepted by the formal language.\n\n## Score\nA valid move scores the sum of symbol values in its submitted sequence, including reused symbols. Apply a letter multiplier only to newly placed symbols:\n- For a cell with coordinates c[0], c[1], ..., let S be their sum. Only cells with S = 2 + 10k for an integer k are bonus cells. Their multiplier varies *within* each line or plane: compute P = sum((i - 1) * c[i] for every coordinate index i). P modulo 4 selects x4, x2, x3, x2 in that order. In 2D, along a bonus diagonal, increasing c[0] by 1 and decreasing c[1] by 1 gives x4, x2, x3, x2, then repeats (starting at c[0]=0).\n- All other cells and all reused symbols score x1.\n- Add the resulting symbol values. Bonuses on different symbols never multiply each other. The rule is the same in every dimension.\n\nAn invalid move scores 0.\n\n## Response\nReturn only one JSON object with exactly the fields `start`, `axis`, and `sequence`. `sequence` must be an array with one symbol per cell, not a string. Do not add prose or a code fence.",
+  "user_prompt": "## Case\nDimensions: 5\nAxes: axis 0 increments coordinate[0]; axis 1 increments coordinate[1]; axis 2 increments coordinate[2]; axis 3 increments coordinate[3]; axis 4 increments coordinate[4]\n\nLetter scores:\n  E: 1\n  G: 1\n  J: 1\n  L: 1\n  P: 2\n  S: 4\n  V: 1\n  Z: 5\n\nFormal language:\nAlphabet: {E, G, J, L, P, S, V, Z}\nAcceptance: use only alphabet symbols, have length >= 3, and contain none of these contiguous snippets:\n{E E G, E E V, E G G, E G J, E G L, E J E, E J G, E J L, E J P, E J S, E L G, E L L, E P E, E P G, E P J, E P S, E S J, E S L, E S P, E S S, E S V, E S Z, E V E, E V L, E V S, E V V, E V Z, E Z E, E Z J, E Z V, E Z Z, G E J, G E L, G E P, G G E, G J L, G J P, G J V, G L E, G L L, G L Z, G P E, G P V, G P Z, G S G, G S J, G S L, G S V, G S Z, G V G, G V V, G Z E, G Z S, G Z Z, J E G, J E P, J G G, J G S, J J E, J J G, J J V, J L L, J L S, J P L, J P S, J P Z, J S G, J S J, J S V, J S Z, J V G, J V J, J V P, J V S, J V Z, J Z E, J Z G, J Z L, J Z V, L E E, L E P, L E S, L G E, L G G, L G J, L G L, L G P, L G V, L G Z, L J G, L J L, L J P, L J V, L J Z, L L E, L L J, L L S, L L Z, L P E, L S E, L S G, L S J, L S L, L S S, L S Z, L Z E, L Z L, P E L, P E V, P E Z, P G G, P G P, P G V, P J J, P L G, P P G, P P L, P P P, P P S, P P Z, P S E, P S G, P S J, P S L, P S P, P S V, P S Z, P V J, P V P, P Z G, P Z J, S E E, S E G, S E J, S E L, S E V, S G E, S G S, S G V, S G Z, S J E, S J G, S J S, S J Z, S L V, S L Z, S P G, S P J, S P L, S P P, S P V, S S E, S S Z, S V G, S V S, S V Z, S Z E, S Z J, S Z S, S Z V, V E E, V G E, V G G, V G J, V G L, V G P, V G S, V G V, V G Z, V J E, V J G, V J J, V J Z, V L E, V L G, V L L, V L P, V L S, V L V, V P G, V P L, V P S, V P Z, V S E, V S S, V V J, V V L, V V V, V Z E, V Z J, V Z S, Z E G, Z E P, Z E Z, Z G P, Z J S, Z L G, Z L J, Z L S, Z L V, Z L Z, Z P G, Z P J, Z P P, Z P Z, Z S E, Z S G, Z S P, Z S V, Z V E, Z V G, Z V J, Z V Z, Z Z L, Z Z S, Z Z Z}\n\nExisting sequences:\n[\n  {\"start\": [-31, 4, -2, -2, 8], \"axis\": 0, \"sequence\": [\"V\", \"V\", \"P\", \"E\", \"G\", \"P\"]},\n  {\"start\": [-30, 4, -4, -2, 12], \"axis\": 0, \"sequence\": [\"E\", \"E\", \"S\"]},\n  {\"start\": [-30, 4, -2, -2, 12], \"axis\": 0, \"sequence\": [\"S\", \"S\", \"V\", \"V\", \"P\", \"P\"]},\n  {\"start\": [-29, 4, -2, -2, 10], \"axis\": 0, \"sequence\": [\"L\", \"Z\", \"J\", \"G\"]},\n  {\"start\": [-27, 4, -1, -2, 14], \"axis\": 0, \"sequence\": [\"L\", \"V\", \"P\", \"V\", \"S\"]},\n  {\"start\": [-27, 4, 1, -2, 12], \"axis\": 0, \"sequence\": [\"L\", \"V\", \"V\", \"E\", \"P\"]},\n  {\"start\": [-26, 3, -2, -1, 16], \"axis\": 0, \"sequence\": [\"V\", \"P\", \"P\"]},\n  {\"start\": [-25, 3, -2, -1, 14], \"axis\": 0, \"sequence\": [\"P\", \"V\", \"L\", \"Z\"]},\n  {\"start\": [-25, 4, 1, -2, 14], \"axis\": 0, \"sequence\": [\"Z\", \"S\", \"J\", \"L\", \"V\", \"J\"]},\n  {\"start\": [-23, 4, 4, -2, 14], \"axis\": 0, \"sequence\": [\"G\", \"L\", \"G\", \"S\", \"E\", \"S\"]},\n  {\"start\": [-20, 4, 4, -2, 12], \"axis\": 0, \"sequence\": [\"V\", \"S\", \"L\", \"G\", \"S\", \"E\"]},\n  {\"start\": [-16, 4, 4, -2, 9], \"axis\": 0, \"sequence\": [\"G\", \"J\", \"J\", \"Z\"]},\n  {\"start\": [-15, 4, 4, -2, 8], \"axis\": 0, \"sequence\": [\"E\", \"J\", \"J\", \"Z\", \"P\"]},\n  {\"start\": [-15, 4, 4, -2, 10], \"axis\": 0, \"sequence\": [\"J\", \"S\", \"S\"]},\n  {\"start\": [-14, 4, 2, -2, 10], \"axis\": 0, \"sequence\": [\"G\", \"G\", \"S\"]},\n  {\"start\": [-13, 4, 4, -2, 4], \"axis\": 0, \"sequence\": [\"L\", \"V\", \"P\", \"J\", \"Z\", \"S\"]},\n  {\"start\": [-10, 4, 4, -2, 2], \"axis\": 0, \"sequence\": [\"G\", \"E\", \"G\", \"V\", \"Z\"]},\n  {\"start\": [-10, 4, 6, -2, 0], \"axis\": 0, \"sequence\": [\"J\", \"E\", \"E\", \"J\", \"Z\", \"J\"]},\n  {\"start\": [-9, 2, 6, 0, 1], \"axis\": 0, \"sequence\": [\"E\", \"E\", \"Z\"]},\n  {\"start\": [-9, 4, 4, -2, 0], \"axis\": 0, \"sequence\": [\"G\", \"P\", \"P\", \"V\", \"L\", \"Z\"]},\n  {\"start\": [-8, 2, 4, 0, 0], \"axis\": 0, \"sequence\": [\"P\", \"G\", \"S\", \"P\", \"Z\", \"V\"]},\n  {\"start\": [-8, 2, 4, 0, 2], \"axis\": 0, \"sequence\": [\"G\", \"G\", \"Z\"]},\n  {\"start\": [-6, 1, 4, 1, 0], \"axis\": 0, \"sequence\": [\"S\", \"G\", \"P\"]},\n  {\"start\": [-5, 2, 4, 0, -2], \"axis\": 0, \"sequence\": [\"G\", \"J\", \"E\", \"Z\", \"S\", \"L\"]},\n  {\"start\": [-5, 2, 4, 0, -1], \"axis\": 0, \"sequence\": [\"S\", \"G\", \"J\"]},\n  {\"start\": [0, 2, 0, 0, -1], \"axis\": 0, \"sequence\": [\"E\", \"P\", \"P\", \"J\"]},\n  {\"start\": [2, 2, 0, 0, -4], \"axis\": 0, \"sequence\": [\"P\", \"Z\", \"Z\"]},\n  {\"start\": [-27, 2, -2, -2, 7], \"axis\": 1, \"sequence\": [\"L\", \"E\", \"Z\", \"L\", \"E\"]},\n  {\"start\": [-26, 0, -2, -2, 12], \"axis\": 1, \"sequence\": [\"S\", \"G\", \"P\", \"L\", \"P\"]},\n  {\"start\": [-24, 2, -2, 0, 14], \"axis\": 1, \"sequence\": [\"E\", \"E\", \"P\"]},\n  {\"start\": [-24, 3, -2, -2, 14], \"axis\": 1, \"sequence\": [\"S\", \"G\", \"L\", \"S\"]},\n  {\"start\": [-20, 4, 4, -2, 14], \"axis\": 1, \"sequence\": [\"S\", \"L\", \"G\"]},\n  {\"start\": [-9, 3, 4, -2, 4], \"axis\": 1, \"sequence\": [\"V\", \"Z\", \"L\"]},\n  {\"start\": [-8, 2, 4, 0, 0], \"axis\": 1, \"sequence\": [\"P\", \"V\", \"E\", \"P\", \"P\"]},\n  {\"start\": [-8, 3, 4, -2, 0], \"axis\": 1, \"sequence\": [\"E\", \"P\", \"L\", \"P\", \"G\", \"S\"]},\n  {\"start\": [-6, 1, 4, 0, 0], \"axis\": 1, \"sequence\": [\"J\", \"S\", \"L\", \"J\"]},\n  {\"start\": [-5, 2, 4, 0, -1], \"axis\": 1, \"sequence\": [\"S\", \"J\", \"P\"]},\n  {\"start\": [0, 0, 0, 0, 0], \"axis\": 1, \"sequence\": [\"J\", \"L\", \"Z\", \"S\", \"L\"]},\n  {\"start\": [0, 2, 0, -2, 0], \"axis\": 1, \"sequence\": [\"J\", \"G\", \"Z\"]},\n  {\"start\": [3, 1, 0, 0, -4], \"axis\": 1, \"sequence\": [\"G\", \"Z\", \"J\"]},\n  {\"start\": [-29, 4, -6, -2, 12], \"axis\": 2, \"sequence\": [\"E\", \"E\", \"E\", \"E\", \"S\"]},\n  {\"start\": [-27, 4, -2, -2, 7], \"axis\": 2, \"sequence\": [\"Z\", \"E\", \"E\"]},\n  {\"start\": [-26, 4, -7, -2, 12], \"axis\": 2, \"sequence\": [\"P\", \"S\", \"S\", \"J\", \"L\", \"P\"]},\n  {\"start\": [-25, 4, -2, -2, 12], \"axis\": 2, \"sequence\": [\"P\", \"J\", \"G\", \"V\", \"S\", \"Z\"]},\n  {\"start\": [-24, 4, -4, -2, 14], \"axis\": 2, \"sequence\": [\"G\", \"J\", \"G\", \"V\", \"E\", \"S\"]},\n  {\"start\": [-20, 4, 1, -2, 14], \"axis\": 2, \"sequence\": [\"J\", \"E\", \"E\", \"S\", \"G\", \"J\"]},\n  {\"start\": [-19, 4, 4, -2, 12], \"axis\": 2, \"sequence\": [\"S\", \"G\", \"G\", \"P\"]},\n  {\"start\": [-15, 4, 3, -2, 9], \"axis\": 2, \"sequence\": [\"G\", \"J\", \"G\", \"Z\"]},\n  {\"start\": [-13, 4, 2, -2, 10], \"axis\": 2, \"sequence\": [\"G\", \"G\", \"S\"]},\n  {\"start\": [-11, 4, 2, -2, 5], \"axis\": 2, \"sequence\": [\"G\", \"G\", \"P\", \"J\", \"P\"]},\n  {\"start\": [-9, 2, 5, 0, 1], \"axis\": 2, \"sequence\": [\"V\", \"E\", \"G\", \"Z\"]},\n  {\"start\": [-9, 4, 2, -2, 4], \"axis\": 2, \"sequence\": [\"E\", \"L\", \"Z\", \"P\"]},\n  {\"start\": [-8, 2, 3, 0, 0], \"axis\": 2, \"sequence\": [\"E\", \"P\", \"L\", \"E\", \"J\", \"Z\"]},\n  {\"start\": [-8, 2, 3, 0, 2], \"axis\": 2, \"sequence\": [\"P\", \"G\", \"J\", \"Z\"]},\n  {\"start\": [-8, 4, 3, -2, 0], \"axis\": 2, \"sequence\": [\"L\", \"P\", \"V\", \"E\", \"G\", \"S\"]},\n  {\"start\": [-8, 4, 4, -2, 2], \"axis\": 2, \"sequence\": [\"G\", \"E\", \"S\", \"G\"]},\n  {\"start\": [-7, 2, 3, 0, 1], \"axis\": 2, \"sequence\": [\"L\", \"E\", \"G\", \"Z\"]},\n  {\"start\": [-6, 1, 2, 1, 0], \"axis\": 2, \"sequence\": [\"V\", \"J\", \"S\", \"L\", \"E\"]},\n  {\"start\": [-6, 2, 4, 0, 0], \"axis\": 2, \"sequence\": [\"S\", \"V\", \"E\", \"G\"]},\n  {\"start\": [-6, 4, 3, -2, 0], \"axis\": 2, \"sequence\": [\"L\", \"V\", \"V\", \"Z\"]},\n  {\"start\": [-5, 2, 2, 0, -1], \"axis\": 2, \"sequence\": [\"G\", \"V\", \"S\", \"V\", \"E\"]},\n  {\"start\": [0, 2, -1, 0, -2], \"axis\": 2, \"sequence\": [\"S\", \"E\", \"P\", \"Z\", \"S\", \"L\"]},\n  {\"start\": [2, 2, -1, 0, -4], \"axis\": 2, \"sequence\": [\"J\", \"P\", \"J\", \"Z\"]},\n  {\"start\": [-27, 4, -2, -2, 7], \"axis\": 3, \"sequence\": [\"Z\", \"L\", \"P\"]},\n  {\"start\": [-26, 2, -2, -4, 12], \"axis\": 3, \"sequence\": [\"S\", \"V\", \"P\"]},\n  {\"start\": [-26, 4, -2, -7, 12], \"axis\": 3, \"sequence\": [\"J\", \"S\", \"L\", \"G\", \"S\", \"P\"]},\n  {\"start\": [-24, 3, -2, -3, 14], \"axis\": 3, \"sequence\": [\"V\", \"S\", \"V\", \"E\", \"G\"]},\n  {\"start\": [-20, 5, 4, -3, 14], \"axis\": 3, \"sequence\": [\"G\", \"L\", \"S\"]},\n  {\"start\": [-9, 4, 4, -4, 4], \"axis\": 3, \"sequence\": [\"E\", \"E\", \"Z\", \"G\"]},\n  {\"start\": [-8, 2, 4, 0, 0], \"axis\": 3, \"sequence\": [\"P\", \"G\", \"J\", \"J\", \"Z\"]},\n  {\"start\": [-8, 4, 4, -2, 0], \"axis\": 3, \"sequence\": [\"P\", \"P\", \"E\", \"E\", \"S\"]},\n  {\"start\": [-6, 1, 4, 0, 0], \"axis\": 3, \"sequence\": [\"J\", \"S\", \"P\", \"Z\"]},\n  {\"start\": [-5, 2, 4, 0, -1], \"axis\": 3, \"sequence\": [\"S\", \"J\", \"P\"]},\n  {\"start\": [0, 0, 0, 0, 0], \"axis\": 3, \"sequence\": [\"J\", \"G\", \"P\"]},\n  {\"start\": [0, 3, 0, -2, 0], \"axis\": 3, \"sequence\": [\"G\", \"J\", \"S\"]},\n  {\"start\": [3, 2, 0, -1, -4], \"axis\": 3, \"sequence\": [\"V\", \"Z\", \"L\"]},\n  {\"start\": [-30, 4, -4, -2, 12], \"axis\": 4, \"sequence\": [\"E\", \"E\", \"P\"]},\n  {\"start\": [-29, 4, -2, -2, 8], \"axis\": 4, \"sequence\": [\"P\", \"V\", \"L\", \"Z\", \"S\"]},\n  {\"start\": [-27, 4, -2, -2, 6], \"axis\": 4, \"sequence\": [\"V\", \"Z\", \"G\", \"Z\", \"J\", \"L\", \"V\"]},\n  {\"start\": [-25, 3, -2, -1, 14], \"axis\": 4, \"sequence\": [\"P\", \"E\", \"P\", \"Z\"]},\n  {\"start\": [-25, 4, -1, -2, 12], \"axis\": 4, \"sequence\": [\"J\", \"G\", \"P\", \"J\", \"Z\"]},\n  {\"start\": [-25, 4, 2, -2, 9], \"axis\": 4, \"sequence\": [\"V\", \"L\", \"J\", \"S\", \"P\"]},\n  {\"start\": [-24, 4, 1, -2, 10], \"axis\": 4, \"sequence\": [\"G\", \"E\", \"E\", \"Z\", \"S\"]},\n  {\"start\": [-21, 4, 4, -2, 13], \"axis\": 4, \"sequence\": [\"J\", \"G\", \"L\", \"J\", \"S\"]},\n  {\"start\": [-19, 4, 4, -2, 12], \"axis\": 4, \"sequence\": [\"S\", \"L\", \"E\", \"Z\"]},\n  {\"start\": [-15, 4, 4, -2, 7], \"axis\": 4, \"sequence\": [\"V\", \"E\", \"J\", \"J\", \"P\", \"E\"]},\n  {\"start\": [-13, 4, 4, -2, 8], \"axis\": 4, \"sequence\": [\"J\", \"Z\", \"S\"]},\n  {\"start\": [-11, 4, 4, -2, 4], \"axis\": 4, \"sequence\": [\"P\", \"P\", \"V\", \"Z\", \"P\"]},\n  {\"start\": [-9, 4, 4, -2, 0], \"axis\": 4, \"sequence\": [\"G\", \"V\", \"E\", \"P\", \"Z\", \"Z\"]},\n  {\"start\": [-8, 2, 6, 0, -2], \"axis\": 4, \"sequence\": [\"E\", \"E\", \"E\", \"E\", \"Z\"]},\n  {\"start\": [-8, 4, 4, -2, -1], \"axis\": 4, \"sequence\": [\"V\", \"P\", \"J\", \"G\", \"L\", \"S\"]},\n  {\"start\": [-7, 2, 4, 0, 0], \"axis\": 4, \"sequence\": [\"G\", \"E\", \"G\", \"Z\"]},\n  {\"start\": [-7, 4, 4, -2, 0], \"axis\": 4, \"sequence\": [\"P\", \"L\", \"V\", \"S\"]},\n  {\"start\": [-6, 1, 4, 1, 0], \"axis\": 4, \"sequence\": [\"S\", \"L\", \"P\"]},\n  {\"start\": [-6, 2, 4, 0, 0], \"axis\": 4, \"sequence\": [\"S\", \"E\", \"Z\"]},\n  {\"start\": [-5, 2, 4, 0, -3], \"axis\": 4, \"sequence\": [\"L\", \"G\", \"S\", \"P\", \"S\"]},\n  {\"start\": [-1, 2, 4, 0, -4], \"axis\": 4, \"sequence\": [\"L\", \"P\", \"S\"]},\n  {\"start\": [0, 2, 0, 0, -2], \"axis\": 4, \"sequence\": [\"E\", \"E\", \"Z\"]},\n  {\"start\": [0, 2, 3, 0, -4], \"axis\": 4, \"sequence\": [\"L\", \"P\", \"S\"]},\n  {\"start\": [2, 2, 0, 0, -4], \"axis\": 4, \"sequence\": [\"P\", \"L\", \"Z\", \"P\"]}\n]\n\nRack:\n[\"E\", \"G\", \"L\", \"V\", \"Z\"]\n",
+  "raw_response": "{\"start\":[0,0,-3,0,0],\"axis\":2,\"sequence\":[\"G\",\"V\",\"L\",\"J\",\"E\",\"Z\"]}",
+  "optimal_move": {
+    "start": [
+      -31,
+      4,
+      -7,
+      -2,
+      8
+    ],
+    "axis": 2,
+    "sequence": [
+      "Z",
+      "G",
+      "V",
+      "E",
+      "L",
+      "V"
+    ]
+  },
+  "optimal_score": 25,
+  "parsed_move": {
+    "start": [
+      0,
+      0,
+      -3,
+      0,
+      0
+    ],
+    "axis": 2,
+    "sequence": [
+      "G",
+      "V",
+      "L",
+      "J",
+      "E",
+      "Z"
+    ]
+  },
+  "parsed_move_lenient": {
+    "start": [
+      0,
+      0,
+      -3,
+      0,
+      0
+    ],
+    "axis": 2,
+    "sequence": [
+      "G",
+      "V",
+      "L",
+      "J",
+      "E",
+      "Z"
+    ]
+  },
+  "evaluation": {
+    "overall": true,
+    "parse_ok": true,
+    "sequence_valid": true,
+    "min_length_fulfilled": true,
+    "spatial_valid": true,
+    "overlap_valid": true,
+    "no_word_extension": true,
+    "cross_words_valid": true,
+    "rack_valid": true,
+    "missing_rack_symbols": {},
+    "rack_symbols_used": 5,
+    "rack_usage_ratio": 1.0,
+    "main_word_length": 6,
+    "overlap_count": 1,
+    "letter_score_total": 20,
+    "failure_type": null,
+    "message": "valid"
+  },
+  "evaluation_format_robust": {
+    "overall": true,
+    "parse_ok": true,
+    "sequence_valid": true,
+    "min_length_fulfilled": true,
+    "spatial_valid": true,
+    "overlap_valid": true,
+    "no_word_extension": true,
+    "cross_words_valid": true,
+    "rack_valid": true,
+    "missing_rack_symbols": {},
+    "rack_symbols_used": 5,
+    "rack_usage_ratio": 1.0,
+    "main_word_length": 6,
+    "overlap_count": 1,
+    "letter_score_total": 20,
+    "failure_type": null,
+    "message": "valid"
+  },
+  "request_attempt_count": 1,
+  "llm_elapsed_seconds_total": 32.651582124992274,
+  "retry_wait_seconds_total": 0.0,
+  "failed_attempts": []
+}

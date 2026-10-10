@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "job_id": "final.d5.b050.r09__opus__high__forbidden-snippets",
+  "case_id": "final.d5.b050.r09",
+  "case_file": "/Users/maxi/code/repos/frabble/outputs/evaluation/final/cases/final.d5.b050.r09.json",
+  "board_size": 50,
+  "dimensions": 5,
+  "sampling_round": 9,
+  "model": "opus",
+  "reasoning_effort": "high",
+  "model_config": {
+    "model": "anthropic/claude-opus-5.5",
+    "configured_model": "openrouter/anthropic/claude-opus-5.5",
+    "backend": "openrouter",
+    "reasoning_effort": "high",
+    "reasoning": {
+      "effort": "high"
+    },
+    "provider": {
+      "only": [
+        "anthropic"
+      ],
+      "allow_fallbacks": false,
+      "require_parameters": true
+    },
+    "max_completion_tokens": 60000,
+    "reasoning_max_tokens": null,
+    "request_max_tokens": 60000,
+    "timeout_seconds": 3600.0,
+    "provider_max_retries": 0
+  },
+  "language_representation": "forbidden-snippets",
+  "status": "complete",
+  "retry_count": 0,
+  "timestamp": "2026-10-09T12:04:11.343264+00:00",
+  "llm_elapsed_seconds": 75.89688700000988,
+  "usage": {
+    "completion_tokens": 5716,
+    "prompt_tokens": 4855,
+    "total_tokens": 10571,
+    "completion_tokens_details": {
+      "audio_tokens": 0,
+      "reasoning_tokens": 5670
+    },
+    "cost": 0.13374,
+    "cost_details": {
+      "upstream_inference_completions_cost": 0.11432,
+      "upstream_inference_prompt_cost": 0.01942,
+      "upstream_inference_cost": 0.13374
+    },
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+      "video_tokens": 0
+    }
+  },
+  "provider_metadata": {
+    "backend": "openrouter-sdk",
+    "response_id": "gen-1791547375-99KUqUn0cq340XbWu9Hy",
+    "model": "anthropic/claude-opus-5.5",
+    "finish_reason": "stop",
+    "service_tier": "default",
+    "reasoning": "This is tricky since existing sequences seem complete, meaning I can't extend them directly—I'd need to cross them perpendicularly or reuse a cell instead. The simplest approach is placing a new sequence along an axis that passes through one existing cell, making sure the new cells don't touch other occupied spaces.\n\nChecking the cell at [3,0,0,-2,0] which is \"B,\" the surrounding neighbors along axis 1 and axis 0 appear unoccupied, so a new perpendicular line through this point seems safe and isolated from other sequences.\n\nFor the bonus scoring, I'm figuring out which coordinate position triggers the special sum of 2+10k, finding only c1=1 works within the valid range, then calculating the position-weighted sum across the sequence to estimate the placement value.\n\nNow I'm checking which letter arrangements using B, E, E, F, K, O avoid the forbidden triple patterns — going through combinations like B-E-B, B-F-O, E-K-O, and others to rule out invalid sequences before settling on a valid ordering.\n\nTesting \"EKBOFE\" against all forbidden triples confirms it's valid, with B sitting at the second position.\n\nPlacing the sequence starting at c1=-2, the bonus cell lands on O with a x2 multiplier, giving contributions E2+K1+B2+O6+F2+E2=15. I'm wondering if a longer line could land O on a x4 bonus instead, but since bonus cells only occur every 10 steps along an axis, a length-6 line can hit at most one bonus, capping the theoretical max around 22 — so 15 is decent but maybe not optimal.\n\nI'm checking other starting positions and axes to see if P mod 4 lands on zero for a better cell, tracing how P shifts along each axis to find a configuration that pushes the score closer to 20.\n\nChecking more candidates along this axis, I find J landing at x3 with the bonus cell at c1=-2 working out, pairing with E,E,F,K,O. I continue probing other axis combinations like L,O,F to see if any produce a valid bonus match.\n\nNow I'm searching for cells where S0 falls between -3 and 7 and P is divisible by 4, scanning the axis-0 sequence near the origin and noting that B at the origin already belongs to a completed axis-1 sequence, so I need to check elsewhere.\n\nI'm weighing other axis moves where P shifts by 2 per step while S shifts by 1, considering whether a reused cell with P ≡ 2 gives a x3 multiplier versus P ≡ 0 giving x4, and whether the bonus multiplier could apply differently.\n\nNow I'm testing axis-4 sequences with c1=0, solving for when P≡0 mod 4 along that line, finding candidates at c4=3 (which hits the bonus square itself) and c4=-1 (landing on an L tile with P=-8, S=-2), then checking where the bonus cell falls along that same axis-1 line.\n\nI'm then verifying neighbor occupancy for the new cells placed at these coordinates to make sure nothing conflicts with existing sequences on other axes.\n\nNext I'm working out the string of letters for this line, placing L at index 0 and O at index 4 among candidates E, E, F, K, O, and considering whether shifting the starting position (c1=-1) also works.\n\nI'm checking which triples of adjacent letters are forbidden by the constraints—like L-E-B, L-O-J, E-L-O, F-L-Z—to narrow down valid orderings for the remaining letters x, y, z, w around L and O.\n\nTrying z=E forces y=K but that leads to a forbidden EKE pattern, so that branch fails entirely. I'm now testing option B with a different assignment for x to see if it avoids the same contradiction.\n\nTrying x=E path fails since LKE is forbidden, but x=K,y=E works: K L E E F O passes all triple checks and meets the length requirement, so I'm settling on that sequence and starting to verify its positions.\n\nP checks out to O, divisible by 4 so it's a bonus. Total score comes to K1+L1+E2+E2+F2+O12 = 20. Now I need to verify none of the new cells create unintended conflicts along the other axes, so I'm scanning occupied cells with nonzero first coordinate near this line's position.\n\nRack letters match up exactly: K, E, E, F, O. Score comes to 20, which works.\n\n",
+    "reasoning_details": [
+      {
+        "type": "reasoning.text",
+        "format": null,
+        "index": 0,
+        "signature": "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.eyJlbmRwb2ludF9zbHVnIjoiYW50aHJvcGljL2NsYXVkZS1vcHVzLTUuNS0yMDI2MDkyMXxhbnRocm9waWMifQ",
+        "text": "This is tricky since existing sequences seem complete, meaning I can't extend them directly—I'd need to cross them perpendicularly or reuse a cell instead. The simplest approach is placing a new sequence along an axis that passes through one existing cell, making sure the new cells don't touch other occupied spaces.\n\nChecking the cell at [3,0,0,-2,0] which is \"B,\" the surrounding neighbors along axis 1 and axis 0 appear unoccupied, so a new perpendicular line through this point seems safe and isolated from other sequences.\n\nFor the bonus scoring, I'm figuring out which coordinate position triggers the special sum of 2+10k, finding only c1=1 works within the valid range, then calculating the position-weighted sum across the sequence to estimate the placement value.\n\nNow I'm checking which letter arrangements using B, E, E, F, K, O avoid the forbidden triple patterns — going through combinations like B-E-B, B-F-O, E-K-O, and others to rule out invalid sequences before settling on a valid ordering.\n\nTesting \"EKBOFE\" against all forbidden triples confirms it's valid, with B sitting at the second position.\n\nPlacing the sequence starting at c1=-2, the bonus cell lands on O with a x2 multiplier, giving contributions E2+K1+B2+O6+F2+E2=15. I'm wondering if a longer line could land O on a x4 bonus instead, but since bonus cells only occur every 10 steps along an axis, a length-6 line can hit at most one bonus, capping the theoretical max around 22 — so 15 is decent but maybe not optimal.\n\nI'm checking other starting positions and axes to see if P mod 4 lands on zero for a better cell, tracing how P shifts along each axis to find a configuration that pushes the score closer to 20.\n\nChecking more candidates along this axis, I find J landing at x3 with the bonus cell at c1=-2 working out, pairing with E,E,F,K,O. I continue probing other axis combinations like L,O,F to see if any produce a valid bonus match.\n\nNow I'm searching for cells where S0 falls between -3 and 7 and P is divisible by 4, scanning the axis-0 sequence near the origin and noting that B at the origin already belongs to a completed axis-1 sequence, so I need to check elsewhere.\n\nI'm weighing other axis moves where P shifts by 2 per step while S shifts by 1, considering whether a reused cell with P ≡ 2 gives a x3 multiplier versus P ≡ 0 giving x4, and whether the bonus multiplier could apply differently.\n\nNow I'm testing axis-4 sequences with c1=0, solving for when P≡0 mod 4 along that line, finding candidates at c4=3 (which hits the bonus square itself) and c4=-1 (landing on an L tile with P=-8, S=-2), then checking where the bonus cell falls along that same axis-1 line.\n\nI'm then verifying neighbor occupancy for the new cells placed at these coordinates to make sure nothing conflicts with existing sequences on other axes.\n\nNext I'm working out the string of letters for this line, placing L at index 0 and O at index 4 among candidates E, E, F, K, O, and considering whether shifting the starting position (c1=-1) also works.\n\nI'm checking which triples of adjacent letters are forbidden by the constraints—like L-E-B, L-O-J, E-L-O, F-L-Z—to narrow down valid orderings for the remaining letters x, y, z, w around L and O.\n\nTrying z=E forces y=K but that leads to a forbidden EKE pattern, so that branch fails entirely. I'm now testing option B with a different assignment for x to see if it avoids the same contradiction.\n\nTrying x=E path fails since LKE is forbidden, but x=K,y=E works: K L E E F O passes all triple checks and meets the length requirement, so I'm settling on that sequence and starting to verify its positions.\n\nP checks out to O, divisible by 4 so it's a bonus. Total score comes to K1+L1+E2+E2+F2+O12 = 20. Now I need to verify none of the new cells create unintended conflicts along the other axes, so I'm scanning occupied cells with nonzero first coordinate near this line's position.\n\nRack letters match up exactly: K, E, E, F, O. Score comes to 20, which works.\n\n"
+      }
+    ],
+    "openrouter": {
+      "attempt": 1,
+      "endpoints": {
+        "available": [
+          {
+            "model": "anthropic/claude-opus-5.5-20260921",
+            "provider": "Anthropic",
+            "selected": true
+          }
+        ],
+        "total": 11
+      },
+      "is_byok": false,
+      "region": "MUC",
+      "requested": "anthropic/claude-opus-5.5",
+      "strategy": "direct",
+      "summary": "available=1, selected=Anthropic"
+    }
+  },
+  "prompt_sha256": {
+    "system": "4679a6c992108c22fecb1a4450e74f41ae667e9557e9a45affbeb1d31974ff7c",
+    "user": "a47c7887df80a94a6ad43465529052b809e9e467523e5f77ff7dd600ba59e3ba",
+    "combined": "fa32581660f433b06740bfc2816b1cc7ea0646f06291ab73a3c5360e36532d08"
+  },
+  "system_prompt": "You solve Frabble, a multidimensional formal-language placement puzzle. Find the highest-scoring valid move for the supplied case.\n\n## Representation\nA sequence is a JSON object such as:\n{\"start\": [0, 0], \"axis\": 0, \"sequence\": [\"A\", \"B\", \"C\"]}\n\n`start` is the coordinate of the first symbol. For each following symbol, increment by 1 the coordinate component selected by `axis`. The board is already valid and is given as a list of these sequence objects. Their union defines the occupied cells; overlapping objects agree on their shared symbols. Every unlisted cell is empty. The list order has no meaning.\n\n## Valid move\n- The submitted `sequence` is accepted by the formal language.\n- It places at least one new symbol. If the board is non-empty, it also reuses at least one occupied cell with the same symbol.\n- Only new symbols consume the rack, including multiplicities.\n- A move may cross an existing sequence, but may not lengthen one that is already complete. Along the move axis, it must not overlap or continue a complete existing sequence. On another axis, a new symbol must not extend a complete existing sequence.\n- After placement, every maximal contiguous line longer than one cell that touches the move is accepted by the formal language.\n\n## Score\nA valid move scores the sum of symbol values in its submitted sequence, including reused symbols. Apply a letter multiplier only to newly placed symbols:\n- For a cell with coordinates c[0], c[1], ..., let S be their sum. Only cells with S = 2 + 10k for an integer k are bonus cells. Their multiplier varies *within* each line or plane: compute P = sum((i - 1) * c[i] for every coordinate index i). P modulo 4 selects x4, x2, x3, x2 in that order. In 2D, along a bonus diagonal, increasing c[0] by 1 and decreasing c[1] by 1 gives x4, x2, x3, x2, then repeats (starting at c[0]=0).\n- All other cells and all reused symbols score x1.\n- Add the resulting symbol values. Bonuses on different symbols never multiply each other. The rule is the same in every dimension.\n\nAn invalid move scores 0.\n\n## Response\nReturn only one JSON object with exactly the fields `start`, `axis`, and `sequence`. `sequence` must be an array with one symbol per cell, not a string. Do not add prose or a code fence.",
+  "user_prompt": "## Case\nDimensions: 5\nAxes: axis 0 increments coordinate[0]; axis 1 increments coordinate[1]; axis 2 increments coordinate[2]; axis 3 increments coordinate[3]; axis 4 increments coordinate[4]\n\nLetter scores:\n  B: 2\n  E: 2\n  F: 2\n  J: 1\n  K: 1\n  L: 1\n  O: 3\n  Z: 2\n\nFormal language:\nAlphabet: {B, E, F, J, K, L, O, Z}\nAcceptance: use only alphabet symbols, have length >= 3, and contain none of these contiguous snippets:\n{B B B, B B E, B B J, B B K, B B Z, B E B, B E E, B E J, B F B, B F F, B F O, B J J, B J O, B K B, B K F, B K J, B K O, B L B, B L E, B L Z, B O B, B O K, B Z F, B Z K, B Z Z, E B E, E B J, E B K, E B L, E E E, E E O, E F E, E F J, E J E, E J J, E J Z, E K E, E K F, E K L, E K O, E K Z, E L B, E L F, E L J, E L O, E O B, E O E, E O K, E O L, E Z E, F B E, F B F, F B J, F B K, F B O, F B Z, F E B, F E E, F E J, F E L, F E O, F F F, F F Z, F J F, F J J, F J L, F J O, F J Z, F K K, F K L, F K O, F L L, F L Z, F O E, F O J, F O K, F O L, F O O, F Z B, F Z F, F Z K, F Z O, F Z Z, J B E, J B O, J B Z, J E B, J E O, J E Z, J F E, J F F, J F K, J F L, J F Z, J J B, J J Z, J K F, J K O, J K Z, J L K, J L O, J L Z, J O K, J O L, J O O, J Z B, J Z K, J Z L, J Z O, K B F, K E J, K F E, K F J, K F L, K F O, K J E, K J K, K J L, K J Z, K K J, K K L, K K O, K L B, K L J, K L K, K L Z, K Z B, K Z K, K Z O, K Z Z, L B E, L B F, L B K, L B O, L B Z, L E B, L E F, L E O, L F E, L F K, L F L, L J E, L J J, L J O, L J Z, L K E, L L E, L L J, L O B, L O J, L Z K, L Z Z, O B L, O E E, O E F, O E J, O E Z, O F B, O F F, O F L, O J J, O J K, O J L, O K K, O K O, O L J, O O E, O Z J, O Z K, O Z L, O Z Z, Z B E, Z B F, Z B K, Z B L, Z F E, Z F K, Z F L, Z J E, Z J J, Z K F, Z K L, Z K O, Z L F, Z L L, Z L Z, Z O B, Z O E, Z O O, Z Z B, Z Z F, Z Z L, Z Z O, Z Z Z}\n\nExisting sequences:\n[\n  {\"start\": [-13, 0, -2, -2, -2], \"axis\": 0, \"sequence\": [\"F\", \"E\", \"K\"]},\n  {\"start\": [-11, 0, -2, -2, -4], \"axis\": 0, \"sequence\": [\"Z\", \"O\", \"J\", \"B\", \"B\", \"F\"]},\n  {\"start\": [-7, 0, -2, -2, -7], \"axis\": 0, \"sequence\": [\"Z\", \"Z\", \"J\", \"F\"]},\n  {\"start\": [-6, 0, -1, -2, -4], \"axis\": 0, \"sequence\": [\"B\", \"J\", \"B\", \"J\", \"E\", \"F\", \"K\"]},\n  {\"start\": [-5, 0, -1, -2, -2], \"axis\": 0, \"sequence\": [\"B\", \"B\", \"F\", \"J\", \"B\", \"B\"]},\n  {\"start\": [-4, 0, -2, -2, -12], \"axis\": 0, \"sequence\": [\"O\", \"J\", \"F\"]},\n  {\"start\": [-3, 0, 1, 0, 4], \"axis\": 0, \"sequence\": [\"O\", \"B\", \"K\"]},\n  {\"start\": [-2, 0, -1, 0, -1], \"axis\": 0, \"sequence\": [\"J\", \"K\", \"K\", \"Z\", \"L\", \"K\", \"Z\"]},\n  {\"start\": [-2, 0, 2, -2, 3], \"axis\": 0, \"sequence\": [\"Z\", \"O\", \"L\"]},\n  {\"start\": [-1, 0, -1, 0, 1], \"axis\": 0, \"sequence\": [\"L\", \"K\", \"Z\", \"F\"]},\n  {\"start\": [-1, 0, 0, 0, 0], \"axis\": 0, \"sequence\": [\"Z\", \"B\", \"Z\", \"E\"]},\n  {\"start\": [-1, 0, 2, -2, 0], \"axis\": 0, \"sequence\": [\"F\", \"F\", \"L\", \"F\", \"J\"]},\n  {\"start\": [0, 0, 0, -2, 0], \"axis\": 0, \"sequence\": [\"E\", \"F\", \"F\", \"B\", \"B\"]},\n  {\"start\": [1, 0, 0, -2, 2], \"axis\": 0, \"sequence\": [\"L\", \"O\", \"F\"]},\n  {\"start\": [-6, -5, -2, -2, -4], \"axis\": 1, \"sequence\": [\"Z\", \"B\", \"B\", \"F\", \"E\", \"F\"]},\n  {\"start\": [-1, -3, 1, 0, 0], \"axis\": 1, \"sequence\": [\"L\", \"L\", \"L\", \"O\", \"L\", \"K\"]},\n  {\"start\": [-1, -1, -1, 2, 0], \"axis\": 1, \"sequence\": [\"J\", \"L\", \"F\", \"O\", \"F\"]},\n  {\"start\": [-1, 0, -1, 0, 0], \"axis\": 1, \"sequence\": [\"B\", \"E\", \"L\", \"K\", \"B\"]},\n  {\"start\": [0, 0, 0, 0, 0], \"axis\": 1, \"sequence\": [\"B\", \"K\", \"Z\", \"J\", \"L\"]},\n  {\"start\": [-8, 0, -5, -2, -4], \"axis\": 2, \"sequence\": [\"L\", \"O\", \"E\", \"B\"]},\n  {\"start\": [-6, 0, -6, -2, -6], \"axis\": 2, \"sequence\": [\"L\", \"F\", \"O\", \"B\", \"B\"]},\n  {\"start\": [-6, 0, -6, -2, -4], \"axis\": 2, \"sequence\": [\"B\", \"K\", \"K\", \"Z\", \"F\", \"B\"]},\n  {\"start\": [-5, 0, -2, -2, -2], \"axis\": 2, \"sequence\": [\"K\", \"B\", \"B\", \"F\"]},\n  {\"start\": [-4, 0, -2, -2, -12], \"axis\": 2, \"sequence\": [\"O\", \"Z\", \"O\"]},\n  {\"start\": [-2, 0, -4, -2, -1], \"axis\": 2, \"sequence\": [\"B\", \"O\", \"Z\", \"E\"]},\n  {\"start\": [-2, 0, 1, -2, 2], \"axis\": 2, \"sequence\": [\"L\", \"E\", \"J\", \"B\"]},\n  {\"start\": [-1, 0, -3, -2, -2], \"axis\": 2, \"sequence\": [\"O\", \"Z\", \"B\"]},\n  {\"start\": [-1, 0, -1, 0, 0], \"axis\": 2, \"sequence\": [\"B\", \"Z\", \"O\", \"F\", \"O\"]},\n  {\"start\": [0, 0, -1, -2, 0], \"axis\": 2, \"sequence\": [\"F\", \"E\", \"Z\", \"F\", \"B\", \"B\"]},\n  {\"start\": [1, 0, -1, 0, 0], \"axis\": 2, \"sequence\": [\"B\", \"Z\", \"E\"]},\n  {\"start\": [-6, -2, -2, -7, -4], \"axis\": 3, \"sequence\": [\"F\", \"L\", \"J\", \"B\", \"J\", \"F\"]},\n  {\"start\": [-6, 0, -2, -6, -4], \"axis\": 3, \"sequence\": [\"O\", \"B\", \"B\", \"L\", \"F\"]},\n  {\"start\": [-1, 0, -1, -1, 0], \"axis\": 3, \"sequence\": [\"Z\", \"B\", \"Z\", \"L\", \"B\", \"B\"]},\n  {\"start\": [0, 0, 0, -2, 0], \"axis\": 3, \"sequence\": [\"E\", \"F\", \"B\", \"B\", \"O\"]},\n  {\"start\": [0, 4, 0, -2, 0], \"axis\": 3, \"sequence\": [\"E\", \"L\", \"L\"]},\n  {\"start\": [-13, 0, -2, -2, -5], \"axis\": 4, \"sequence\": [\"K\", \"B\", \"B\", \"F\", \"E\"]},\n  {\"start\": [-11, 0, -2, -2, -5], \"axis\": 4, \"sequence\": [\"J\", \"Z\", \"Z\", \"K\"]},\n  {\"start\": [-8, 0, -2, -2, -6], \"axis\": 4, \"sequence\": [\"L\", \"J\", \"B\"]},\n  {\"start\": [-6, 0, -2, -2, -8], \"axis\": 4, \"sequence\": [\"O\", \"Z\", \"B\", \"B\", \"F\"]},\n  {\"start\": [-5, 0, -1, -2, -2], \"axis\": 4, \"sequence\": [\"B\", \"L\", \"O\"]},\n  {\"start\": [-4, 0, -2, -2, -12], \"axis\": 4, \"sequence\": [\"O\", \"Z\", \"O\", \"K\", \"L\", \"F\"]},\n  {\"start\": [-2, 0, -1, -2, -4], \"axis\": 4, \"sequence\": [\"E\", \"O\", \"J\", \"E\", \"F\"]},\n  {\"start\": [-2, 0, 2, -2, 1], \"axis\": 4, \"sequence\": [\"L\", \"E\", \"Z\", \"O\"]},\n  {\"start\": [-1, 0, -1, 0, -1], \"axis\": 4, \"sequence\": [\"K\", \"B\", \"L\", \"J\", \"K\", \"E\"]},\n  {\"start\": [-1, 0, 1, 0, -1], \"axis\": 4, \"sequence\": [\"K\", \"O\", \"K\", \"E\", \"K\", \"K\"]},\n  {\"start\": [0, 0, -1, -2, -5], \"axis\": 4, \"sequence\": [\"E\", \"K\", \"K\", \"B\", \"L\", \"F\"]},\n  {\"start\": [0, 0, 2, -2, 0], \"axis\": 4, \"sequence\": [\"F\", \"L\", \"O\", \"L\"]},\n  {\"start\": [1, 0, -1, 0, -1], \"axis\": 4, \"sequence\": [\"Z\", \"B\", \"Z\", \"E\"]},\n  {\"start\": [1, 0, 0, -2, -2], \"axis\": 4, \"sequence\": [\"F\", \"L\", \"F\", \"B\", \"L\", \"F\"]},\n  {\"start\": [3, 0, 0, -2, 0], \"axis\": 4, \"sequence\": [\"B\", \"O\", \"F\", \"J\"]}\n]\n\nRack:\n[\"E\", \"E\", \"F\", \"K\", \"O\"]\n",
+  "raw_response": "{\"start\":[1,-1,0,-2,-1],\"axis\":1,\"sequence\":[\"K\",\"L\",\"E\",\"E\",\"F\",\"O\"]}",
+  "optimal_move": {
+    "start": [
+      -13,
+      0,
+      -5,
+      -2,
+      -3
+    ],
+    "axis": 2,
+    "sequence": [
+      "E",
+      "F",
+      "K",
+      "B",
+      "E",
+      "O"
+    ]
+  },
+  "optimal_score": 21,
+  "parsed_move": {
+    "start": [
+      1,
+      -1,
+      0,
+      -2,
+      -1
+    ],
+    "axis": 1,
+    "sequence": [
+      "K",
+      "L",
+      "E",
+      "E",
+      "F",
+      "O"
+    ]
+  },
+  "parsed_move_lenient": {
+    "start": [
+      1,
+      -1,
+      0,
+      -2,
+      -1
+    ],
+    "axis": 1,
+    "sequence": [
+      "K",
+      "L",
+      "E",
+      "E",
+      "F",
+      "O"
+    ]
+  },
+  "evaluation": {
+    "overall": true,
+    "parse_ok": true,
+    "sequence_valid": true,
+    "min_length_fulfilled": true,
+    "spatial_valid": true,
+    "overlap_valid": true,
+    "no_word_extension": true,
+    "cross_words_valid": true,
+    "rack_valid": true,
+    "missing_rack_symbols": {},
+    "rack_symbols_used": 5,
+    "rack_usage_ratio": 1.0,
+    "main_word_length": 6,
+    "overlap_count": 1,
+    "letter_score_total": 20,
+    "failure_type": null,
+    "message": "valid"
+  },
+  "evaluation_format_robust": {
+    "overall": true,
+    "parse_ok": true,
+    "sequence_valid": true,
+    "min_length_fulfilled": true,
+    "spatial_valid": true,
+    "overlap_valid": true,
+    "no_word_extension": true,
+    "cross_words_valid": true,
+    "rack_valid": true,
+    "missing_rack_symbols": {},
+    "rack_symbols_used": 5,
+    "rack_usage_ratio": 1.0,
+    "main_word_length": 6,
+    "overlap_count": 1,
+    "letter_score_total": 20,
+    "failure_type": null,
+    "message": "valid"
+  },
+  "request_attempt_count": 1,
+  "llm_elapsed_seconds_total": 75.89688700000988,
+  "retry_wait_seconds_total": 0.0,
+  "failed_attempts": []
+}
