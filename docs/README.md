@@ -17,7 +17,7 @@ flowchart LR
 
 A grammar defines valid symbol sequences and their scores. Scenario generation proposes a rack, certifies the highest-scoring move for that rack, and grows the board with that move. Evaluation freezes one board state, rack, grammar, optimal move, and optimal score before any model call. The returned move is validated independently.
 
-For a practical path through commands and artifacts, start with the [Workflow Guide](getting-started.md).
+For a practical path through commands and artifacts, start with the [Workflow Guide](getting-started.md). The [development guide](development.md) explains local checks and test boundaries.
 
 ## Foundations
 

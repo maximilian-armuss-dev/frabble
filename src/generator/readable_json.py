@@ -4,8 +4,6 @@ import json
 import math
 from collections.abc import Mapping, Sequence
 
-Scalar = str | int | float | bool | None
-
 
 def dumps_readable_json(data: object, *, indent: int = 2) -> str:
     return _format_value(data, level=0, indent=indent) + "\n"

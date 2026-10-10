@@ -23,3 +23,5 @@ outputs/evaluation/final/runs/*
 */.DS_Store
 .DS_Store
 visualization/.ipynb_checkpoints
+.pytest_cache/
+.ruff_cache/

@@ -648,7 +648,7 @@ def _display_table(
         for row in body_rows
     )
     if not body_rows:
-        body = f'<tr><td colspan="99"><em>No matching artifacts.</em></td></tr>'
+        body = '<tr><td colspan="99"><em>No matching artifacts.</em></td></tr>'
     footer_markup = f'<div class="artifact-footer">{footer}</div>' if footer else ""
     markup = f"""
 <style>

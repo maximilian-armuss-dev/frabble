@@ -62,7 +62,7 @@ flowchart LR
 Preparation expands a case-set config into board-size and sampling-round combinations, plus the configured dimensions when present. Cases at the same size and round share a sampled grammar across dimensions; each gets its own generated scenario and frozen evaluation case. A board size describes how many placed word segments are visible to the model; size zero is the empty-board boundary case.
 
 ```bash
-uv run prepare --config 1r_sanity_check
+uv run prepare --config sanity_check
 ```
 
 An evaluation case embeds the exact board, rack, grammar, certified optimal move and score, resolved parameters, hashes, and provenance required to reproduce the question. Evaluation therefore does not depend on whatever the YAML recipes or grammar files contain later.
@@ -70,7 +70,7 @@ An evaluation case embeds the exact board, rack, grammar, certified optimal move
 A run config selects model profiles and prepared board sizes. Each case/model pair becomes an independent job. Completed attempts are persisted as they finish, so an interrupted run can continue without resending final jobs.
 
 ```bash
-uv run evaluate --config or_1r_sanity_check
+uv run evaluate --config sanity_check
 ```
 
 `evaluate` sends real provider requests and may incur cost. The selected run config in [`config/evaluation/runs/`](../config/evaluation/runs/) and the referenced profiles in [`config/model_configs.yaml`](../config/model_configs.yaml) determine which calls are made.
@@ -93,7 +93,9 @@ The conceptual boundaries are described in [Domain and Representations](foundati
 The test suite exercises the same boundaries without making provider calls:
 
 ```bash
-uv run python -m unittest discover -s tests -q
+uv run pytest -q
 ```
+
+The [development guide](development.md) explains test fixtures, focused runs, and the source boundaries.
 
 The [documentation map](README.md) provides the next level of orientation through the language, generator, validation, and evaluation subsystems.

@@ -23,29 +23,42 @@ from .board_figures import (
 )
 from .board_3d import display_grounded_3d, plot_board_3d
 from .case_playground import (
-    display_case_preview,
-    display_case_set_axes,
-    case_set_axes,
-    list_prepared_cases,
-    load_saved_case_attempt,
-    prepare_selected_case,
-    run_prepared_case,
-    select_prepared_case,
+    display_case_preview as display_case_preview,
+    display_case_set_axes as display_case_set_axes,
+    case_set_axes as case_set_axes,
+    list_prepared_cases as list_prepared_cases,
+    load_saved_case_attempt as load_saved_case_attempt,
+    prepare_selected_case as prepare_selected_case,
+    run_prepared_case as run_prepared_case,
+    select_prepared_case as select_prepared_case,
 )
 from .evaluation_figures import (
     EvaluationAttemptContext,
     load_evaluation_attempt,
     load_evaluation_results,
 )
-from .overview_selection import completed_runs, display_completed_runs, filtered_run_aggregate
-from .case_selection_widget import show_case_picker, show_overview_filter
-from .notebook_workflows import open_model_playground, load_overview_selection
+from .overview_selection import (
+    completed_runs as completed_runs,
+    display_completed_runs as display_completed_runs,
+    filtered_run_aggregate as filtered_run_aggregate,
+)
+from .case_selection_widget import (
+    show_case_picker as show_case_picker,
+    show_overview_filter as show_overview_filter,
+)
+from .notebook_workflows import (
+    open_model_playground as open_model_playground,
+    load_overview_selection as load_overview_selection,
+)
 from .run_figures import (
     PreparedLLMTransition,
     display_llm_prompt,
     prepare_llm_transition,
 )
-from .scenario_selection_widget import ScenarioPickerSelection, show_scenario_picker
+from .scenario_selection_widget import (
+    ScenarioPickerSelection,
+    show_scenario_picker as show_scenario_picker,
+)
 
 
 def select_evaluation_run(

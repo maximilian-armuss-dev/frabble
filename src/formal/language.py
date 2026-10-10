@@ -100,10 +100,6 @@ class StrictlyLocalLanguage:
             for snippet in self.forbidden_snippets
         )
 
-    @staticmethod
-    def _state_name(state: tuple[Symbol, ...]) -> str:
-        return "START" if not state else "S_" + "_".join(state)
-
 
 def _phase_state_name(phase: int, history: str, min_word_length: int) -> str:
     if phase < min_word_length:

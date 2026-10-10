@@ -1,0 +1,18 @@
+defaults:
+  temperature: 1
+  max_completion_tokens: 32384
+  timeout_seconds: 3600
+  reasoning_effort: high
+models:
+  - name: test_openrouter
+    model: openrouter/openai/gpt-5.5
+    api_key_env: OPENROUTER_API_KEY
+    base_url_env: OPENROUTER_API_BASE
+    provider: openai
+  - name: test_litellm
+    model: openai/gpt-5
+    api_key_env: OPENAI_API_KEY
+  - name: test_other_provider
+    model: openrouter/test/model
+    api_key_env: OPENROUTER_API_KEY
+    provider: alibaba

@@ -87,18 +87,28 @@ Create a local environment file and add the provider key required by the selecte
 
 ```bash
 cp .env.example .env
-uv run prepare --config 1r_sanity_check
+uv run prepare --config sanity_check
 ```
 
 `prepare` creates the cases locally and does not call an LLM. After preparation, start the model run with:
 
 ```bash
-uv run evaluate --config or_1r_sanity_check
+uv run evaluate --config sanity_check
 ```
 
-> **Cost warning:** `evaluate` sends real provider requests. The checked-in example targets several OpenRouter models. Inspect and narrow its [run config](config/evaluation/runs/or_1r_sanity_check.yaml) before starting.
+> **Cost warning:** `evaluate` sends real provider requests. The checked-in example targets several OpenRouter models. Inspect and narrow its [run config](config/evaluation/runs/sanity_check.yaml) before starting.
 
 Open [`visualization/notebooks/evaluation_overview.ipynb`](visualization/notebooks/evaluation_overview.ipynb) to explore the results. The [workflow guide](docs/getting-started.md) explains the surrounding artifact lifecycle and points to the configs and implementation that own each phase.
+
+## Tests
+
+```bash
+uv sync --locked --dev
+uv run pytest
+uv run ruff check .
+```
+
+Tests use fixed local fixtures and mocked provider calls. See the [development guide](docs/development.md) for focused runs and the code boundaries.
 
 ## 📚 Paper & documentation
 

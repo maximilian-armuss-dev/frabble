@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Mapping, Sequence
+from typing import TYPE_CHECKING, Mapping, Sequence
+
+if TYPE_CHECKING:
+    from .board import Board
 
 Coord = tuple[int, ...]
 Symbol = str
@@ -192,7 +195,6 @@ class ScenarioRun:
     grammar_name: str
     forbidden_snippets: tuple[tuple[Symbol, ...], ...]
     initial_board: "Board"
-    # TODO generally not the biggest fan of having a tuple list for the transitions here as this may loose the ordering ot the transitions in case something goes wrong at the serialization. Maybe lets add something like a move counter in the transitions so that we can the directly tell the order. 
     transitions: tuple[ScenarioTransition, ...]
     initial_optimal_score: int | None = None
     initial_rack: tuple[Symbol, ...] | None = None

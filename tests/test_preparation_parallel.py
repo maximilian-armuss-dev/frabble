@@ -12,9 +12,9 @@ import unittest
 from unittest.mock import patch
 
 from preparation_probe import reference_config
+from support import generation_config, preparation_recipes
 from src.evaluation.prepare import prepare_case_set
 from src.evaluation.scenario_workers import resolve_worker_count
-from src.generator.config import load_generator_config
 from src.generator.engine import ScenarioGenerator
 from src.generator.readable_json import dumps_readable_json
 from src.generator.scenario_codec import scenario_run_from_json, scenario_run_to_json
@@ -25,6 +25,9 @@ ROOT = HERE.parent
 
 
 class ParallelPreparationTests(unittest.TestCase):
+    def setUp(self):
+        self.enterContext(preparation_recipes())
+
     def probe(self, script, *args, hash_seed=1):
         result = subprocess.run(
             [sys.executable, str(HERE / script), *map(str, args)],
@@ -82,7 +85,7 @@ class ParallelPreparationTests(unittest.TestCase):
         config = reference_config().model_copy(update={
             "sampling_rounds": 1, "board_sizes": [1], "dimensions": [2],
         })
-        generation = load_generator_config("evaluation_base", validate_grammar=False)
+        generation = generation_config()
         generation.scoring.anchor_centroid_weight = 0.1234567
         with (
             tempfile.TemporaryDirectory() as directory,

@@ -9,7 +9,6 @@ from contextlib import contextmanager
 from tqdm import tqdm
 
 from .config import EvaluationConfigError, load_case_set_config, load_run_config
-from .decomposition import decompose_run
 from .prepare import prepare_case_set
 from .runner import evaluate_run
 
@@ -109,16 +108,6 @@ def cmd_evaluate() -> None:
             "Retry them with: "
             f"uv run evaluate --config {args.config}"
         )
-
-
-def cmd_decompose() -> None:
-    args = _config_parser("Decompose failed results from an evaluation run.").parse_args()
-    try:
-        result = asyncio.run(decompose_run(load_run_config(args.config)))
-    except (EvaluationConfigError, ValueError) as exc:
-        print(f"decomposition failed: {exc}")
-        raise SystemExit(1) from exc
-    print(f"decomposition summary: {result}")
 
 
 def _config_parser(description: str) -> argparse.ArgumentParser:

@@ -11,6 +11,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from support import FixtureModelsMixin, preparation_recipes
+
 import litellm
 from openrouter import errors as openrouter_errors
 from pydantic import BaseModel
@@ -89,8 +91,8 @@ def tiny_case_set(
     return CaseSetConfig.model_validate(
         {
             "config_name": "tiny",
-            "generation_config": "evaluation_base",
-            "grammar_config": "evaluation_base_grammar",
+            "generation_config": "tiny",
+            "grammar_config": "tiny",
             "root_seed": 7,
             "sampling_rounds": 1,
             "board_sizes": board_sizes or [0],
@@ -119,7 +121,11 @@ def tiny_run(
     )
 
 
-class EvaluationConfigTests(unittest.TestCase):
+class EvaluationConfigTests(FixtureModelsMixin, unittest.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.enterContext(preparation_recipes())
+
     def test_automatic_retries_are_disabled_by_default(self):
         self.assertEqual(ExecutionConfig().max_retries, 0)
 
@@ -218,10 +224,10 @@ class EvaluationConfigTests(unittest.TestCase):
                     self.assertNotIn("--new", message)
 
     def test_case_set_loads_board_sizes(self):
-        config = load_case_set_config("1r_sanity_check")
+        config = load_case_set_config("sanity_check")
 
-        self.assertEqual(config.board_sizes, [0])
-        self.assertEqual(config.sampling_rounds, 1)
+        self.assertTrue(config.board_sizes)
+        self.assertGreater(config.sampling_rounds, 0)
         self.assertNotIn("tiers", config.model_dump(mode="json"))
 
     def test_case_set_rejects_invalid_dimensions(self):
@@ -763,7 +769,7 @@ class EvaluationConfigTests(unittest.TestCase):
         self.assertEqual(retry_delay(rate_limit, retry_index=0), 2.5)
 
     def test_openrouter_transport_error_persists_request_configuration(self):
-        model_name = "or_deepseek-v4-pro"
+        model_name = "test_other_provider"
         job = SimpleNamespace(
             job_id="job",
             case_path=Path("case.json"),
@@ -902,7 +908,7 @@ class EvaluationConfigTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "DIMENSIONS must be one of"):
                 select_prepared_case(cases, 5, 0, 0)
             selected = select_prepared_case(cases, 2, 0, 0)
-            prepared = prepare_selected_case(selected, "openai_gpt-5", "low")
+            prepared = prepare_selected_case(selected, "test_litellm", "low")
 
             async def fake_call(_system, _user, _model, *, reasoning_effort):
                 self.assertEqual(reasoning_effort, "low")
@@ -919,7 +925,7 @@ class EvaluationConfigTests(unittest.TestCase):
                     call_llm=fake_call,
                 )
             )
-            saved_notebook = load_saved_case_attempt(selected, "openai_gpt-5")
+            saved_notebook = load_saved_case_attempt(selected, "test_litellm")
 
             runs_dir = root / "outputs" / "evaluation" / "tiny" / "runs"
             for name, completed_at in (
@@ -948,7 +954,7 @@ class EvaluationConfigTests(unittest.TestCase):
                             "evaluation": {"overall": False, "failure_type": "rack"},
                         },
                     )
-            saved = load_saved_case_attempt(selected, "openai_gpt-5")
+            saved = load_saved_case_attempt(selected, "test_litellm")
             stale_path = root / "outputs" / "llm-runs" / "stale.json"
             write_json_atomic(
                 stale_path,
@@ -1022,7 +1028,11 @@ class EvaluationConfigTests(unittest.TestCase):
             self.assertTrue((case_root / "prepare-manifest.json").exists())
 
 
-class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
+class AsyncEvaluationTests(FixtureModelsMixin, unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        super().setUp()
+        self.enterContext(preparation_recipes())
+
     async def test_manual_resume_retries_errors_preserves_history_and_then_stops(self):
         invalid_answer = LLMCallResult(
             content="not a move", usage={}, metadata={"finish_reason": "stop"}

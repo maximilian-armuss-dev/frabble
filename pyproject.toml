@@ -33,7 +33,6 @@ sample-grammar = "src.formal.grammar.cli:cmd_sample"
 analyze-grammar = "src.formal.grammar.cli:cmd_analyze"
 prepare = "src.evaluation.cli:cmd_prepare"
 evaluate = "src.evaluation.cli:cmd_evaluate"
-decompose = "src.evaluation.cli:cmd_decompose"
 optimize-score = "src.benchmark.optimality:main"
 
 [tool.hatch.build.targets.wheel]
@@ -42,3 +41,22 @@ packages = ["src", "visualization"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-socket>=0.8.1",
+    "ruff>=0.17.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "tests"]
+addopts = "--disable-socket --allow-unix-socket"
+
+[tool.ruff]
+target-version = "py311"
+extend-exclude = ["paper", "*.ipynb"]
+
+[tool.ruff.lint]
+select = ["F"]

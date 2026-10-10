@@ -12,8 +12,8 @@ The [offline benchmark](../../scripts/benchmark_preparation.py) compares the fro
 pre-cache enumerator with cached serial preparation and cached preparation using
 two and four workers. Each trial uses a fresh temporary artifact directory, so
 resume hits cannot masquerade as faster generation. The uncached comparison uses
-the current coordinator with the pre-change enumeration function; the independent
-pre-change fixtures additionally check historical behavior.
+the current coordinator with the pre-change enumeration function. Fixed scenario
+fixtures additionally check that serial and spawned execution agree.
 
 ```bash
 # Short 5D/10D matrix, four scenarios per trial, three repetitions by default.
@@ -51,11 +51,13 @@ from that cache-size measurement.
 ## Correctness evidence
 
 The compressed [reference fixture](../../tests/fixtures/generation_reference.json.gz)
-was captured before implementation with Python 3.12.3 and OR-Tools 9.15.6755. It
-contains six complete 2D/5D/10D scenarios over two sampling rounds and every slot
-list for their transition racks. Fresh pre-change processes with hash seeds 1 and
-991 produced identical results. Regression tests compare both new serial and real
-spawn execution against those fixtures, and compare bytes at identical paths.
+contains six small 2D/5D/10D scenarios over two sampling rounds and every slot list
+for their transition racks. It was captured with the unchanged generator before
+the submission cleanup, using the fixed recipes in `tests/fixtures/config/`.
+Its metadata records the source revision. It replaces a previously referenced
+fixture that was absent from Git; it is not evidence from before the cache change.
+Regression tests compare serial and real spawn execution with different hash
+seeds against this fixture, and compare scenario bytes at identical paths.
 
 [Cache tests](../../tests/test_generation_cache.py) also vary the board, language,
 and rack against an independent frozen enumerator and verify cache lifetime.
@@ -64,11 +66,9 @@ hard process exits, actual SIGINT, progress counts, shared grammars, missing
 snapshots, unregistered files, atomic output, and resumption. Independent existing
 brute-force optimality tests remain unchanged.
 
-The final local suite ran 162 tests: 151 passed and 11 failed. All 11 failures
-were also reproduced against the unmodified source with the existing local
-configuration. They concern older model names/request defaults, the missing
-`1r_sanity_check` recipe, or the missing `evaluation_base` scenario. The new cache
-and process tests, including the serializer compatibility check, all passed.
+The [development guide](../development.md) describes the current offline suite.
+Provider profiles and small preparation recipes are test-owned, so changes to
+active experiments no longer invalidate those regression tests.
 
 Full 250-/500-word scenario throughput and repeated large-workload certification
 rates are intentionally left to the separately runnable full matrix. The
@@ -77,7 +77,7 @@ memory use or timeout behavior for every large workload.
 
 ## Local measurements, 9 October 2026
 
-The [recorded results](preparation-measurements.json) were measured on this
+The measurements below were recorded on a
 10-CPU, 16-GiB ARM Mac with Python 3.12.3 and OR-Tools 9.15.6755. Tests were not
 running concurrently. Each comparison has two repetitions; ranges describe those
 two samples rather than a confidence interval.

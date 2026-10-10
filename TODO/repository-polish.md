@@ -4,7 +4,7 @@ These tasks are intentionally deferred until the research workflow has stabilize
 
 ## Results and paper
 
-- [ ] Remove tests for configs that no longer exist and update stale expectations.
+- [x] Replace stale config/model expectations with fixed test fixtures; check active config references separately.
 - [ ] Back up the final result artifacts outside the repository before removing generated outputs from Git.
 - [ ] Keep only small examples, fixtures, manifests, and checksums in the repository; ignore generated output directories consistently.
 - [ ] Give the paper dataset a stable name such as `paper-v1` instead of names such as `final_merged` or `after-updates`.
@@ -16,15 +16,16 @@ These tasks are intentionally deferred until the research workflow has stabilize
 
 - [ ] Remove editor, OS, notebook, Python cache, and LaTeX build artifacts before release.
 - [ ] Normalize notebook kernels and decide consistently whether notebook outputs are retained.
-- [ ] Add a small automated check that installs from the lockfile, runs the tests, and checks formatting and common code issues.
-- [ ] Keep this automation minimal at first: tests plus Ruff are sufficient.
+- [x] Add a minimal lockfile-based CI check: pytest and Ruff on Python 3.11/3.12.
+- [ ] Adopt broader formatting rules separately, without mixing a repository-wide reformat into submission cleanup.
 
 ## Maintainability
 
 - [ ] Review names across modules, commands, configs, artifacts, and tests for consistency.
-- [ ] Split the largest source and test files where they contain multiple responsibilities.
+- [x] Separate provider and notebook-run tests from core tests.
+- [ ] Consider further splits of the large core/evaluation test and plotting modules when those areas change.
 - [ ] Add docstrings to public or non-obvious interfaces; avoid documenting self-explanatory helpers.
-- [ ] Perform a focused maintainability review before making broader structural changes.
+- [x] Review subsystem boundaries, remove unused private helpers/imports and the stub-only decomposition CLI, and preserve active APIs and artifact schemas.
 - [ ] Later, consider renaming the installed package from `src` to `frabble` and separating core, provider, visualization, and development dependencies.
 
 ## Publication metadata

@@ -13,6 +13,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from preparation_probe import reference_config
+from support import preparation_recipes
 from src.evaluation.case_sampling import resolve_generation_config
 from src.evaluation.prepare import prepare_case_set
 
@@ -52,7 +53,7 @@ def main():
         return result
 
     error = None
-    with patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", root):
+    with preparation_recipes(), patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", root):
         try:
             with patch("src.evaluation.case_preparation.resolve_generation_config", resolve):
                 prepare_case_set(config, workers=2, generation_progress_factory=progress)

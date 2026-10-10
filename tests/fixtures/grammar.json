@@ -1,0 +1,37 @@
+{
+  "schema_version": 2,
+  "type": "sl",
+  "name": "tiny",
+  "alphabet": [
+    "A",
+    "B",
+    "C"
+  ],
+  "k": 2,
+  "forbidden": [
+    "AA",
+    "BB",
+    "CC"
+  ],
+  "min_word_length": 3,
+  "letter_scores": {
+    "A": 1,
+    "B": 2,
+    "C": 3
+  },
+  "seed": 11,
+  "sampling_config": {
+    "alphabet_size": 3,
+    "forbidden_fraction": 0.1,
+    "alphabet_case": "upper",
+    "auto_resample": {
+      "enabled": true,
+      "max_attempts": 20,
+      "perron_min": 1.1,
+      "perron_max": 50.0,
+      "resample_length_min": 3,
+      "resample_length_max": 3,
+      "min_word_count": 5
+    }
+  }
+}

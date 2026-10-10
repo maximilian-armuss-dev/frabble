@@ -5,7 +5,6 @@ from itertools import product as iproduct
 
 import numpy as np
 
-from ...domain.models import Symbol
 from ...formal.language import StrictlyLocalLanguage
 
 

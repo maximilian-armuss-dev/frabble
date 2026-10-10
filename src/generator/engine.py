@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 import random
+from pathlib import Path
 
 from ..benchmark.optimality import optimize_move
 from ..benchmark.scoring import BoardScoring
@@ -242,11 +243,6 @@ class ScenarioGenerator:
 
     def write(self, scenario_run: ScenarioRun) -> Path:
         return write_scenario_run(resolve_output_path(self.config), scenario_run)
-
-    def _initial_board(self) -> Board:
-        return Board.empty(self.config.dimensions).place(
-            self.generate_initial_transition().move
-        )
 
     def _optimal_move(
         self,

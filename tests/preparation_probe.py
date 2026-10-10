@@ -1,4 +1,4 @@
-"""Small real-process preparation probe; also captures the pre-change fixture."""
+"""Small real-process preparation probe with fixed test recipes."""
 from __future__ import annotations
 
 import argparse
@@ -11,6 +11,8 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from support import preparation_recipes
+
 from src.benchmark.optimality import _enumerate_slots
 from src.evaluation.config import CaseSetConfig
 from src.evaluation.prepare import prepare_case_set
@@ -20,8 +22,8 @@ from src.generator.scenario_io import load_scenario_run
 
 def reference_config() -> CaseSetConfig:
     return CaseSetConfig(
-        config_name="reference", generation_config="evaluation_base",
-        grammar_config="evaluation_base_grammar", root_seed=7,
+        config_name="reference", generation_config="tiny",
+        grammar_config="tiny", root_seed=7,
         sampling_rounds=2, dimensions=[2, 5, 10], board_sizes=[3],
     )
 
@@ -75,7 +77,7 @@ def main() -> None:
         finally:
             exits.append(scenario_id)
 
-    with patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", args.root):
+    with preparation_recipes(), patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", args.root):
         if args.cli:
             from src.evaluation.cli import cmd_prepare
             argv = ["prepare", "--config", "reference"]

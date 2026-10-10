@@ -8,7 +8,7 @@ from datetime import datetime
 from decimal import Decimal, ROUND_DOWN
 from pathlib import Path
 from time import perf_counter
-from typing import Literal, Mapping, Sequence
+from typing import Literal, Mapping
 
 from src.domain.board import Board
 from src.domain.models import Move
@@ -467,15 +467,6 @@ def _redact_board_sequences(
         f"{sequence_summary}{board_cell_count} occupied cells]"
     )
     return prompt[:start] + replacement + prompt[end:]
-
-
-def _redact_board_configuration(prompt: str, *, board_cell_count: int) -> str:
-    """Compatibility wrapper for notebooks that imported the old helper."""
-    return _redact_board_sequences(
-        prompt,
-        board_cell_count=board_cell_count,
-        board_sequence_count=None,
-    )
 
 
 def llm_run_summary(context: LLMRunContext) -> dict[str, object]:
