@@ -19,7 +19,7 @@ outputs/evaluation/final/runs/*
 # Sol (complete)
 !outputs/evaluation/final/runs/20261009T151418108549Z_final_9dbbd420/
 # Gemini (in progress): uncomment after completion to version this run.
-#!outputs/evaluation/final/runs/20261010T191034822685Z_final_54201d75/
+!outputs/evaluation/final/runs/20261010T191034822685Z_final_54201d75/
 */.DS_Store
 .DS_Store
 visualization/.ipynb_checkpoints

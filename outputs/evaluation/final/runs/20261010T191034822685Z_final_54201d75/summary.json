@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "total_attempts": 100,
+  "completed": 100,
+  "passed": 32,
+  "failed": 68,
+  "pass_rate": 0.32,
+  "transport_errors": 0,
+  "primary_failures": {
+    "invalid_cross_word": 13,
+    "missing_overlap": 9,
+    "sequence": 4,
+    "spatial_conflict": 20,
+    "word_extension": 22
+  },
+  "format_robust": {
+    "passed": 32,
+    "pass_rate": 0.32,
+    "recovered": 0,
+    "primary_failures": {
+      "invalid_cross_word": 13,
+      "missing_overlap": 9,
+      "sequence": 4,
+      "spatial_conflict": 20,
+      "word_extension": 22
+    }
+  },
+  "failed_constraints": {
+    "parse_ok": 0,
+    "sequence_valid": 4,
+    "min_length_fulfilled": 0,
+    "spatial_valid": 22,
+    "overlap_valid": 11,
+    "no_word_extension": 47,
+    "cross_words_valid": 29,
+    "rack_valid": 5
+  },
+  "by_board_size": {
+    "100": {
+      "total": 20,
+      "passed": 3,
+      "failed": 17,
+      "transport_errors": 0,
+      "pass_rate": 0.15
+    },
+    "25": {
+      "total": 20,
+      "passed": 12,
+      "failed": 8,
+      "transport_errors": 0,
+      "pass_rate": 0.6
+    },
+    "250": {
+      "total": 20,
+      "passed": 6,
+      "failed": 14,
+      "transport_errors": 0,
+      "pass_rate": 0.3
+    },
+    "50": {
+      "total": 20,
+      "passed": 9,
+      "failed": 11,
+      "transport_errors": 0,
+      "pass_rate": 0.45
+    },
+    "500": {
+      "total": 20,
+      "passed": 2,
+      "failed": 18,
+      "transport_errors": 0,
+      "pass_rate": 0.1
+    }
+  },
+  "by_dimensions": {
+    "2": {
+      "total": 50,
+      "passed": 9,
+      "failed": 41,
+      "transport_errors": 0,
+      "pass_rate": 0.18
+    },
+    "5": {
+      "total": 50,
+      "passed": 23,
+      "failed": 27,
+      "transport_errors": 0,
+      "pass_rate": 0.46
+    }
+  },
+  "by_model": {
+    "gemini": {
+      "total": 100,
+      "passed": 32,
+      "failed": 68,
+      "transport_errors": 0,
+      "pass_rate": 0.32
+    }
+  },
+  "by_group": [
+    {
+      "dimensions": 2,
+      "board_size": 100,
+      "model": "gemini",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "high",
+      "total": 10,
+      "passed": 1,
+      "failed": 9,
+      "pass_rate": 0.1,
+      "transport_errors": 0
+    },
+    {
+      "dimensions": 2,
+      "board_size": 25,
+      "model": "gemini",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "high",
+      "total": 10,
+      "passed": 5,
+      "failed": 5,
+      "pass_rate": 0.5,
+      "transport_errors": 0
+    },
+    {
+      "dimensions": 2,
+      "board_size": 250,
+      "model": "gemini",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "high",
+      "total": 10,
+      "passed": 0,
+      "failed": 10,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "dimensions": 2,
+      "board_size": 50,
+      "model": "gemini",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "high",
+      "total": 10,
+      "passed": 3,
+      "failed": 7,
+      "pass_rate": 0.3,
+      "transport_errors": 0
+    },
+    {
+      "dimensions": 2,
+      "board_size": 500,
+      "model": "gemini",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "high",
+      "total": 10,
+      "passed": 0,
+      "failed": 10,
+      "pass_rate": 0.0,
+      "transport_errors": 0
+    },
+    {
+      "dimensions": 5,
+      "board_size": 100,
+      "model": "gemini",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "high",
+      "total": 10,
+      "passed": 2,
+      "failed": 8,
+      "pass_rate": 0.2,
+      "transport_errors": 0
+    },
+    {
+      "dimensions": 5,
+      "board_size": 25,
+      "model": "gemini",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "high",
+      "total": 10,
+      "passed": 7,
+      "failed": 3,
+      "pass_rate": 0.7,
+      "transport_errors": 0
+    },
+    {
+      "dimensions": 5,
+      "board_size": 250,
+      "model": "gemini",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "high",
+      "total": 10,
+      "passed": 6,
+      "failed": 4,
+      "pass_rate": 0.6,
+      "transport_errors": 0
+    },
+    {
+      "dimensions": 5,
+      "board_size": 50,
+      "model": "gemini",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "high",
+      "total": 10,
+      "passed": 6,
+      "failed": 4,
+      "pass_rate": 0.6,
+      "transport_errors": 0
+    },
+    {
+      "dimensions": 5,
+      "board_size": 500,
+      "model": "gemini",
+      "language_representation": "forbidden-snippets",
+      "reasoning_effort": "high",
+      "total": 10,
+      "passed": 2,
+      "failed": 8,
+      "pass_rate": 0.2,
+      "transport_errors": 0
+    }
+  ]
+}
