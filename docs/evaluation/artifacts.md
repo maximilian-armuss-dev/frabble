@@ -35,7 +35,35 @@ flowchart LR
 
 Preparation creates or loads the manifest and materializes each grammar, scenario, and case chain. An artifact is reused only when its semantic identity, config hash, and file checksum still match. Failures are recorded as they occur, and the case set becomes complete only after every requested case succeeds.
 
+The main process resolves configurations and IDs in sampling order, deduplicates
+shared grammars, and checks reusable artifacts. Missing scenarios are assigned to
+spawned workers, with at most one outstanding task per worker. Each worker owns
+its generator, RNG, and local validation caches. It writes only its scenario;
+the main process verifies the completed file, registers it, and creates the case
+snapshot. Missing snapshots alone do not regenerate scenarios. Completion order
+may differ, but it does not enter seed derivation or scenario content.
+
+Scenario output uses the existing serializer and a unique temporary file in the
+destination directory, followed by an atomic rename. A published scenario counts
+as complete only after the main process records its checksum in the manifest.
+After a crash between publication and registration, preparation regenerates the
+unregistered scenario. Partial temporary files are ignored and never reused as
+artifacts. Already registered results survive failures elsewhere in the pool.
+
+On an ordinary worker exception, no new tasks are dispatched; running tasks are
+drained and their successful results are registered before preparation reports
+failure. An unexpected process exit reports the affected scenario IDs and stops
+the pool. Ctrl+C terminates and reaps the owned worker processes. The manifest
+remains in progress until all requested artifacts succeed. Repeating preparation,
+including with a different worker count, resumes from verified registered results.
+Separate simultaneous preparation commands targeting the same directory are not
+supported.
+
 `--clean` removes a complete case-set directory, including runs that depend on those cases, before rebuilding it. Preparation orchestration lives in [`src/evaluation/prepare.py`](../../src/evaluation/prepare.py), with manifest and schema handling in [`src/evaluation/preparation_artifacts.py`](../../src/evaluation/preparation_artifacts.py).
+
+Cleanup runs before any workers start. Scenario coordination and process ownership
+live in [`case_preparation.py`](../../src/evaluation/case_preparation.py) and
+[`scenario_workers.py`](../../src/evaluation/scenario_workers.py).
 
 ## Run lifecycle
 

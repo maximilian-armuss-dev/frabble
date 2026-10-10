@@ -1,6 +1,6 @@
 defaults:
   temperature: 1
-  max_completion_tokens: 100000
+  max_completion_tokens: 60000
   reasoning_effort: high
   timeout_seconds: 3600
 
@@ -46,3 +46,16 @@ models:
     api_key_env: OPENROUTER_API_KEY
     base_url_env: OPENROUTER_API_BASE
     provider: alibaba
+
+  - name: muse
+    model: openrouter/meta/muse-spark-1.3
+    api_key_env: OPENROUTER_API_KEY
+    base_url_env: OPENROUTER_API_BASE
+    provider: meta
+
+  - name: mimo
+    model: openrouter/xiaomi/mimo-v2.6-pro
+    api_key_env: OPENROUTER_API_KEY
+    base_url_env: OPENROUTER_API_BASE
+    provider: xiaomi/fp8
+    # Accepts the inherited high setting; distinct effort levels are unconfirmed.

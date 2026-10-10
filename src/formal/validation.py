@@ -319,13 +319,23 @@ def extends_existing_sequence_in_any_axis(
     coords: tuple[Coord, ...],
     move_axis: int,
     language: StrictlyLocalLanguage,
+    *,
+    _axis_cache: dict[tuple[tuple[Coord, ...], int], bool] | None = None,
 ) -> bool:
-    if extends_existing_axis_sequence(board, coords, move_axis, language):
+    def check(line: tuple[Coord, ...], axis: int) -> bool:
+        if _axis_cache is None:
+            return extends_existing_axis_sequence(board, line, axis, language)
+        key = (line, axis)
+        if key not in _axis_cache:
+            _axis_cache[key] = extends_existing_axis_sequence(board, line, axis, language)
+        return _axis_cache[key]
+
+    if check(coords, move_axis):
         return True
     return any(
         board.get(coord) is None
         and axis != move_axis
-        and extends_existing_axis_sequence(board, (coord,), axis, language)
+        and check((coord,), axis)
         for coord in coords
         for axis in range(board.dimensions)
     )

@@ -12,6 +12,7 @@ from .artifacts import content_sha256
 from .case_preparation import CaseSetPreparer
 from .config import CaseSetConfig
 from .preparation_artifacts import PreparationManifest
+from .scenario_workers import resolve_worker_count
 
 EVALUATION_OUTPUT_DIR = PROJECT_ROOT / "outputs" / "evaluation"
 
@@ -20,6 +21,7 @@ def prepare_case_set(
     config: CaseSetConfig,
     *,
     clean: bool = False,
+    workers: int | None = None,
     generation_progress_factory: (
         Callable[
             [str, int],
@@ -28,6 +30,7 @@ def prepare_case_set(
         | None
     ) = None,
 ) -> dict[str, Any]:
+    resolve_worker_count(workers, 0)  # Validate before --clean or any writes.
     root = EVALUATION_OUTPUT_DIR / config.config_name
     base_grammar = load_grammar_config(config.grammar_config)
     base_generation = load_generator_config(
@@ -44,6 +47,8 @@ def prepare_case_set(
         config,
         config_hash,
     )
+    manifest.data["status"] = "in_progress"
+    manifest.data["completed_at"] = None
     manifest.write_interface_schemas(root)
 
     preparer = CaseSetPreparer(
@@ -53,6 +58,7 @@ def prepare_case_set(
         root=root,
         config_hash=config_hash,
         manifest=manifest,
+        workers=workers,
         generation_progress_factory=generation_progress_factory,
     )
     preparer.prepare()

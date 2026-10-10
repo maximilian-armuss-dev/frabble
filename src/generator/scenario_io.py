@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
+import tempfile
 
 from ..domain.models import ScenarioRun
 from .readable_json import dumps_readable_json
@@ -16,9 +18,20 @@ def load_scenario_run(path: str | Path) -> ScenarioRun:
 def write_scenario_run(path: str | Path, scenario_run: ScenarioRun) -> Path:
     output = Path(path)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(
-        dumps_readable_json(scenario_run_to_json(scenario_run)),
-        encoding="utf-8",
-    )
+    # Preserve the serializer byte-for-byte; readers see only complete files.
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=output.parent,
+            prefix=f".{output.name}.", suffix=".tmp", delete=False,
+        ) as handle:
+            temporary = Path(handle.name)
+            handle.write(dumps_readable_json(scenario_run_to_json(scenario_run)))
+            handle.flush()
+            os.fsync(handle.fileno())
+        temporary.replace(output)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
     return output
 

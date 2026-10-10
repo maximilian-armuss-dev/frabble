@@ -50,5 +50,6 @@ The surrounding pages each own one narrower boundary:
 
 - [Configuration](configuration.md) connects reusable recipes, case sets, runs, and model profiles.
 - [Artifacts and Lifecycle](artifacts.md) describes persistence, identity, and resume behavior.
+- [Preparation Performance](performance.md) explains local caches, worker measurements, and reproducibility checks.
 - [Model Execution](model-execution.md) describes concurrency, cooldowns, retries, and terminal attempts.
 - [Move Validation](../foundations/move-validation.md) describes the deterministic semantic checks.

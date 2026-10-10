@@ -11,7 +11,7 @@ import json
 import math
 import time
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from ortools.sat.python import cp_model
 
@@ -41,6 +41,29 @@ class _Slot:
     coords: tuple[Coord, ...]
     domains: tuple[frozenset[Symbol], ...]
     upper_bound: int
+
+
+@dataclass
+class _SlotValidationContext:
+    """Pure checks shared only within one enumeration of one board/language."""
+
+    board: Board
+    language: StrictlyLocalLanguage
+    axes: dict[tuple[tuple[Coord, ...], int], bool] = field(default_factory=dict)
+    crosses: dict[tuple[Coord, int, Symbol], bool] = field(default_factory=dict)
+
+    def extends(self, coords: tuple[Coord, ...], axis: int) -> bool:
+        return extends_existing_sequence_in_any_axis(
+            self.board, coords, axis, self.language, _axis_cache=self.axes
+        )
+
+    def accepts(self, coord: Coord, axis: int, symbol: Symbol) -> bool:
+        key = (coord, axis, symbol)
+        if key not in self.crosses:
+            self.crosses[key] = _cross_words_accept(
+                self.board, self.language, coord, axis, symbol
+            )
+        return self.crosses[key]
 
 
 def optimize_move(
@@ -121,6 +144,7 @@ def _enumerate_slots(
 ) -> list[_Slot]:
     if not board.has_tiles():
         return _empty_board_slots(board, language, rack, scores)
+    checks = _SlotValidationContext(board, language)
     rack_counts = Counter(rack)
     rack_scores = sorted((scores.get(symbol, 0) for symbol in rack), reverse=True)
     seen: set[tuple[Coord, int, int]] = set()
@@ -153,9 +177,7 @@ def _enumerate_slots(
                     new_coords = [coord for coord in coords if board.get(coord) is None]
                     if not new_coords or len(new_coords) > len(rack):
                         continue
-                    if extends_existing_sequence_in_any_axis(
-                        board, coords, axis, language
-                    ):
+                    if checks.extends(coords, axis):
                         continue
                     domains: list[frozenset[Symbol]] = []
                     for coord in coords:
@@ -165,7 +187,7 @@ def _enumerate_slots(
                             continue
                         allowed = {
                             symbol for symbol in rack_counts
-                            if _cross_words_accept(board, language, coord, axis, symbol)
+                            if checks.accepts(coord, axis, symbol)
                         }
                         if not allowed:
                             break

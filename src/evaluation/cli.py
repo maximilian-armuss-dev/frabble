@@ -17,6 +17,10 @@ from .runner import evaluate_run
 def cmd_prepare() -> None:
     parser = _config_parser("Prepare an evaluation case set.")
     parser.add_argument(
+        "--workers", type=int, default=None,
+        help="Scenario processes (default: up to 4 available CPUs; 1 runs serially).",
+    )
+    parser.add_argument(
         "--clean",
         action="store_true",
         help="Delete the existing case-set output before preparing.",
@@ -27,11 +31,15 @@ def cmd_prepare() -> None:
         manifest = prepare_case_set(
             config,
             clean=args.clean,
+            workers=args.workers,
             generation_progress_factory=_generation_progress,
         )
-    except (EvaluationConfigError, ValueError) as exc:
+    except (EvaluationConfigError, ValueError, RuntimeError) as exc:
         print(f"prepare failed: {exc}")
         raise SystemExit(1) from exc
+    except KeyboardInterrupt:
+        print("prepare interrupted; registered artifacts can be resumed.", file=sys.stderr)
+        raise SystemExit(130) from None
     print(
         f"prepared {len(manifest['cases'])} cases for "
         f"{manifest['case_set']!r}"

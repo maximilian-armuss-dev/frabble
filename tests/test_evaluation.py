@@ -813,7 +813,7 @@ class EvaluationConfigTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             with patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", root):
-                manifest = prepare_case_set(tiny_case_set())
+                manifest = prepare_case_set(tiny_case_set(), workers=1)
 
             self.assertEqual(manifest["status"], "complete")
             self.assertEqual(len(manifest["grammars"]), 1)
@@ -833,7 +833,7 @@ class EvaluationConfigTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             with patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", root):
-                prepare_case_set(tiny_case_set(board_sizes=[0, 1, 2]))
+                prepare_case_set(tiny_case_set(board_sizes=[0, 1, 2]), workers=1)
 
             cases = {
                 case["board_size"]: case
@@ -860,7 +860,7 @@ class EvaluationConfigTests(unittest.TestCase):
             root = Path(temp_dir)
             with patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", root):
                 manifest = prepare_case_set(
-                    tiny_case_set(board_sizes=[1], dimensions=[2, 3])
+                    tiny_case_set(board_sizes=[1], dimensions=[2, 3]), workers=1
                 )
             cases = {
                 case["dimensions"]: case
@@ -889,7 +889,7 @@ class EvaluationConfigTests(unittest.TestCase):
                 "src.evaluation.prepare.EVALUATION_OUTPUT_DIR",
                 root / "outputs" / "evaluation",
             ):
-                prepare_case_set(tiny_case_set(board_sizes=[0, 1], dimensions=[2, 3]))
+                prepare_case_set(tiny_case_set(board_sizes=[0, 1], dimensions=[2, 3]), workers=1)
 
             cases = list_prepared_cases("tiny", project_root=root)
             self.assertEqual(
@@ -999,7 +999,7 @@ class EvaluationConfigTests(unittest.TestCase):
             root = Path(temp_dir)
             with patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", root):
                 prepare_case_set(
-                    tiny_case_set(),
+                    tiny_case_set(), workers=1,
                     generation_progress_factory=progress_factory,
                 )
 
@@ -1015,7 +1015,7 @@ class EvaluationConfigTests(unittest.TestCase):
             stale_run.write_text("stale", encoding="utf-8")
 
             with patch("src.evaluation.prepare.EVALUATION_OUTPUT_DIR", root):
-                manifest = prepare_case_set(tiny_case_set(), clean=True)
+                manifest = prepare_case_set(tiny_case_set(), workers=1, clean=True)
 
             self.assertFalse(stale_run.exists())
             self.assertEqual(manifest["status"], "complete")
@@ -1045,7 +1045,7 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
                 patch("src.evaluation.runner.EVALUATION_OUTPUT_DIR", root),
                 patch("src.evaluation.runner.acall_llm_detailed") as call,
             ):
-                prepare_case_set(tiny_case_set(board_sizes=[0, 1, 2, 3]))
+                prepare_case_set(tiny_case_set(board_sizes=[0, 1, 2, 3]), workers=1)
                 call.side_effect = [
                     invalid_answer,
                     openrouter_errors.NoResponseError("timeout"),
@@ -1182,7 +1182,7 @@ class AsyncEvaluationTests(unittest.IsolatedAsyncioTestCase):
                 patch("src.evaluation.runner.EVALUATION_OUTPUT_DIR", root),
                 patch("src.evaluation.decomposition.EVALUATION_OUTPUT_DIR", root),
             ):
-                prepare_case_set(tiny_case_set(board_sizes=[0, 1, 2]))
+                prepare_case_set(tiny_case_set(board_sizes=[0, 1, 2]), workers=1)
                 with patch(
                     "src.evaluation.runner.acall_llm_detailed",
                     side_effect=fake_call,

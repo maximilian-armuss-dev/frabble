@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 from collections.abc import Callable
 from contextlib import AbstractContextManager
@@ -11,6 +12,8 @@ from ..formal.grammar.sampler import sample_grammar_from_config
 from ..formal.grammar.serialization import save_grammar
 from ..generator.config import GeneratorConfig, PROJECT_ROOT
 from ..generator.engine import ScenarioGenerator
+from ..generator.readable_json import dumps_readable_json
+from ..generator.scenario_io import load_scenario_run
 from .artifacts import content_sha256, file_sha256, write_json_atomic
 from .case_sampling import (
     CaseCoordinates,
@@ -23,10 +26,24 @@ from .case_sampling import (
 )
 from .case_snapshot import PreparedGrammar, PreparedScenario, build_evaluation_case
 from .config import CaseSetConfig
+from .scenario_workers import ScenarioTask, resolve_worker_count, run_scenarios
 from .preparation_artifacts import (
     PreparationManifest,
     artifact_entry,
 )
+
+
+@dataclass(frozen=True)
+class _CaseWork:
+    case_id: str
+    coordinates: CaseCoordinates
+    parameters: SampledBoardParameters
+    grammar: PreparedGrammar
+    scenario: PreparedScenario
+    scenario_hash: str
+
+    def task(self) -> ScenarioTask:
+        return ScenarioTask(self.case_id, self.scenario.config.model_dump(mode="json"))
 
 
 @dataclass
@@ -37,6 +54,7 @@ class CaseSetPreparer:
     root: Path
     config_hash: str
     manifest: PreparationManifest
+    workers: int | None = None
     generation_progress_factory: (
         Callable[
             [str, int],
@@ -47,20 +65,115 @@ class CaseSetPreparer:
 
     def prepare(self) -> None:
         git_revision = _git_revision()
+        grammars: dict[str, PreparedGrammar] = {}
+        pending: dict[str, _CaseWork] = {}
+        seen: set[str] = set()
         for board_size in self.config.board_sizes:
             for round_index in range(self.config.sampling_rounds):
                 for dimensions in self.config.dimensions or [None]:
-                    coordinates = CaseCoordinates(
-                        board_size=board_size,
-                        round_index=round_index,
-                        dimensions=dimensions,
+                    coordinates = CaseCoordinates(board_size, round_index, dimensions)
+                    grammar_id = grammar_artifact_id(
+                        self.config.config_name, board_size, round_index
                     )
-                    grammar = self._prepare_grammar(coordinates)
-                    self._prepare_case(
-                        coordinates=coordinates,
-                        grammar=grammar,
-                        git_revision=git_revision,
-                    )
+                    if grammar_id not in grammars:
+                        grammars[grammar_id] = self._prepare_grammar(coordinates)
+                    case_id = evaluation_case_id(self.config.config_name, coordinates)
+                    if case_id in seen:
+                        raise ValueError(f"Duplicate scenario ID: {case_id}")
+                    seen.add(case_id)
+                    try:
+                        work = self._resolve_case(coordinates, grammars[grammar_id])
+                        if self.manifest.artifact_matches(
+                            "scenarios", case_id, work.scenario_hash, work.scenario.path
+                        ):
+                            self._finish_case(work, git_revision)
+                        else:
+                            pending[case_id] = work
+                    except Exception as exc:
+                        self.manifest.record_failure(case_id, exc)
+                        raise
+
+        worker_count = resolve_worker_count(self.workers, len(pending))
+        if worker_count == 0:
+            return
+
+        def completed(task: ScenarioTask, checksum: str) -> None:
+            work = pending[task.scenario_id]
+            path = work.scenario.path
+            if file_sha256(path) != checksum:
+                raise ValueError(f"{task.scenario_id}: scenario checksum changed")
+            run = load_scenario_run(path)
+            if (
+                # The existing serializer truncates floats to four decimals.
+                run.config != json.loads(dumps_readable_json(task.config))
+                or run.config_name != task.scenario_id
+                or run.seed != task.config["seed"]
+                or len(run.transitions) != task.config["target_transition_count"]
+            ):
+                raise ValueError(f"{task.scenario_id}: unexpected scenario content")
+            self.manifest.record_artifact(
+                "scenarios", task.scenario_id,
+                artifact_entry(
+                    config_hash=work.scenario_hash, path=path,
+                    board_depth=work.parameters.board_depth,
+                    dimensions=work.parameters.dimensions,
+                ),
+            )
+            self._finish_case(work, git_revision)
+
+        def failed(task: ScenarioTask, exc: Exception) -> None:
+            self.manifest.record_failure(task.scenario_id, exc)
+
+        if worker_count == 1:
+            for work in pending.values():
+                task = work.task()
+                try:
+                    generator = ScenarioGenerator(work.scenario.config)
+                    if self.generation_progress_factory is None:
+                        run = generator.generate()
+                    else:
+                        with self.generation_progress_factory(
+                            work.case_id, work.scenario.config.target_transition_count
+                        ) as update:
+                            run = generator.generate(progress_callback=update)
+                    path = generator.write(run)
+                    completed(task, file_sha256(path))
+                except Exception as exc:
+                    failed(task, exc)
+                    raise
+                except KeyboardInterrupt:
+                    failed(task, RuntimeError("Preparation interrupted by user"))
+                    raise
+        else:
+            run_scenarios(
+                (work.task() for work in pending.values()),
+                workers=worker_count, completed=completed, failed=failed,
+                progress_factory=self.generation_progress_factory,
+            )
+
+    def _resolve_case(
+        self, coordinates: CaseCoordinates, grammar: PreparedGrammar
+    ) -> _CaseWork:
+        case_id = evaluation_case_id(self.config.config_name, coordinates)
+        parameters = sample_board_parameters(self.config, coordinates, self.base_generation)
+        path = self.root / "scenarios" / f"{case_id}.json"
+        config = resolve_generation_config(
+            self.base_generation, scenario_id=case_id, parameters=parameters,
+            grammar_path=grammar.path, output_path=path,
+        )
+        return _CaseWork(
+            case_id, coordinates, parameters, grammar,
+            PreparedScenario(config=config, path=path),
+            content_sha256(config.model_dump(mode="json")),
+        )
+
+    def _finish_case(self, work: _CaseWork, git_revision: str | None) -> None:
+        self._prepare_case_artifact(
+            case_id=work.case_id, coordinates=work.coordinates,
+            parameters=work.parameters, grammar=work.grammar,
+            scenario=work.scenario, git_revision=git_revision,
+        )
+        self.manifest.clear_failure(work.case_id)
 
     def _prepare_grammar(
         self,
@@ -121,86 +234,6 @@ class CaseSetPreparer:
                 self.manifest.data["grammars"][grammar_id]["actual_seed"]
             ),
         )
-
-    def _prepare_case(
-        self,
-        *,
-        coordinates: CaseCoordinates,
-        grammar: PreparedGrammar,
-        git_revision: str | None,
-    ) -> None:
-        case_id = evaluation_case_id(
-            self.config.config_name,
-            coordinates,
-        )
-        try:
-            parameters = sample_board_parameters(
-                self.config,
-                coordinates,
-                self.base_generation,
-            )
-            scenario = self._prepare_scenario(
-                case_id,
-                parameters,
-                grammar.path,
-            )
-            self._prepare_case_artifact(
-                case_id=case_id,
-                coordinates=coordinates,
-                parameters=parameters,
-                grammar=grammar,
-                scenario=scenario,
-                git_revision=git_revision,
-            )
-            self.manifest.clear_failure(case_id)
-        except Exception as exc:
-            self.manifest.record_failure(case_id, exc)
-            raise
-
-    def _prepare_scenario(
-        self,
-        scenario_id: str,
-        parameters: SampledBoardParameters,
-        grammar_path: Path,
-    ) -> PreparedScenario:
-        scenario_path = self.root / "scenarios" / f"{scenario_id}.json"
-        generation_config = resolve_generation_config(
-            self.base_generation,
-            scenario_id=scenario_id,
-            parameters=parameters,
-            grammar_path=grammar_path,
-            output_path=scenario_path,
-        )
-        scenario_hash = content_sha256(generation_config.model_dump(mode="json"))
-        if not self.manifest.artifact_matches(
-            "scenarios",
-            scenario_id,
-            scenario_hash,
-            scenario_path,
-        ):
-            generator = ScenarioGenerator(generation_config)
-            if self.generation_progress_factory is None:
-                scenario_run = generator.generate()
-            else:
-                with self.generation_progress_factory(
-                    scenario_id,
-                    generation_config.target_transition_count,
-                ) as update_progress:
-                    scenario_run = generator.generate(
-                        progress_callback=update_progress,
-                    )
-            generator.write(scenario_run)
-            self.manifest.record_artifact(
-                "scenarios",
-                scenario_id,
-                artifact_entry(
-                    config_hash=scenario_hash,
-                    path=scenario_path,
-                    board_depth=parameters.board_depth,
-                    dimensions=parameters.dimensions,
-                ),
-            )
-        return PreparedScenario(config=generation_config, path=scenario_path)
 
     def _prepare_case_artifact(
         self,

@@ -1,13 +1,11 @@
-case_set: pilot
+case_set: final
 models:
-  sol: [all]
-  opus: [all]
+  # sol: [all]
+  # opus: [all]
   gemini: [all]
-  grok: [all]
-  deepseek: [all]
-  # glm: [all]
-  # qwen: [all]
+  # deepseek: [all]
+  # grok: [all]
 execution:
-  max_concurrency: 25
+  max_concurrency: 20
   max_concurrency_per_model: 5
   max_retries: 0
