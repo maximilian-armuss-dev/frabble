@@ -10,6 +10,11 @@ ScenarioSource = ScenarioRun | dict[str, object]
 
 
 def reconstruct_boards(source: ScenarioSource) -> tuple[Board, ...]:
+    """Replay stored transitions in order, including the initial board at index 0.
+
+    Reject inconsistent placements instead of silently repairing the artifact.
+    The returned tuple contains one more board than there are transitions.
+    """
     if isinstance(source, ScenarioRun):
         return _reconstruct_run_boards(source)
     return _reconstruct_json_boards(source)

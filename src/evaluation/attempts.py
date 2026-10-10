@@ -7,6 +7,7 @@ from .artifacts import content_sha256, read_json, write_json_atomic
 
 
 def attempt_has_valid_response(attempt: dict[str, Any]) -> bool:
+    """Whether the provider completed a response, regardless of move legality."""
     # Older runs stored provider response errors as completed parse failures.
     return (
         attempt.get("status") == "complete"

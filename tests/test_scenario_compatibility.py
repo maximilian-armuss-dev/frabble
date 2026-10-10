@@ -1,7 +1,6 @@
 """Historical artifacts retain move order without acquiring optimality claims."""
 
 import copy
-import gzip
 import json
 from dataclasses import replace
 
@@ -15,7 +14,7 @@ from src.generator.scenario_codec import scenario_run_from_json, scenario_run_to
 @pytest.fixture
 def scenario():
     reference = json.loads(
-        gzip.decompress((FIXTURES / "generation_reference.json.gz").read_bytes())
+        (FIXTURES / "generation_reference.json").read_text()
     )
     return copy.deepcopy(next(iter(reference["scenarios"].values())))
 

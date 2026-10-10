@@ -21,6 +21,12 @@ def select_or_create_run(
     *,
     new_run: bool = False,
 ) -> tuple[Path, dict[str, Any]]:
+    """Reuse the newest matching run or persist a fresh run manifest.
+
+    Execution settings may change on resume; all other resolved config fields
+    must match. Reusing a run updates its config snapshot and hash on disk.
+    Completed runs are eligible too, so rerunning does not imply new calls.
+    """
     if new_run:
         return _create_run(case_root / "runs", config, config_hash)
     matching = _matching_runs(

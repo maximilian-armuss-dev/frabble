@@ -50,7 +50,7 @@ from that cache-size measurement.
 
 ## Correctness evidence
 
-The compressed [reference fixture](../../tests/fixtures/generation_reference.json.gz)
+The [reference fixture](../../tests/fixtures/generation_reference.json)
 contains six small 2D/5D/10D scenarios over two sampling rounds and every slot list
 for their transition racks. It was captured with the unchanged generator before
 the submission cleanup, using the fixed recipes in `tests/fixtures/config/`.

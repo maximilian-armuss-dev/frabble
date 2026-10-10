@@ -16,6 +16,12 @@ def load_scenario_run(path: str | Path) -> ScenarioRun:
 
 
 def write_scenario_run(path: str | Path, scenario_run: ScenarioRun) -> Path:
+    """Atomically replace a scenario using the stable readable JSON format.
+
+    Serialization or temporary-file write failures leave an existing artifact
+    untouched. Temporary files are created beside the destination and cleaned
+    up on failure, so readers only see complete scenarios.
+    """
     output = Path(path)
     output.parent.mkdir(parents=True, exist_ok=True)
     # Preserve the serializer byte-for-byte; readers see only complete files.

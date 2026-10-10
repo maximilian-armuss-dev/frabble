@@ -54,6 +54,24 @@ The installed commands are declared in [`pyproject.toml`](../pyproject.toml):
 an unimplemented adapter and has been removed. Its Python extension interface and
 saved schemas remain for compatibility with existing artifacts.
 
+## Names and compatibility
+
+Config IDs come from YAML filenames; `config_name` is supplied by the loader.
+A case-set selects frozen puzzles, while a run selects models and execution
+settings for those puzzles. The two config types may share an ID such as
+`sanity_check` without representing the same object.
+
+`board_size` counts placed word segments, not occupied cells. The notebook label
+“visible sequences” refers to that same count. A `reference_move` is a general
+term: historical version-1 artifacts use `ground_truth_move` for a feasible
+move, while version-2 artifacts use `optimal_move` and `optimal_score` for a
+certified optimum. Historical field names and notebook selection defaults are
+retained so old artifacts and saved calls still work.
+
+`attempt_has_valid_response` refers to provider completion, not move legality.
+An invalid move can therefore be a final evaluated attempt. This distinction
+controls whether rerunning an evaluation sends another provider request.
+
 ## Regression evidence
 
 | Tests | What they protect |
@@ -68,8 +86,10 @@ saved schemas remain for compatibility with existing artifacts.
 | [`test_scenario_compatibility.py`](../tests/test_scenario_compatibility.py) | Historical scenario round trips and rejection of incomplete optimality certificates. |
 
 [`tests/support.py`](../tests/support.py) owns the small test recipes and model
-profiles. The compressed generation reference includes its source revision and
-was captured before this cleanup. Only temporary paths are normalized; moves,
+profiles. The [generation reference](../tests/fixtures/generation_reference.json)
+is stored as plain JSON so it is visible in source diffs and included alongside
+the test code. It includes its source revision and was captured before the
+initial cleanup. Only temporary paths are normalized; moves,
 racks, scores, search logs, and slot domains remain comparison targets. A changed
 reference should be reviewed as a behavioral change rather than regenerated
 merely to make a failing test pass.

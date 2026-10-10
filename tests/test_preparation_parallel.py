@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import gzip
 import json
 import os
 from pathlib import Path
@@ -9,12 +8,14 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from preparation_probe import reference_config
 from support import generation_config, preparation_recipes
 from src.evaluation.prepare import prepare_case_set
-from src.evaluation.scenario_workers import resolve_worker_count
+from src.evaluation.scenario_workers import (
+    ScenarioTask, ScenarioWorkerError, resolve_worker_count, run_scenarios,
+)
 from src.generator.engine import ScenarioGenerator
 from src.generator.readable_json import dumps_readable_json
 from src.generator.scenario_codec import scenario_run_from_json, scenario_run_to_json
@@ -36,8 +37,45 @@ class ParallelPreparationTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_lost_worker_pipe_reports_tasks_and_reaps_processes_before_exitcode(self):
+        # Linux may reset a pipe before the process sentinel reports its exit.
+        # Inject each OS-level failure so this contract is also tested on macOS.
+        for error_type in (EOFError, ConnectionResetError, BrokenPipeError):
+            for operation in ("send", "recv"):
+                with self.subTest(error=error_type.__name__, operation=operation):
+                    context = Mock()
+                    connections = [Mock(), Mock()]
+                    children = [Mock(), Mock()]
+                    processes = [Mock(exitcode=None), Mock(exitcode=None)]
+                    for process in processes:
+                        process.is_alive.side_effect = [True, False]
+                    context.Pipe.side_effect = list(zip(connections, children))
+                    context.Process.side_effect = processes
+                    error = error_type("worker pipe lost")
+                    getattr(connections[1], operation).side_effect = error
+                    tasks = [ScenarioTask(name, {}) for name in ("first", "second", "pending")]
+                    completed, failed = Mock(), Mock()
+
+                    with (
+                        patch("src.evaluation.scenario_workers.mp.get_context", return_value=context),
+                        patch("src.evaluation.scenario_workers.wait", return_value=[connections[1]]),
+                        self.assertRaises(ScenarioWorkerError) as caught,
+                    ):
+                        run_scenarios(tasks, workers=2, completed=completed, failed=failed)
+
+                    self.assertIs(caught.exception.__cause__, error)
+                    self.assertIn("affected scenarios: first, second", str(caught.exception))
+                    self.assertEqual([call.args[0] for call in failed.call_args_list], tasks[:2])
+                    completed.assert_not_called()
+                    for process, connection, child in zip(processes, connections, children):
+                        process.terminate.assert_called_once()
+                        process.join.assert_called_once_with(timeout=2)
+                        process.close.assert_called_once()
+                        connection.close.assert_called_once()
+                        child.close.assert_called_once()
+
     def test_baseline_serial_spawn_hash_seeds_and_byte_compatibility(self):
-        baseline = json.loads(gzip.decompress((HERE / "fixtures/generation_reference.json.gz").read_bytes()))
+        baseline = json.loads((HERE / "fixtures/generation_reference.json").read_text())
         baseline.pop("metadata")
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -136,7 +174,7 @@ class ParallelPreparationTests(unittest.TestCase):
             clean.assert_not_called()
 
     def test_atomic_serialization_preserves_bytes_and_previous_file_on_failure(self):
-        baseline = json.loads(gzip.decompress((HERE / "fixtures/generation_reference.json.gz").read_bytes()))
+        baseline = json.loads((HERE / "fixtures/generation_reference.json").read_text())
         run = scenario_run_from_json(next(iter(baseline["scenarios"].values())))
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "scenario.json"

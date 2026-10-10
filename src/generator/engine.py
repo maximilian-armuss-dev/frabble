@@ -52,6 +52,11 @@ class TemplateSearchResult:
 
 
 class ScenarioGenerator:
+    """Grow scenarios using a seeded search and certify each rack's best move.
+
+    Construction loads the configured grammar. The RNG advances with search;
+    use a fresh instance with the same config to reproduce a complete run.
+    """
     def __init__(self, config: GeneratorConfig) -> None:
         self.config = config
         self.rng = random.Random(config.seed)
@@ -64,6 +69,12 @@ class ScenarioGenerator:
         self,
         progress_callback: Callable[[int], None] | None = None,
     ) -> ScenarioRun:
+        """Build a complete scenario in memory; persistence is a separate step.
+
+        Progress counts transitions after the initial board, one per callback.
+        Exhausted candidate search or an uncertified optimum raises
+        ``GenerationError`` rather than returning a partial scenario.
+        """
         initial_transition = self.generate_initial_transition()
         initial_board = Board.empty(self.config.dimensions).place(initial_transition.move)
         board = initial_board

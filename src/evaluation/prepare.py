@@ -30,6 +30,13 @@ def prepare_case_set(
         | None
     ) = None,
 ) -> dict[str, Any]:
+    """Materialize local cases, reusing matching registered artifacts on resume.
+
+    ``clean`` removes the whole case-set directory, including evaluation runs.
+    Worker counts are validated before deletion; one worker runs serially.
+    Failures leave registered work available for a later invocation. No model
+    calls are made. The returned manifest describes the completed case set.
+    """
     resolve_worker_count(workers, 0)  # Validate before --clean or any writes.
     root = EVALUATION_OUTPUT_DIR / config.config_name
     base_grammar = load_grammar_config(config.grammar_config)

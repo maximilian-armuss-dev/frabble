@@ -26,6 +26,13 @@ async def evaluate_run(
     new_run: bool = False,
     progress_callback: ProgressCallback | None = None,
 ) -> dict[str, Any]:
+    """Call configured providers for pending jobs in a prepared case set.
+
+    By default, reuse the newest compatible run. A provider response is final
+    even if its move is invalid; transport and provider errors remain pending
+    for the next invocation. Each attempt is persisted as it finishes.
+    ``new_run`` starts a separate run without removing previous artifacts.
+    """
     case_root = EVALUATION_OUTPUT_DIR / config.case_set
     prepare_manifest = _load_completed_prepare_manifest(case_root, config.case_set)
     config_hash = content_sha256(config.model_dump(mode="json"))

@@ -9,6 +9,12 @@ from .language import StrictlyLocalLanguage
 
 
 class SlotCSP:
+    """Find a language-valid sequence within fixed per-position symbol domains.
+
+    Geometry and rack limits belong to the caller. This solver caches the
+    language automaton and optionally uses a caller-owned RNG to order choices.
+    It finds a feasible sequence; score certification belongs to optimize_move.
+    """
     def __init__(
         self,
         language: StrictlyLocalLanguage,

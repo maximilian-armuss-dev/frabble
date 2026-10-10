@@ -97,11 +97,25 @@ def run_scenarios(
     failed: Callable[[ScenarioTask, Exception], None],
     progress_factory: ProgressFactory | None = None,
 ) -> None:
+    """Generate tasks in spawned processes and report artifacts to the caller.
+
+    Callbacks run in the coordinator. An ordinary task failure stops new
+    dispatches while other active tasks finish. A lost worker or pipe aborts
+    the pool, reports every still-assigned task as failed, and reaps all owned
+    processes before returning control. Workers never write the manifest.
+    """
     context = mp.get_context("spawn")
     pool: list[_Worker] = []
     pending = iter(tasks)
     errors: list[str] = []
     shutdown_error: BaseException | None = None
+
+    def connection_error(exc: Exception) -> ScenarioWorkerError:
+        affected = [worker.task.scenario_id for worker in pool if worker.task]
+        return ScenarioWorkerError(
+            f"Scenario worker connection failed ({type(exc).__name__}: {exc}); "
+            f"affected scenarios: {', '.join(affected)}"
+        )
 
     def dispatch(worker: _Worker) -> None:
         task = next(pending, None)
@@ -109,7 +123,10 @@ def run_scenarios(
             return
         worker.task = task
         worker.count = 0
-        worker.connection.send(task)
+        try:
+            worker.connection.send(task)
+        except (EOFError, OSError) as exc:
+            raise connection_error(exc) from exc
 
     try:
         for _ in range(workers):
@@ -138,8 +155,11 @@ def run_scenarios(
                 while worker.task is not None and worker.connection in ready:
                     try:
                         kind, scenario_id, count, payload = worker.connection.recv()
-                    except EOFError:
-                        break
+                    except (EOFError, OSError) as exc:
+                        # A killed process can close the pipe with EOF on one
+                        # platform and reset it on another, before exitcode is
+                        # available. Both mean the assigned work was lost.
+                        raise connection_error(exc) from exc
                     task = worker.task
                     if scenario_id != task.scenario_id or count < worker.count:
                         raise ScenarioWorkerError("Invalid scenario worker event.")
